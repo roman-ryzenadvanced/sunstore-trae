@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js build
+.next/
+out/
+build/
+dist/
+
+# Go build
+*.exe
+*.exe~
+*.dll
+*.dylib
+*.so
+*.dylib
+*.test
+*.out
+vendor/
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.idea/
+.vscode/
+*.swp
+*.swo

@@ -9,6 +9,13 @@ A production-ready Russian e-commerce platform featuring a Go backend with T-Ban
 
 ## ✨ Features
 
+### Multi-Site Platform
+- **20 niche templates** ready to deploy (jewelry, fashion, tech, home, beauty, sports, books, toys, pets, art, music, food, wellness, auto, outdoor, kids, office, vintage, sustainable, luxury)
+- **Central super-admin** dashboard to create and manage every site from one place
+- **Quick-setup wizard**: pick a niche → name the store → set owner credentials → live in one flow
+- **Per-site admin auth** with site-scoped JWTs and role management (owner / manager / viewer)
+- **Per-site storefront** rendered at `/sites/{slug}` with a full admin panel at `/sites/{slug}/admin`
+
 ### Backend (Go)
 - **Hexagonal/Clean Architecture** - Domain-driven design with clear separation of concerns
 - **PostgreSQL Database** - Full migration schema with proper indexing

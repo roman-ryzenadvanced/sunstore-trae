@@ -1,3 +1,5 @@
+// Package httpdelivery wires the entire HTTP surface, including the
+// central multi-site management endpoints.
 package httpdelivery
 
 import (
@@ -27,9 +29,12 @@ type RouterDeps struct {
 	Payments      *usecase.PaymentUseCase
 	Admins        *usecase.AdminUseCase
 	Notifications *usecase.PaymentNotificationUseCase
+	Sites         *usecase.SiteService
+	SiteAuth      *usecase.SiteAuthService
+	Super         *usecase.SuperAdminService
 }
 
-// NewRouter builds the entire Phase 2 HTTP surface.
+// NewRouter builds the entire HTTP surface.
 func NewRouter(deps RouterDeps) *gin.Engine {
 	r := gin.New()
 	r.Use(gin.Recovery())
@@ -40,6 +45,7 @@ func NewRouter(deps RouterDeps) *gin.Engine {
 	orderHandler := NewOrderHandler(deps.Orders, deps.Payments)
 	adminHandler := NewAdminHandler(deps.Admins)
 	webhookHandler := NewWebhookHandler(deps.Logger, deps.Notifications)
+	siteHandler := NewSiteHandler(deps.Sites, deps.SiteAuth)
 
 	r.GET("/healthz", func(c *gin.Context) {
 		pingCtx, cancel := context.WithTimeout(c.Request.Context(), 2*time.Second)
@@ -59,10 +65,12 @@ func NewRouter(deps RouterDeps) *gin.Engine {
 
 	api := r.Group("/api/v1")
 	{
+		// Public storefront
 		api.GET("/products", productHandler.ListStorefront)
 		api.GET("/products/:slug", productHandler.GetStorefrontBySlug)
 		api.POST("/checkout/init", orderHandler.CheckoutInit)
 
+		// Legacy single-tenant admin (kept for backward-compat)
 		adminAuth := api.Group("/admin/auth")
 		adminAuth.POST("/login", adminHandler.Login)
 
@@ -76,9 +84,58 @@ func NewRouter(deps RouterDeps) *gin.Engine {
 			admin.GET("/orders", orderHandler.ListAdmin)
 		}
 
+		// Multi-site central admin
+		central := api.Group("/central")
+		{
+			central.POST("/auth/login", superAdminLoginHandler(deps.Super))
+
+			central.GET("/sites", centralAuthMiddleware(), siteHandler.List)
+			central.POST("/sites", centralAuthMiddleware(), siteHandler.Create)
+			central.PATCH("/sites/:id/status", centralAuthMiddleware(), siteHandler.SetStatus)
+
+			central.GET("/sites/:id/admins", centralAuthMiddleware(), siteHandler.ListSiteAdmins)
+			central.POST("/sites/:id/admins", centralAuthMiddleware(), siteHandler.AddSiteAdmin)
+			central.DELETE("/sites/:id/admins/:adminId", centralAuthMiddleware(), siteHandler.RemoveSiteAdmin)
+		}
+
+		// Per-site public profile (theme + identity)
+		api.GET("/sites/:siteSlug", siteHandler.GetBySlug)
+
+		// Per-site admin login
+		api.POST("/sites/:siteSlug/admin/auth/login", siteHandler.SiteAdminLogin)
+
+		// T-Bank webhook (existing)
 		webhooks := api.Group("/webhooks")
 		webhooks.POST("/tbank", webhookHandler.TBank)
 	}
 
 	return r
+}
+
+// superAdminLoginHandler returns a closure that authenticates a central admin.
+func superAdminLoginHandler(svc *usecase.SuperAdminService) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var body struct {
+			Username string `json:"username"`
+			Password string `json:"password"`
+		}
+		if err := c.ShouldBindJSON(&body); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid_payload"})
+			return
+		}
+		admin, err := svc.Authenticate(c.Request.Context(), body.Username, body.Password)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "auth_failed"})
+			return
+		}
+		tok, err := SignSuperAdminJWT(admin)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "token_failed"})
+			return
+		}
+		c.JSON(http.StatusOK, gin.H{
+			"token":    tok,
+			"username": admin.Username,
+		})
+	}
 }

@@ -6,6 +6,7 @@ package postgres
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -23,6 +24,9 @@ type DBTX interface {
 	Query(ctx context.Context, sql string, args ...any) (pgx.Rows, error)
 	QueryRow(ctx context.Context, sql string, args ...any) pgx.Row
 }
+
+// ErrNotFound is returned when a query yields no rows.
+var ErrNotFound = errors.New("not found")
 
 // DB wraps the pgx connection pool and offers a Close() method.
 type DB struct {

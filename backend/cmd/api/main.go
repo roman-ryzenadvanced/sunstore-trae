@@ -76,6 +76,17 @@ func run(logger *slog.Logger) error {
 	adminUC := usecase.NewAdminUseCase(adminRepo, cfg.JWT.Secret, cfg.JWT.Issuer, cfg.JWT.TTL)
 	notificationUC := usecase.NewPaymentNotificationUseCase(orderRepo, tbankNotifier)
 
+	// Multi-site
+	siteSvc := usecase.NewSiteService(db)
+	siteAuthSvc := usecase.NewSiteAuthService(db)
+	superSvc := usecase.NewSuperAdminService(db)
+	if err := superSvc.EnsureDefault(rootCtx, "admin", "changeme123"); err != nil {
+		logger.Warn("default super-admin bootstrap failed", slog.String("err", err.Error()))
+	}
+
+	// Initialize the JWT signer used by the central/super and site tokens.
+	httpdelivery.SetJWTConfig(cfg.JWT)
+
 	router := httpdelivery.NewRouter(httpdelivery.RouterDeps{
 		Config:        cfg,
 		Logger:        logger,
@@ -85,6 +96,9 @@ func run(logger *slog.Logger) error {
 		Payments:      paymentUC,
 		Admins:        adminUC,
 		Notifications: notificationUC,
+		Sites:         siteSvc,
+		SiteAuth:      siteAuthSvc,
+		Super:         superSvc,
 	})
 
 	srv := &http.Server{

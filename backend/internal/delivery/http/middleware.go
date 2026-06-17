@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt/v5"
 
 	"sunstore/internal/domain"
 	"sunstore/internal/usecase"
@@ -15,6 +16,7 @@ import (
 
 const (
 	adminClaimsContextKey = "admin_claims"
+	centralClaimsKey      = "central_claims"
 	defaultListLimit      = 24
 )
 
@@ -139,4 +141,75 @@ func parseIDParam(c *gin.Context, key string) (int64, error) {
 		return 0, domain.ErrValidation
 	}
 	return n, nil
+}
+
+// centralAuthMiddleware validates a super-admin JWT and stores Claims in ctx.
+func centralAuthMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		header := strings.TrimSpace(c.GetHeader("Authorization"))
+		if !strings.HasPrefix(strings.ToLower(header), "bearer ") {
+			writeError(c, http.StatusUnauthorized, "authorization bearer token is required")
+			return
+		}
+		token := strings.TrimSpace(header[len("Bearer "):])
+		claims := &Claims{}
+		_, err := jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (any, error) {
+			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, errors.New("unexpected signing method")
+			}
+			if currentJWTConfig == nil {
+				return nil, errors.New("jwt not configured")
+			}
+			return currentJWTConfig.Secret, nil
+		})
+		if err != nil {
+			writeError(c, http.StatusUnauthorized, "invalid token")
+			return
+		}
+		if claims.Kind != "super" {
+			writeError(c, http.StatusForbidden, "super admin access required")
+			return
+		}
+		c.Set(centralClaimsKey, claims)
+		c.Next()
+	}
+}
+
+// siteAuthMiddleware ensures the JWT belongs to a site admin and matches
+// the URL's :siteSlug param (so a token for site A cannot be used against
+// site B). Stores the *Claims in the request context.
+func siteAuthMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		header := strings.TrimSpace(c.GetHeader("Authorization"))
+		if !strings.HasPrefix(strings.ToLower(header), "bearer ") {
+			writeError(c, http.StatusUnauthorized, "authorization bearer token is required")
+			return
+		}
+		token := strings.TrimSpace(header[len("Bearer "):])
+		claims := &Claims{}
+		_, err := jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (any, error) {
+			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, errors.New("unexpected signing method")
+			}
+			if currentJWTConfig == nil {
+				return nil, errors.New("jwt not configured")
+			}
+			return currentJWTConfig.Secret, nil
+		})
+		if err != nil {
+			writeError(c, http.StatusUnauthorized, "invalid token")
+			return
+		}
+		if claims.Kind != "site" {
+			writeError(c, http.StatusForbidden, "site admin access required")
+			return
+		}
+		// Optional: enforce URL/scope match
+		if urlSlug := c.Param("siteSlug"); urlSlug != "" && urlSlug != claims.SiteSlug {
+			writeError(c, http.StatusForbidden, "token does not match site")
+			return
+		}
+		c.Set(adminClaimsContextKey, claims)
+		c.Next()
+	}
 }

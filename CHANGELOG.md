@@ -2,6 +2,55 @@
 
 All notable changes, issues, fixes, and root causes documented for the Sun.store e-commerce platform.
 
+## [1.1.0] - 2025-06-17
+
+### Multi-Site Template System
+
+This release adds a full multi-site deployment platform on top of the single-store v1.0.0:
+
+- 20 ready-to-use niche templates (jewelry, fashion, tech, home, beauty, sports, books, toys, pets, art, music, food, wellness, auto, outdoor, kids, office, vintage, sustainable, luxury)
+- Central super-admin: create / list / suspend sites from one dashboard
+- Quick-setup wizard: pick a niche → name the site → set owner credentials → provisioned in one flow
+- Per-site admin auth with site-scoped JWT and role management (owner / manager / viewer)
+- Per-site storefront rendered from the chosen template (`/sites/{slug}`) with admin panel (`/sites/{slug}/admin`)
+
+#### Files added
+- `backend/internal/domain/site.go` — site/site_admin/super_admin/site_product/site_order entities
+- `backend/internal/repository/postgres/site_repo.go` — full CRUD for sites, admins, products
+- `backend/internal/usecase/site_uc.go` — `SiteService`, `SiteAuthService`, `SuperAdminService`
+- `backend/internal/delivery/http/site_handler.go` — REST endpoints under `/api/v1/central` and `/api/v1/sites`
+- `backend/internal/delivery/http/jwt.go` — super-admin + site-scoped JWT signing
+- `backend/migrations/0002_multi_site.sql` — sites, site_admins, super_admins, site_products, site_orders
+- `frontend/src/lib/templates/{types.ts,templates.ts}` — 20 niche template definitions
+- `frontend/src/lib/multi-site/{api.ts,store.ts}` — client + Zustand session store
+- `frontend/src/app/central/{login,setup,dashboard}/page.tsx`
+- `frontend/src/app/central/sites/[id]/admins/page.tsx`
+- `frontend/src/app/sites/[siteSlug]/{page.tsx,admin/page.tsx,admin/dashboard/page.tsx}`
+
+#### Issues fixed during this release
+
+**Issue #6 — TypeScript typed IDs mismatch in templates**
+- **Root cause:** `TemplateCategory.id` was typed as `string` in `types.ts` but the literal data in `templates.ts` used numeric IDs (`id: 1`).
+- **Fix:** Bulk-rewrite all `id: N` to `id: "N"` in `templates.ts` and align `TemplateProduct.category_id` to string.
+
+**Issue #7 — Next.js typedRoutes rejects `router.push("/x?y=...")`**
+- **Root cause:** `typedRoutes` (Next 15) does not allow arbitrary query strings in route literals.
+- **Fix:** Use `window.location.href` for navigation paths that need a query string.
+
+**Issue #8 — Unused interface removed**
+- **Root cause:** `TemplateCategory` was missing from `types.ts` for one build cycle, causing compile errors.
+- **Fix:** Re-added the interface with the `string` ID type.
+
+**Issue #9 — Site use case leftover untyped `WithTx` indirection**
+- **Root cause:** An early version of `site_uc.go` referenced a `WithTx` closure that was never used; left a `_ = err` line and a typed-empty `interface{}` parameter.
+- **Fix:** Removed the unused block; insertion order is now: create site → create site_admin → flip status to `READY`.
+
+**Issue #10 — Template branding not exposed at top level**
+- **Root cause:** `Template.branding.tagline` was the only place the tagline was stored but the dashboard used a top-level `tagline` field on the `Template` interface.
+- **Fix:** Dashboard now reads `template?.branding.tagline` consistently with the rest of the system.
+
+---
+
 ## [1.0.0] - 2025-06-17
 
 ### Initial Release - Complete E-commerce Platform
