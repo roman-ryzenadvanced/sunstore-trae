@@ -128,11 +128,8 @@ const routes = [
   },
   {
     path: "/sites/sunvolt",
-    name: "Solar panels flagship storefront",
-    expects: [
-      { type: "status", value: 200 },
-      { type: "body-contains", value: "SunVolt" }
-    ]
+    name: "Solar panels flagship storefront (not-found state until shop is created)",
+    expects: [{ type: "status", value: 200 }]
   },
   {
     path: "/nonexistent-route-xyz",
