@@ -1,4 +1,14 @@
+import type { Metadata } from "next";
+import type { Route } from "next";
 import Link from "next/link";
+
+export const metadata: Metadata = {
+  title: "Статус заказа",
+  description: "Результат оформления заказа и оплаты через T-Bank.",
+  robots: { index: false, follow: false }
+};
+
+export const dynamic = "force-dynamic";
 
 export default async function CheckoutStatusPage({
   searchParams
@@ -7,32 +17,56 @@ export default async function CheckoutStatusPage({
 }) {
   const params = await searchParams;
   const status = typeof params.status === "string" ? params.status : "success";
+  const orderId =
+    typeof params.order === "string" ? params.order : undefined;
 
   const copy =
     status === "rejected"
       ? {
-          title: "Оплата не завершена",
+          eyebrow: "Оплата не завершена",
+          title: "Оплата не прошла",
           description:
-            "Проверьте данные карты или попробуйте снова. Заказ можно переоформить из корзины.",
-          action: "Вернуться к checkout"
+            "Проверьте данные карты или попробуйте снова. Заказ можно переоформить из корзины — товары уже там.",
+          action: "Вернуться к оформлению",
+          href: "/checkout" as Route,
+          tone: "rejected" as const
+        }
+      : status === "mock"
+      ? {
+          eyebrow: "Демо-режим",
+          title: "Заказ создан (mock)",
+          description:
+            "Backend недоступен, поэтому платёж не был инициирован. При подключённом API сюда вернёт T-Bank flow с реальной ссылкой на оплату.",
+          action: "Вернуться в каталог",
+          href: "/catalog" as Route,
+          tone: "pending" as const
         }
       : {
-          title: "Запрос на оплату создан",
+          eyebrow: "Заказ оформлен",
+          title: "Спасибо за заказ!",
           description:
-            "Если backend недоступен, вы видите mock status page. При подключённом API сюда вернёт T-Bank flow.",
-          action: "Вернуться в каталог"
+            "Мы отправили подтверждение на почту. Ссылка на оплату через T-Bank уже открыта — если окно не появилось, нажмите кнопку ниже.",
+          action: "Вернуться в каталог",
+          href: "/catalog" as Route,
+          tone: "confirmed" as const
         };
 
   return (
     <div className="shell page-stack">
-      <section className="status-card">
-        <p className="eyebrow">Checkout status</p>
+      <section
+        className={`status-card status-card--${copy.tone}`}
+        role="status"
+        aria-live="polite"
+      >
+        <p className="eyebrow">{copy.eyebrow}</p>
         <h1>{copy.title}</h1>
         <p>{copy.description}</p>
-        <Link
-          href={status === "rejected" ? "/checkout" : "/catalog"}
-          className="button button--primary"
-        >
+        {orderId ? (
+          <p className="muted">
+            Номер заказа: <code>{orderId}</code>
+          </p>
+        ) : null}
+        <Link href={copy.href} className="button button--primary">
           {copy.action}
         </Link>
       </section>

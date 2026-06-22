@@ -2,6 +2,7 @@
 
 import type { Route } from "next";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 const STORAGE_KEY = "sunstore-admin-session";
@@ -12,18 +13,23 @@ export interface AdminSession {
   expiresAt: string;
 }
 
-export function readAdminSession() {
-  if (typeof window === "undefined") {
-    return null;
-  }
+export function readAdminSession(): AdminSession | null {
+  if (typeof window === "undefined") return null;
 
   const raw = window.localStorage.getItem(STORAGE_KEY);
-  if (!raw) {
-    return null;
-  }
+  if (!raw) return null;
 
   try {
-    return JSON.parse(raw) as AdminSession;
+    const session = JSON.parse(raw) as AdminSession;
+    if (!session.token || !session.expiresAt) return null;
+
+    // Expiry check — auto-clear if expired.
+    const expiresAt = new Date(session.expiresAt).getTime();
+    if (!Number.isFinite(expiresAt) || expiresAt < Date.now()) {
+      window.localStorage.removeItem(STORAGE_KEY);
+      return null;
+    }
+    return session;
   } catch {
     return null;
   }
@@ -46,18 +52,54 @@ export function AdminAuthGate({
 }: {
   children: (session: AdminSession) => React.ReactNode;
 }) {
+  const router = useRouter();
   const [session, setSession] = useState<AdminSession | null>(null);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     setSession(readAdminSession());
+    setReady(true);
+
+    // Watch for storage events (logout in another tab).
+    function onStorage(e: StorageEvent) {
+      if (e.key === STORAGE_KEY) {
+        setSession(readAdminSession());
+      }
+    }
+    window.addEventListener("storage", onStorage);
+    return () => window.removeEventListener("storage", onStorage);
   }, []);
+
+  // Periodic expiry check while tab is focused.
+  useEffect(() => {
+    if (!session) return;
+    const interval = setInterval(() => {
+      const fresh = readAdminSession();
+      if (!fresh) {
+        setSession(null);
+        router.replace("/admin/login" as Route);
+      }
+    }, 60_000);
+    return () => clearInterval(interval);
+  }, [session, router]);
+
+  if (!ready) {
+    return (
+      <div className="admin-empty" role="status" aria-live="polite">
+        <p>Проверка сессии…</p>
+      </div>
+    );
+  }
 
   if (!session) {
     return (
       <div className="admin-empty">
-        <p className="eyebrow">Admin access required</p>
-        <h2>Войдите в панель управления</h2>
-        <p>Если backend ещё не поднят, форма логина использует безопасный mock fallback.</p>
+        <p className="eyebrow">Нужен вход в админ-панель</p>
+        <h2>Войдите, чтобы продолжить</h2>
+        <p>
+          Если backend недоступен, форма логина переключится на безопасный
+          демо-режим — изменения сохранятся только локально.
+        </p>
         <Link href={"/admin/login" as Route} className="button button--primary">
           Открыть вход
         </Link>

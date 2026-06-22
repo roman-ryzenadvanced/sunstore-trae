@@ -2,60 +2,109 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { getSiteBySlug, CentralSite } from "@/lib/multi-site/api";
+import { useParams } from "next/navigation";
+import { ShoppingBag, Store, ArrowLeft, PackageOpen } from "lucide-react";
+
+import { getSiteBySlug, CentralSite, listSiteProducts } from "@/lib/multi-site/api";
 import { useCartStore } from "@/store/cart";
 import { TEMPLATES } from "@/lib/templates/templates";
+import { formatPrice } from "@/lib/format";
+import { toast } from "@/components/toaster";
+import { Skeleton } from "@/components/skeletons";
+import type { Product } from "@/types/api";
 
-interface SiteProduct {
-  id: number;
-  slug: string;
-  title: string;
-  description: string;
-  price_kopecks: number;
-  images: string[];
-  is_active: boolean;
-  stock_quantity: number;
-  category?: string;
-}
-
-function rub(k: number) {
-  return new Intl.NumberFormat("ru-RU", { style: "currency", currency: "RUB", maximumFractionDigits: 0 }).format(k / 100);
-}
+import "./storefront.css";
 
 export default function PerSiteStorefront() {
   const params = useParams();
   const slug = String(params?.siteSlug || "");
-  const router = useRouter();
   const [site, setSite] = useState<CentralSite | null>(null);
-  const [products, setProducts] = useState<SiteProduct[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const addItem = useCartStore((s) => s.addItem);
   const openCart = useCartStore((s) => s.open);
+  const cartCount = useCartStore((s) =>
+    s.items.reduce((sum, item) => sum + item.quantity, 0)
+  );
 
   useEffect(() => {
     if (!slug) return;
     setLoading(true);
-    Promise.all([getSiteBySlug(slug), getMockProducts(slug)]).then(([s, p]) => {
-      setSite(s);
-      setProducts(p);
-      setLoading(false);
-    });
+    Promise.all([getSiteBySlug(slug), listSiteProducts(slug)])
+      .then(([s, p]) => {
+        setSite(s);
+        // Hydrate products from localStorage if backend returned nothing.
+        if ((!p || p.length === 0) && typeof window !== "undefined") {
+          const raw = window.localStorage.getItem(`sunstore-site-products-${slug}`);
+          if (raw) {
+            try {
+              setProducts(JSON.parse(raw));
+              return;
+            } catch {
+              // ignore
+            }
+          }
+        }
+        setProducts(p || []);
+      })
+      .finally(() => setLoading(false));
   }, [slug]);
 
-  const template = useMemo(() => TEMPLATES.find((t) => t.id === site?.template_id), [site]);
+  const template = useMemo(
+    () => TEMPLATES.find((t) => t.id === site?.template_id),
+    [site]
+  );
+
+  // Inject template tokens as CSS variables on this subtree.
+  const themeVars = useMemo(() => {
+    if (!template) return {};
+    const c = template.colors;
+    const t = template.typography;
+    const s = template.spacing;
+    return {
+      ["--site-bg" as string]: c.background,
+      ["--site-surface" as string]: c.surface,
+      ["--site-surface-alt" as string]: c.surfaceAlt,
+      ["--site-text" as string]: c.text,
+      ["--site-text-muted" as string]: c.textMuted,
+      ["--site-accent" as string]: c.accent,
+      ["--site-accent-text" as string]: c.accentText,
+      ["--site-border" as string]: c.border,
+      ["--site-success" as string]: c.success,
+      ["--site-warning" as string]: c.warning,
+      ["--site-danger" as string]: c.danger,
+      ["--site-display-font" as string]: t.displayFont,
+      ["--site-body-font" as string]: t.bodyFont,
+      ["--site-display-weight" as string]: String(t.displayWeight),
+      ["--site-shell" as string]: s.shellMaxWidth,
+      ["--site-radius-card" as string]: s.cardRadius,
+      ["--site-radius-button" as string]: s.buttonRadius
+    } as React.CSSProperties;
+  }, [template]);
 
   if (loading) {
-    return <div style={{ padding: 32, color: "#888" }}>Загрузка…</div>;
+    return (
+      <main className="site-storefront site-storefront--loading">
+        <div className="site-storefront__loading">
+          <Skeleton style={{ height: 60, width: 200 }} />
+          <Skeleton style={{ height: 30, width: "60%" }} />
+          <Skeleton style={{ height: 200, width: "100%" }} />
+        </div>
+      </main>
+    );
   }
+
   if (!site || !template) {
     return (
-      <main style={{ padding: 64, textAlign: "center" }}>
-        <h1 style={{ fontSize: 24 }}>Сайт не найден</h1>
-        <p style={{ color: "#888" }}>slug: {slug}</p>
-        <Link href="/central/setup" style={{ display: "inline-block", marginTop: 16, padding: "10px 16px", borderRadius: 8, background: "#000", color: "#fff", textDecoration: "none" }}>
-          Создать магазин
-        </Link>
+      <main className="site-storefront site-storefront--notfound">
+        <div className="site-storefront__notfound">
+          <PackageOpen size={48} aria-hidden="true" />
+          <h1>Сайт не найден</h1>
+          <p className="muted">Магазин с адресом /{slug} не существует.</p>
+          <Link href="/central/setup" className="button button--primary">
+            Создать магазин
+          </Link>
+        </div>
       </main>
     );
   }
@@ -65,130 +114,153 @@ export default function PerSiteStorefront() {
   const b = template.branding;
 
   return (
-    <main style={{ minHeight: "100vh", background: c.background, color: c.text, fontFamily: t.bodyFont }}>
-      <header
-        style={{
-          position: "sticky",
-          top: 0,
-          zIndex: 10,
-          background: c.surface,
-          borderBottom: `1px solid ${c.border}`,
-          padding: "16px 24px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <span style={{ fontSize: 26, color: c.accent }}>{b.logoMark}</span>
+    <main
+      className="site-storefront"
+      style={themeVars}
+      data-template={template.id}
+    >
+      <header className="site-storefront__header">
+        <Link href={`/sites/${slug}`} className="site-storefront__brand">
+          <span
+            className="site-storefront__logo"
+            aria-hidden="true"
+            style={{ color: c.accent }}
+          >
+            {b.logoMark}
+          </span>
           <div>
-            <p style={{ margin: 0, fontSize: 18, fontWeight: t.displayWeight, fontFamily: t.displayFont }}>{b.storeName}</p>
-            <p style={{ margin: 0, fontSize: 11, color: c.textMuted }}>{b.tagline}</p>
+            <p className="site-storefront__brand-name">{b.storeName}</p>
+            <p className="site-storefront__brand-tagline">{b.tagline}</p>
           </div>
-        </div>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+        </Link>
+        <div className="site-storefront__actions">
           <button
             onClick={openCart}
-            style={{ padding: "8px 14px", borderRadius: template.spacing.buttonRadius, background: c.accent, color: c.accentText, border: "none", cursor: "pointer", fontWeight: 600 }}
+            className="site-storefront__cart"
+            aria-label={`Корзина, ${cartCount} товаров`}
           >
-            Корзина
+            <ShoppingBag size={16} aria-hidden="true" />
+            <span>Корзина</span>
+            <span className="site-storefront__cart-count">{cartCount}</span>
           </button>
           <Link
             href={`/sites/${slug}/admin`}
-            style={{ padding: "8px 14px", borderRadius: template.spacing.buttonRadius, background: "transparent", color: c.text, border: `1px solid ${c.border}`, textDecoration: "none", fontSize: 13 }}
+            className="site-storefront__admin-link"
           >
-            Войти как админ
+            <Store size={14} aria-hidden="true" /> Войти как админ
           </Link>
         </div>
       </header>
 
-      <section
-        style={{
-          padding: "80px 24px",
-          textAlign: "center",
-          background: `linear-gradient(135deg, ${c.surfaceAlt}, ${c.background})`,
-        }}
-      >
-        <p style={{ fontSize: 12, letterSpacing: 4, textTransform: "uppercase", color: c.textMuted, margin: 0 }}>
+      <section className="site-storefront__hero">
+        <p className="site-storefront__hero-eyebrow">
           {template.heroCopy.eyebrow}
         </p>
-        <h1 style={{ fontSize: 48, fontWeight: t.displayWeight, fontFamily: t.displayFont, margin: "12px auto", maxWidth: 800, lineHeight: 1.1 }}>
+        <h1 className="site-storefront__hero-title">
           {template.heroCopy.headline}
         </h1>
-        <p style={{ fontSize: 16, color: c.textMuted, maxWidth: 600, margin: "0 auto 24px" }}>{template.heroCopy.subhead}</p>
-        <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
-          <button
-            onClick={() => document.getElementById("products")?.scrollIntoView({ behavior: "smooth" })}
-            style={{ padding: "12px 24px", borderRadius: template.spacing.buttonRadius, background: c.accent, color: c.accentText, border: "none", fontWeight: 600, cursor: "pointer" }}
-          >
-            {template.heroCopy.ctaPrimary}
-          </button>
-        </div>
+        <p className="site-storefront__hero-subhead">
+          {template.heroCopy.subhead}
+        </p>
+        <button
+          onClick={() =>
+            document
+              .getElementById("site-products")
+              ?.scrollIntoView({ behavior: "smooth" })
+          }
+          className="site-storefront__cta"
+        >
+          {template.heroCopy.ctaPrimary}
+        </button>
       </section>
 
-      <section id="products" style={{ padding: "60px 24px", maxWidth: template.spacing.shellMaxWidth, margin: "0 auto" }}>
-        <h2 style={{ fontSize: 28, fontWeight: t.displayWeight, fontFamily: t.displayFont, margin: "0 0 24px" }}>Каталог</h2>
+      <section id="site-products" className="site-storefront__catalog">
+        <h2 className="site-storefront__section-title">Каталог</h2>
         {products.length === 0 ? (
-          <p style={{ color: c.textMuted }}>Пока нет товаров. Добавьте их через админ панель.</p>
+          <div className="site-storefront__empty">
+            <PackageOpen size={32} aria-hidden="true" />
+            <p>Пока нет товаров. Добавьте их через админ-панель.</p>
+            <Link
+              href={`/sites/${slug}/admin`}
+              className="site-storefront__cta"
+            >
+              Открыть админ-панель
+            </Link>
+          </div>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 20 }}>
-            {products.map((p) => (
-              <article key={p.id} style={{ background: c.surface, border: `1px solid ${c.border}`, borderRadius: template.spacing.cardRadius, overflow: "hidden" }}>
-                <div style={{ aspectRatio: "1", background: c.surfaceAlt, overflow: "hidden" }}>
-                  {p.images?.[0] ? (
-                    <img src={p.images[0]} alt={p.title} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  ) : (
-                    <div style={{ width: "100%", height: "100%", display: "grid", placeItems: "center", color: c.textMuted }}>{b.logoMark}</div>
-                  )}
-                </div>
-                <div style={{ padding: 16 }}>
-                  <p style={{ margin: 0, fontSize: 16, fontWeight: 600 }}>{p.title}</p>
-                  <p style={{ margin: "4px 0 12px", fontSize: 12, color: c.textMuted }}>{p.description}</p>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <span style={{ fontSize: 18, fontWeight: 700, color: c.accent }}>{rub(p.price_kopecks)}</span>
-                    <button
-                      onClick={() => {
-                        addItem({
-                          id: p.id,
-                          slug: p.slug,
-                          title: p.title,
-                          description: p.description,
-                          price_kopecks: p.price_kopecks,
-                          images: p.images || [],
-                          stock_quantity: p.stock_quantity,
-                        } as any);
-                      }}
-                      style={{ padding: "8px 12px", borderRadius: template.spacing.buttonRadius, background: c.accent, color: c.accentText, border: "none", cursor: "pointer", fontSize: 12, fontWeight: 600 }}
-                    >
-                      В корзину
-                    </button>
+          <div className="site-storefront__grid">
+            {products.map((p) => {
+              const outOfStock = p.stock_quantity <= 0;
+              return (
+                <article key={p.id} className="site-storefront__product">
+                  <div className="site-storefront__product-media">
+                    {p.images?.[0] ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={p.images[0]}
+                        alt={p.title_ru || p.slug}
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="site-storefront__product-placeholder">
+                        {b.logoMark}
+                      </div>
+                    )}
+                    {outOfStock ? (
+                      <span className="site-storefront__product-badge site-storefront__product-badge--out">
+                        Нет в наличии
+                      </span>
+                    ) : null}
                   </div>
-                </div>
-              </article>
-            ))}
+                  <div className="site-storefront__product-body">
+                    <p className="site-storefront__product-title">
+                      {p.title_ru || p.slug}
+                    </p>
+                    {p.description_ru ? (
+                      <p className="site-storefront__product-desc">
+                        {p.description_ru}
+                      </p>
+                    ) : null}
+                    <div className="site-storefront__product-foot">
+                      <span className="site-storefront__product-price">
+                        {formatPrice(p.price_kopecks)}
+                      </span>
+                      <button
+                        onClick={() => {
+                          if (outOfStock) {
+                            toast.warning("Нет в наличии");
+                            return;
+                          }
+                          addItem(p);
+                          toast.success("Добавлено в корзину", p.title_ru);
+                        }}
+                        disabled={outOfStock}
+                        className="site-storefront__product-buy"
+                        aria-label={`Добавить в корзину: ${p.title_ru}`}
+                      >
+                        {outOfStock ? "Нет" : "В корзину"}
+                      </button>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
           </div>
         )}
       </section>
 
-      <footer style={{ padding: "40px 24px", borderTop: `1px solid ${c.border}`, textAlign: "center", color: c.textMuted, fontSize: 12 }}>
-        © {new Date().getFullYear()} {b.storeName}. Powered by Sun.store.
+      <footer className="site-storefront__footer">
+        <div>
+          <Link href={`/sites/${slug}`} className="site-storefront__footer-brand">
+            {b.logoMark} {b.storeName}
+          </Link>
+          <p className="muted">{b.tagline}</p>
+        </div>
+        <p className="muted site-storefront__footer-powered">
+          Powered by <Link href="/">Sun.store</Link> ·{" "}
+          <Link href={`/sites/${slug}/admin`}>Админ-панель</Link>
+        </p>
       </footer>
     </main>
   );
-}
-
-async function getMockProducts(slug: string): Promise<SiteProduct[]> {
-  // Try backend first, then fall back to local mock
-  try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8080/api/v1"}/sites/${slug}/products`);
-    if (res.ok) return await res.json();
-  } catch {
-    // fall through
-  }
-  // Persist local mock for this site
-  if (typeof window !== "undefined") {
-    const raw = window.localStorage.getItem(`sunstore-site-products-${slug}`);
-    if (raw) return JSON.parse(raw);
-  }
-  return [];
 }

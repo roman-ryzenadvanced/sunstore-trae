@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { Loader2, LogOut, Package, Plus, Search } from "lucide-react";
 
 import { AdminAuthGate, clearAdminSession } from "@/components/admin-auth-gate";
 import {
@@ -10,6 +11,11 @@ import {
   updateAdminProduct
 } from "@/lib/api";
 import { formatPrice, slugify } from "@/lib/format";
+import { toast } from "@/components/toaster";
+import {
+  AdminRowSkeleton,
+  Skeleton
+} from "@/components/skeletons";
 import type { Product, UpsertProductInput } from "@/types/api";
 
 const emptyForm: UpsertProductInput = {
@@ -34,7 +40,12 @@ function normalizeForm(form: UpsertProductInput) {
 export function AdminProductsManager() {
   return (
     <AdminAuthGate>
-      {(session) => <AdminProductsContent token={session.token} username={session.username} />}
+      {(session) => (
+        <AdminProductsContent
+          token={session.token}
+          username={session.username}
+        />
+      )}
     </AdminAuthGate>
   );
 }
@@ -48,24 +59,23 @@ function AdminProductsContent({
 }) {
   const [products, setProducts] = useState<Product[]>([]);
   const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState("");
   const [form, setForm] = useState<UpsertProductInput>(emptyForm);
   const [editingId, setEditingId] = useState<number | null>(null);
-  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   useEffect(() => {
     let mounted = true;
+    setLoading(true);
 
     listAdminProducts(token, { search })
       .then((response) => {
-        if (mounted) {
-          setProducts(response);
-        }
+        if (mounted) setProducts(response);
       })
       .finally(() => {
-        if (mounted) {
-          setLoading(false);
-        }
+        if (mounted) setLoading(false);
       });
 
     return () => {
@@ -74,7 +84,16 @@ function AdminProductsContent({
   }, [token, search]);
 
   const lowStockCount = useMemo(
-    () => products.filter((product) => product.stock_quantity <= 5).length,
+    () => products.filter((p) => p.stock_quantity <= 5).length,
+    [products]
+  );
+
+  const totalValue = useMemo(
+    () =>
+      products.reduce(
+        (sum, p) => sum + p.price_kopecks * p.stock_quantity,
+        0
+      ),
     [products]
   );
 
@@ -96,36 +115,84 @@ function AdminProductsContent({
       images: product.images.length ? product.images : [""],
       is_active: product.is_active
     });
+    // Scroll form into view on mobile.
+    setTimeout(() => {
+      document
+        .getElementById("admin-product-form")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
   }
 
   async function submitForm(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+
+    if (!form.title_ru.trim()) {
+      toast.error("Введите название товара");
+      return;
+    }
+    if (form.price_kopecks <= 0) {
+      toast.error("Цена должна быть больше нуля");
+      return;
+    }
+
     const prepared = normalizeForm({
       ...form,
       slug: form.slug || slugify(form.title_ru)
     });
 
-    const saved = editingId
-      ? await updateAdminProduct(token, editingId, prepared)
-      : await createAdminProduct(token, prepared);
+    setSaving(true);
+    try {
+      const saved = editingId
+        ? await updateAdminProduct(token, editingId, prepared)
+        : await createAdminProduct(token, prepared);
 
-    setProducts((current) => {
-      if (editingId) {
-        return current.map((product) => (product.id === editingId ? saved : product));
-      }
-      return [saved, ...current];
-    });
+      setProducts((current) => {
+        if (editingId) {
+          return current.map((p) => (p.id === editingId ? saved : p));
+        }
+        return [saved, ...current];
+      });
 
-    setMessage(editingId ? "Карточка обновлена." : "Карточка создана.");
-    resetForm();
+      toast.success(
+        editingId ? "Карточка обновлена" : "Карточка создана",
+        saved.title_ru
+      );
+      resetForm();
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "Не удалось сохранить";
+      toast.error("Ошибка сохранения", msg);
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function removeProduct(id: number) {
-    await deleteAdminProduct(token, id);
-    setProducts((current) => current.filter((product) => product.id !== id));
-    if (editingId === id) {
-      resetForm();
+    const product = products.find((p) => p.id === id);
+    if (!product) return;
+    if (!confirm(`Удалить «${product.title_ru}»? Действие необратимо.`)) return;
+
+    setDeletingId(id);
+    // Optimistic removal.
+    const previous = products;
+    setProducts((current) => current.filter((p) => p.id !== id));
+    if (editingId === id) resetForm();
+
+    try {
+      await deleteAdminProduct(token, id);
+      toast.success("Товар удалён", product.title_ru);
+    } catch (e) {
+      // Roll back on failure.
+      setProducts(previous);
+      const msg = e instanceof Error ? e.message : "Не удалось удалить";
+      toast.error("Ошибка удаления", msg);
+    } finally {
+      setDeletingId(null);
     }
+  }
+
+  function handleSearchSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setSearch(searchInput.trim());
   }
 
   return (
@@ -133,7 +200,9 @@ function AdminProductsContent({
       <div className="admin-panel">
         <div className="admin-panel__header">
           <div>
-            <p className="eyebrow">Signed in as {username}</p>
+            <p className="eyebrow">
+              Вы вошли как <strong>{username}</strong>
+            </p>
             <h1>Товары</h1>
           </div>
           <div className="admin-stats">
@@ -145,32 +214,89 @@ function AdminProductsContent({
               <span>Низкий остаток</span>
               <strong>{lowStockCount}</strong>
             </div>
+            <div>
+              <span>Стоимость склада</span>
+              <strong>{formatPrice(totalValue)}</strong>
+            </div>
             <button
               type="button"
               className="button button--ghost"
               onClick={() => {
                 clearAdminSession();
+                toast.info("Сессия завершена");
                 window.location.href = "/admin/login";
               }}
             >
-              Выйти
+              <LogOut size={14} /> Выйти
             </button>
           </div>
         </div>
 
-        <div className="toolbar">
+        <form className="toolbar" onSubmit={handleSearchSubmit} role="search">
           <label className="field">
             <span>Поиск</span>
-            <input
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Название, SKU или описание"
-            />
+            <div className="field__with-suffix">
+              <input
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Название, SKU или описание"
+                aria-label="Поиск товаров"
+              />
+              {searchInput ? (
+                <button
+                  type="button"
+                  className="field__suffix"
+                  onClick={() => {
+                    setSearchInput("");
+                    setSearch("");
+                  }}
+                  aria-label="Очистить поиск"
+                >
+                  ✕
+                </button>
+              ) : null}
+            </div>
           </label>
-        </div>
+          <button type="submit" className="button button--ghost">
+            <Search size={14} /> Найти
+          </button>
+        </form>
 
         {loading ? (
-          <div className="admin-empty">Загрузка товаров...</div>
+          <div className="admin-table">
+            <div className="admin-table__head">
+              <span>Товар</span>
+              <span>Цена</span>
+              <span>Остаток</span>
+              <span>Статус</span>
+              <span />
+            </div>
+            {Array.from({ length: 4 }).map((_, i) => (
+              <AdminRowSkeleton key={i} />
+            ))}
+          </div>
+        ) : products.length === 0 ? (
+          <div className="admin-empty">
+            <Package size={28} aria-hidden="true" />
+            <h3>Товаров нет</h3>
+            <p className="muted">
+              {search
+                ? `Ничего не найдено по запросу «${search}».`
+                : "Создайте первую карточку справа."}
+            </p>
+            {search ? (
+              <button
+                type="button"
+                className="button button--ghost"
+                onClick={() => {
+                  setSearch("");
+                  setSearchInput("");
+                }}
+              >
+                Сбросить поиск
+              </button>
+            ) : null}
+          </div>
         ) : (
           <div className="admin-table">
             <div className="admin-table__head">
@@ -180,54 +306,105 @@ function AdminProductsContent({
               <span>Статус</span>
               <span />
             </div>
-            {products.map((product) => (
-              <div key={product.id} className="admin-table__row">
-                <div>
-                  <p className="eyebrow">{product.sku}</p>
-                  <strong>{product.title_ru}</strong>
-                  <p>{product.slug}</p>
-                </div>
-                <strong>{formatPrice(product.price_kopecks)}</strong>
-                <span>{product.stock_quantity}</span>
-                <span>{product.is_active ? "Активен" : "Скрыт"}</span>
-                <div className="admin-row-actions">
-                  <button
-                    type="button"
-                    className="text-button"
-                    onClick={() => startEditing(product)}
+            {products.map((product) => {
+              const lowStock = product.stock_quantity <= 5;
+              const outOfStock = product.stock_quantity <= 0;
+              return (
+                <div key={product.id} className="admin-table__row">
+                  <div className="admin-table__title">
+                    <div
+                      className="admin-table__thumb"
+                      aria-hidden="true"
+                      style={
+                        product.images?.[0]
+                          ? {
+                              backgroundImage: `url(${product.images[0]})`
+                            }
+                          : undefined
+                      }
+                    >
+                      {!product.images?.[0] ? "◐" : null}
+                    </div>
+                    <div>
+                      <p className="eyebrow">{product.sku}</p>
+                      <strong>{product.title_ru}</strong>
+                      <p className="muted">/{product.slug}</p>
+                    </div>
+                  </div>
+                  <strong>{formatPrice(product.price_kopecks)}</strong>
+                  <span
+                    className={
+                      outOfStock
+                        ? "status-pill status-pill--rejected"
+                        : lowStock
+                        ? "status-pill status-pill--pending"
+                        : ""
+                    }
                   >
-                    Редактировать
-                  </button>
-                  <button
-                    type="button"
-                    className="text-button text-button--danger"
-                    onClick={() => removeProduct(product.id)}
-                  >
-                    Удалить
-                  </button>
+                    {product.stock_quantity} шт.
+                  </span>
+                  <span>
+                    <span
+                      className={`status-pill ${
+                        product.is_active
+                          ? "status-pill--confirmed"
+                          : "status-pill--refunded"
+                      }`}
+                    >
+                      {product.is_active ? "Активен" : "Скрыт"}
+                    </span>
+                  </span>
+                  <div className="admin-row-actions">
+                    <button
+                      type="button"
+                      className="text-button"
+                      onClick={() => startEditing(product)}
+                      aria-label={`Редактировать: ${product.title_ru}`}
+                    >
+                      Редактировать
+                    </button>
+                    <button
+                      type="button"
+                      className="text-button text-button--danger"
+                      onClick={() => removeProduct(product.id)}
+                      disabled={deletingId === product.id}
+                      aria-label={`Удалить: ${product.title_ru}`}
+                    >
+                      {deletingId === product.id ? "…" : "Удалить"}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
 
-      <form className="admin-panel admin-form" onSubmit={submitForm}>
+      <form
+        id="admin-product-form"
+        className="admin-panel admin-form"
+        onSubmit={submitForm}
+      >
         <div>
-          <p className="eyebrow">{editingId ? "Editing" : "New product"}</p>
-          <h2>{editingId ? "Редактирование товара" : "Новая карточка"}</h2>
+          <p className="eyebrow">
+            {editingId ? "Редактирование" : "Новая карточка"}
+          </p>
+          <h2>{editingId ? "Изменить товар" : "Создать товар"}</h2>
           <p className="muted">
-            Поля соответствуют backend payload {`UpsertProductInput`}.
+            {editingId
+              ? "Внесите изменения и нажмите «Сохранить»."
+              : "Заполните поля — карточка сразу появится в каталоге."}
           </p>
         </div>
 
         <label className="field">
-          <span>Название</span>
+          <span>Название *</span>
           <input
             value={form.title_ru}
             onChange={(event) =>
-              setForm((current) => ({ ...current, title_ru: event.target.value }))
+              setForm((c) => ({ ...c, title_ru: event.target.value }))
             }
+            required
           />
         </label>
 
@@ -236,7 +413,7 @@ function AdminProductsContent({
           <input
             value={form.slug}
             onChange={(event) =>
-              setForm((current) => ({ ...current, slug: event.target.value }))
+              setForm((c) => ({ ...c, slug: event.target.value }))
             }
             placeholder="Сгенерируется из названия, если оставить пустым"
           />
@@ -248,27 +425,25 @@ function AdminProductsContent({
             rows={5}
             value={form.description_ru}
             onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                description_ru: event.target.value
-              }))
+              setForm((c) => ({ ...c, description_ru: event.target.value }))
             }
           />
         </label>
 
         <div className="field-grid">
           <label className="field">
-            <span>Цена, коп.</span>
+            <span>Цена, коп. *</span>
             <input
               type="number"
               min={0}
               value={form.price_kopecks}
               onChange={(event) =>
-                setForm((current) => ({
-                  ...current,
-                  price_kopecks: Number(event.target.value)
+                setForm((c) => ({
+                  ...c,
+                  price_kopecks: Math.max(0, Number(event.target.value))
                 }))
               }
+              required
             />
           </label>
           <label className="field">
@@ -278,9 +453,9 @@ function AdminProductsContent({
               min={0}
               value={form.stock_quantity}
               onChange={(event) =>
-                setForm((current) => ({
-                  ...current,
-                  stock_quantity: Number(event.target.value)
+                setForm((c) => ({
+                  ...c,
+                  stock_quantity: Math.max(0, Number(event.target.value))
                 }))
               }
             />
@@ -293,7 +468,7 @@ function AdminProductsContent({
             <input
               value={form.sku}
               onChange={(event) =>
-                setForm((current) => ({ ...current, sku: event.target.value }))
+                setForm((c) => ({ ...c, sku: event.target.value }))
               }
             />
           </label>
@@ -304,9 +479,11 @@ function AdminProductsContent({
               min={0}
               value={form.category_id ?? ""}
               onChange={(event) =>
-                setForm((current) => ({
-                  ...current,
-                  category_id: event.target.value ? Number(event.target.value) : null
+                setForm((c) => ({
+                  ...c,
+                  category_id: event.target.value
+                    ? Number(event.target.value)
+                    : null
                 }))
               }
             />
@@ -319,11 +496,9 @@ function AdminProductsContent({
             rows={4}
             value={form.images.join("\n")}
             onChange={(event) =>
-              setForm((current) => ({
-                ...current,
-                images: event.target.value.split("\n")
-              }))
+              setForm((c) => ({ ...c, images: event.target.value.split("\n") }))
             }
+            placeholder="https://images.unsplash.com/…"
           />
         </label>
 
@@ -332,19 +507,38 @@ function AdminProductsContent({
             type="checkbox"
             checked={form.is_active}
             onChange={(event) =>
-              setForm((current) => ({ ...current, is_active: event.target.checked }))
+              setForm((c) => ({ ...c, is_active: event.target.checked }))
             }
           />
           <span>Товар активен на витрине</span>
         </label>
 
-        {message ? <p className="success-text">{message}</p> : null}
-
         <div className="admin-form__actions">
-          <button type="submit" className="button button--primary">
-            {editingId ? "Сохранить" : "Создать"}
+          <button
+            type="submit"
+            className="button button--primary"
+            disabled={saving}
+          >
+            {saving ? (
+              <>
+                <Loader2 size={14} className="spin" /> Сохранение…
+              </>
+            ) : editingId ? (
+              <>
+                <Plus size={14} /> Сохранить
+              </>
+            ) : (
+              <>
+                <Plus size={14} /> Создать
+              </>
+            )}
           </button>
-          <button type="button" className="button button--ghost" onClick={resetForm}>
+          <button
+            type="button"
+            className="button button--ghost"
+            onClick={resetForm}
+            disabled={saving}
+          >
             Сбросить
           </button>
         </div>

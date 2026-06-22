@@ -3,15 +3,25 @@
 import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Loader2, LogIn } from "lucide-react";
+
 import { TEMPLATES } from "@/lib/templates/templates";
-import { createCentralSite, persistMockSite } from "@/lib/multi-site/api";
+import {
+  createCentralSite,
+  persistMockSite,
+  CentralSite
+} from "@/lib/multi-site/api";
 import { useCentralAuthStore } from "@/lib/multi-site/store";
-import type { CentralSite } from "@/lib/multi-site/api";
+import { toast } from "@/components/toaster";
+
+import "../central.css";
 
 export default function CentralSetupPage() {
   const router = useRouter();
   const token = useCentralAuthStore((s) => s.token);
-  const [step, setStep] = useState<"niche" | "details" | "owner" | "review">("niche");
+  const [step, setStep] = useState<"niche" | "details" | "owner" | "review">(
+    "niche"
+  );
   const [templateId, setTemplateId] = useState<string>("");
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
@@ -24,17 +34,26 @@ export default function CentralSetupPage() {
   const [err, setErr] = useState<string | null>(null);
   const [query, setQuery] = useState("");
 
-  const template = useMemo(() => TEMPLATES.find((t) => t.id === templateId), [templateId]);
+  const template = useMemo(
+    () => TEMPLATES.find((t) => t.id === templateId),
+    [templateId]
+  );
   const filtered = useMemo(() => {
     if (!query) return TEMPLATES;
     const q = query.toLowerCase();
     return TEMPLATES.filter(
-      (t) => t.name.toLowerCase().includes(q) || t.niche.toLowerCase().includes(q) || t.id.includes(q)
+      (t) =>
+        t.name.toLowerCase().includes(q) ||
+        t.niche.toLowerCase().includes(q) ||
+        t.id.includes(q)
     );
   }, [query]);
 
   function slugify(value: string) {
-    return value.toLowerCase().replace(/[^a-z0-9_-]+/g, "-").replace(/^-+|-+$/g, "");
+    return value
+      .toLowerCase()
+      .replace(/[^a-z0-9_-]+/g, "-")
+      .replace(/^-+|-+$/g, "");
   }
 
   function next() {
@@ -48,7 +67,8 @@ export default function CentralSetupPage() {
       setErr(null);
       setStep("owner");
     } else if (step === "owner") {
-      if (!ownerUsername || ownerUsername.length < 3) return setErr("Логин владельца ≥ 3 символов");
+      if (!ownerUsername || ownerUsername.length < 3)
+        return setErr("Логин владельца ≥ 3 символов");
       if (!ownerEmail) return setErr("Email обязателен");
       if (ownerPassword.length < 8) return setErr("Пароль ≥ 8 символов");
       setErr(null);
@@ -77,11 +97,10 @@ export default function CentralSetupPage() {
       primary_color: primaryColor || template.colors.accent,
       logo_mark: template.branding.logoMark,
       tagline: tagline || template.branding.tagline,
-      description: template.branding.description,
+      description: template.branding.description
     };
     try {
       if (!token) {
-        // Mock path: create a local-only site so the UI is usable.
         const mock: CentralSite = {
           id: Date.now(),
           slug,
@@ -94,66 +113,75 @@ export default function CentralSetupPage() {
           tagline: input.tagline,
           description: input.description,
           created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         };
         persistMockSite(mock);
+        toast.success("Магазин создан", `/${slug} — демо-режим`);
         router.push(`/central/dashboard?created=${slug}`);
         return;
       }
       await createCentralSite(token, input);
+      toast.success("Магазин запущен", name);
       window.location.href = "/central/dashboard?created=" + slug;
     } catch (e: any) {
-      setErr(e?.message || "Ошибка создания");
+      const msg = e?.message || "Ошибка создания";
+      setErr(msg);
+      toast.error("Ошибка", msg);
     } finally {
       setBusy(false);
     }
   }
 
   return (
-    <main style={{ minHeight: "100vh", background: "#0A0A0A", color: "#fff", fontFamily: "'Manrope', system-ui, sans-serif" }}>
-      <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 32px", borderBottom: "1px solid #222" }}>
+    <main className="central-shell">
+      <header className="central-header">
         <div>
-          <p style={{ fontSize: 11, letterSpacing: 4, textTransform: "uppercase", color: "#888", margin: 0 }}>Sun.store / Setup</p>
-          <h1 style={{ fontSize: 22, margin: "4px 0 0", fontWeight: 600 }}>Создание магазина</h1>
+          <p className="central-header__eyebrow">Sun.store / Setup</p>
+          <h1 className="central-header__title">Создание магазина</h1>
         </div>
-        <Link href="/central/dashboard" style={{ padding: "8px 12px", borderRadius: 6, background: "transparent", border: "1px solid #333", color: "#888", textDecoration: "none", fontSize: 12 }}>
+        <Link href="/central/dashboard" className="central-btn central-btn--ghost">
           ← Назад
         </Link>
       </header>
 
-      <section style={{ padding: 32, maxWidth: 1100, margin: "0 auto" }}>
+      <section className="central-setup">
         <Steps step={step} />
-        {err && <p style={{ color: "#FF5252", fontSize: 13, margin: "16px 0" }}>{err}</p>}
+        {err && <p className="central-setup__error">{err}</p>}
 
         {step === "niche" && (
           <>
-            <p style={{ color: "#aaa", fontSize: 14, marginBottom: 16 }}>Шаг 1 — выберите шаблон ниши. Любую тему можно потом кастомизировать.</p>
+            <p className="central-setup__hint">
+              Шаг 1 — выберите шаблон ниши. Любую тему можно потом кастомизировать.
+            </p>
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Поиск: ювелирка, спорт, книги…"
-              style={{ width: "100%", padding: 12, borderRadius: 8, background: "#111", border: "1px solid #222", color: "#fff", marginBottom: 16 }}
+              className="central-setup__search"
             />
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }}>
+            <div className="central-setup__templates">
               {filtered.map((t) => {
                 const selected = templateId === t.id;
                 return (
                   <button
                     key={t.id}
                     onClick={() => setTemplateId(t.id)}
+                    className="central-setup__template"
                     style={{
-                      textAlign: "left",
-                      padding: 16,
-                      borderRadius: 12,
                       background: selected ? t.colors.accent : t.colors.background,
                       color: selected ? t.colors.accentText : t.colors.text,
-                      border: `1px solid ${selected ? t.colors.accent : t.colors.border}`,
-                      cursor: "pointer",
+                      borderColor: selected ? t.colors.accent : t.colors.border
                     }}
                   >
-                    <div style={{ fontSize: 22, marginBottom: 6 }}>{t.branding.logoMark}</div>
-                    <p style={{ fontSize: 14, fontWeight: 700, margin: 0 }}>{t.name}</p>
-                    <p style={{ fontSize: 12, opacity: 0.7, margin: "4px 0 0" }}>{t.niche}</p>
+                    <div style={{ fontSize: 22, marginBottom: 6 }}>
+                      {t.branding.logoMark}
+                    </div>
+                    <p style={{ fontSize: 14, fontWeight: 700, margin: 0 }}>
+                      {t.name}
+                    </p>
+                    <p style={{ fontSize: 12, opacity: 0.7, margin: "4px 0 0" }}>
+                      {t.niche}
+                    </p>
                   </button>
                 );
               })}
@@ -163,58 +191,118 @@ export default function CentralSetupPage() {
 
         {step === "details" && template && (
           <>
-            <p style={{ color: "#aaa", fontSize: 14, marginBottom: 16 }}>Шаг 2 — базовые данные магазина.</p>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <Field label="Название магазина" value={name} onChange={(v) => { setName(v); if (!slug) setSlug(slugify(v)); }} />
-              <Field label="Slug (URL)" value={slug} onChange={setSlug} hint="латиница, без пробелов" />
-              <Field label="Слоган (опц.)" value={tagline} onChange={setTagline} placeholder={template.branding.tagline} />
-              <Field label="Главный цвет (HEX, опц.)" value={primaryColor} onChange={setPrimaryColor} placeholder={template.colors.accent} />
+            <p className="central-setup__hint">
+              Шаг 2 — базовые данные магазина.
+            </p>
+            <div className="central-setup__fields">
+              <Field
+                label="Название магазина"
+                value={name}
+                onChange={(v) => {
+                  setName(v);
+                  if (!slug) setSlug(slugify(v));
+                }}
+              />
+              <Field
+                label="Slug (URL)"
+                value={slug}
+                onChange={setSlug}
+                hint="латиница, без пробелов"
+              />
+              <Field
+                label="Слоган (опц.)"
+                value={tagline}
+                onChange={setTagline}
+                placeholder={template.branding.tagline}
+              />
+              <Field
+                label="Главный цвет (HEX, опц.)"
+                value={primaryColor}
+                onChange={setPrimaryColor}
+                placeholder={template.colors.accent}
+              />
             </div>
           </>
         )}
 
         {step === "owner" && (
           <>
-            <p style={{ color: "#aaa", fontSize: 14, marginBottom: 16 }}>Шаг 3 — данные первого владельца магазина.</p>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <Field label="Логин владельца" value={ownerUsername} onChange={setOwnerUsername} />
-              <Field label="Email" value={ownerEmail} onChange={setOwnerEmail} type="email" />
-              <Field label="Пароль (≥ 8 символов)" value={ownerPassword} onChange={setOwnerPassword} type="password" />
+            <p className="central-setup__hint">
+              Шаг 3 — данные первого владельца магазина.
+            </p>
+            <div className="central-setup__fields">
+              <Field
+                label="Логин владельца"
+                value={ownerUsername}
+                onChange={setOwnerUsername}
+              />
+              <Field
+                label="Email"
+                value={ownerEmail}
+                onChange={setOwnerEmail}
+                type="email"
+              />
+              <Field
+                label="Пароль (≥ 8 символов)"
+                value={ownerPassword}
+                onChange={setOwnerPassword}
+                type="password"
+              />
             </div>
           </>
         )}
 
         {step === "review" && template && (
           <>
-            <p style={{ color: "#aaa", fontSize: 14, marginBottom: 16 }}>Шаг 4 — проверка и запуск.</p>
-            <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: 24, marginBottom: 16 }}>
-              <p style={{ margin: 0, color: "#888", fontSize: 12, letterSpacing: 2, textTransform: "uppercase" }}>Шаблон</p>
-              <p style={{ margin: "4px 0 16px", fontSize: 18 }}>{template.name} ({template.niche})</p>
-              <p style={{ margin: 0, color: "#888", fontSize: 12, letterSpacing: 2, textTransform: "uppercase" }}>Магазин</p>
-              <p style={{ margin: "4px 0 16px", fontSize: 18 }}>{name} — /{slug}</p>
-              <p style={{ margin: 0, color: "#888", fontSize: 12, letterSpacing: 2, textTransform: "uppercase" }}>Владелец</p>
-              <p style={{ margin: "4px 0", fontSize: 18 }}>{ownerUsername} ({ownerEmail})</p>
+            <p className="central-setup__hint">
+              Шаг 4 — проверка и запуск.
+            </p>
+            <div className="central-setup__review">
+              <p className="central-setup__review-eyebrow">Шаблон</p>
+              <p className="central-setup__review-value">
+                {template.name} ({template.niche})
+              </p>
+              <p className="central-setup__review-eyebrow">Магазин</p>
+              <p className="central-setup__review-value">
+                {name} — /{slug}
+              </p>
+              <p className="central-setup__review-eyebrow">Владелец</p>
+              <p className="central-setup__review-value">
+                {ownerUsername} ({ownerEmail})
+              </p>
             </div>
           </>
         )}
 
-        <div style={{ marginTop: 24, display: "flex", gap: 8 }}>
+        <div className="central-setup__actions">
           {step !== "niche" && (
-            <button onClick={back} style={{ padding: "10px 16px", borderRadius: 8, background: "transparent", border: "1px solid #333", color: "#aaa", cursor: "pointer" }}>
+            <button
+              onClick={back}
+              className="central-btn central-btn--ghost"
+            >
               ← Назад
             </button>
           )}
           {step !== "review" ? (
-            <button onClick={next} style={{ padding: "10px 16px", borderRadius: 8, background: "#00FF88", color: "#000", border: "none", fontWeight: 600, cursor: "pointer" }}>
+            <button
+              onClick={next}
+              className="central-btn central-btn--primary"
+            >
               Далее →
             </button>
           ) : (
             <button
               onClick={provision}
               disabled={busy}
-              style={{ padding: "10px 16px", borderRadius: 8, background: busy ? "#444" : "#00FF88", color: "#000", border: "none", fontWeight: 600, cursor: busy ? "default" : "pointer" }}
+              className="central-btn central-btn--primary"
             >
-              {busy ? "Создаём…" : "🚀 Запустить магазин"}
+              {busy ? (
+                <>
+                  <Loader2 size={14} className="spin" /> Создаём…
+                </>
+              ) : (
+                <>🚀 Запустить магазин</>
+              )}
             </button>
           )}
         </div>
@@ -223,34 +311,61 @@ export default function CentralSetupPage() {
   );
 }
 
-function Field({ label, value, onChange, placeholder, hint, type }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string; hint?: string; type?: string }) {
+function Field({
+  label,
+  value,
+  onChange,
+  placeholder,
+  hint,
+  type
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  placeholder?: string;
+  hint?: string;
+  type?: string;
+}) {
   return (
-    <label style={{ display: "block" }}>
-      <span style={{ fontSize: 12, color: "#aaa" }}>{label}</span>
+    <label className="central-setup__field">
+      <span className="central-setup__field-label">{label}</span>
       <input
         type={type || "text"}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        style={{ width: "100%", padding: 10, borderRadius: 8, border: "1px solid #333", background: "#000", color: "#fff", marginTop: 4 }}
+        className="central-setup__field-input"
       />
-      {hint && <span style={{ fontSize: 11, color: "#666" }}>{hint}</span>}
+      {hint && <span className="central-setup__field-hint">{hint}</span>}
     </label>
   );
 }
 
-function Steps({ step }: { step: "niche" | "details" | "owner" | "review" }) {
+function Steps({
+  step
+}: {
+  step: "niche" | "details" | "owner" | "review";
+}) {
   const order: Array<typeof step> = ["niche", "details", "owner", "review"];
   const labels = ["Ниша", "Данные", "Владелец", "Запуск"];
   return (
-    <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+    <div className="central-setup__steps">
       {order.map((s, i) => {
         const active = s === step;
         const done = order.indexOf(step) > i;
         return (
-          <div key={s} style={{ flex: 1 }}>
-            <div style={{ height: 4, borderRadius: 2, background: active || done ? "#00FF88" : "#222" }} />
-            <p style={{ fontSize: 11, color: active ? "#fff" : "#888", margin: "6px 0 0", letterSpacing: 1, textTransform: "uppercase" }}>{labels[i]}</p>
+          <div
+            key={s}
+            className={`central-setup__step ${
+              active
+                ? "central-setup__step--active"
+                : done
+                ? "central-setup__step--done"
+                : ""
+            }`}
+          >
+            <div className="central-setup__step-bar" />
+            <p className="central-setup__step-label">{labels[i]}</p>
           </div>
         );
       })}

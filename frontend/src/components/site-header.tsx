@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Menu, ShoppingBag, X } from "lucide-react";
 
 import { cn } from "@/lib/format";
 import { useCartStore } from "@/store/cart";
@@ -19,45 +20,113 @@ export function SiteHeader() {
   const pathname = usePathname();
   const hydrate = useCartStore((state) => state.hydrate);
   const toggle = useCartStore((state) => state.toggle);
+  const [hydrated, setHydrated] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const itemCount = useCartStore((state) =>
     state.items.reduce((sum, item) => sum + item.quantity, 0)
   );
 
   useEffect(() => {
     hydrate();
+    setHydrated(true);
   }, [hydrate]);
+
+  // Close mobile menu on route change.
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
+  // Lock body scroll when mobile menu open.
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const original = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = original;
+    };
+  }, [mobileOpen]);
 
   return (
     <header className="site-header">
       <div className="site-header__inner shell">
-        <Link href={"/" as Route} className="brand-mark" aria-label="Sun.store home">
-          <span className="brand-mark__sun" />
+        <Link href={"/" as Route} className="brand-mark" aria-label="Sun.store — на главную">
+          <span className="brand-mark__sun" aria-hidden="true" />
           <span>
             Sun.store
             <small>atelier selection</small>
           </span>
         </Link>
 
-        <nav className="site-nav" aria-label="Основная навигация">
-          {links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={cn(
-                "site-nav__link",
-                pathname === link.href && "site-nav__link--active"
-              )}
-            >
-              {link.label}
-            </Link>
-          ))}
+        <nav className="site-nav site-nav--desktop" aria-label="Основная навигация">
+          {links.map((link) => {
+            const active =
+              link.href === "/"
+                ? pathname === "/"
+                : pathname.startsWith(link.href as string);
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  "site-nav__link",
+                  active && "site-nav__link--active"
+                )}
+                aria-current={active ? "page" : undefined}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
         </nav>
 
-        <button type="button" className="cart-trigger" onClick={toggle}>
-          Корзина
-          <span>{itemCount}</span>
-        </button>
+        <div className="site-header__actions">
+          <button
+            type="button"
+            className="cart-trigger"
+            onClick={toggle}
+            aria-label={`Открыть корзину, ${itemCount} товаров`}
+          >
+            <ShoppingBag size={18} aria-hidden="true" />
+            <span aria-hidden="true">{hydrated ? itemCount : 0}</span>
+          </button>
+          <button
+            type="button"
+            className="icon-button site-header__menu-toggle"
+            aria-label={mobileOpen ? "Закрыть меню" : "Открыть меню"}
+            aria-expanded={mobileOpen}
+            onClick={() => setMobileOpen((v) => !v)}
+          >
+            {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+          </button>
+        </div>
       </div>
+
+      {mobileOpen ? (
+        <nav
+          className="site-nav site-nav--mobile"
+          aria-label="Мобильная навигация"
+        >
+          {links.map((link) => {
+            const active =
+              link.href === "/"
+                ? pathname === "/"
+                : pathname.startsWith(link.href as string);
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={cn(
+                  "site-nav__link",
+                  active && "site-nav__link--active"
+                )}
+                aria-current={active ? "page" : undefined}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
+        </nav>
+      ) : null}
     </header>
   );
 }

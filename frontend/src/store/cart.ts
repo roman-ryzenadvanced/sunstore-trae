@@ -17,10 +17,14 @@ interface CartState {
   open: () => void;
   close: () => void;
   toggle: () => void;
-  addItem: (product: Product) => void;
+  addItem: (product: Product, qty?: number) => void;
   removeItem: (productId: number) => void;
   updateQuantity: (productId: number, quantity: number) => void;
   clear: () => void;
+  /** Total quantity across all lines. */
+  count: () => number;
+  /** Total price in kopecks. */
+  total: () => number;
 }
 
 const STORAGE_KEY = "sunstore-cart";
@@ -35,7 +39,18 @@ function readInitialItems(): CartLine[] {
     if (!raw) {
       return [];
     }
-    return JSON.parse(raw) as CartLine[];
+    const parsed = JSON.parse(raw) as CartLine[];
+    if (!Array.isArray(parsed)) return [];
+    // Defensive: drop any malformed entries.
+    return parsed.filter(
+      (line) =>
+        line &&
+        typeof line === "object" &&
+        line.product &&
+        typeof line.product.id === "number" &&
+        typeof line.quantity === "number" &&
+        line.quantity > 0
+    );
   } catch {
     return [];
   }
@@ -45,28 +60,40 @@ function persist(items: CartLine[]) {
   if (typeof window === "undefined") {
     return;
   }
-
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  } catch {
+    // Quota exceeded / private mode — fail silently.
+  }
 }
 
-export const useCartStore = create<CartState>((set) => ({
+export const useCartStore = create<CartState>((set, get) => ({
   isOpen: false,
   items: [],
   hydrated: false,
-  hydrate: () => set({ items: readInitialItems(), hydrated: true }),
+  hydrate: () =>
+    set((state) =>
+      state.hydrated
+        ? state
+        : { items: readInitialItems(), hydrated: true }
+    ),
   open: () => set({ isOpen: true }),
   close: () => set({ isOpen: false }),
   toggle: () => set((state) => ({ isOpen: !state.isOpen })),
-  addItem: (product) =>
+  addItem: (product, qty = 1) =>
     set((state) => {
+      const stockCap = product.stock_quantity > 0 ? product.stock_quantity : Infinity;
       const existing = state.items.find((item) => item.product.id === product.id);
       const items = existing
         ? state.items.map((item) =>
             item.product.id === product.id
-              ? { ...item, quantity: item.quantity + 1 }
+              ? {
+                  ...item,
+                  quantity: Math.min(stockCap, item.quantity + qty)
+                }
               : item
           )
-        : [...state.items, { product, quantity: 1 }];
+        : [...state.items, { product, quantity: Math.min(stockCap, qty) }];
       persist(items);
       return { items, isOpen: true };
     }),
@@ -81,7 +108,10 @@ export const useCartStore = create<CartState>((set) => ({
       const items = state.items
         .map((item) =>
           item.product.id === productId
-            ? { ...item, quantity: Math.max(1, quantity) }
+            ? {
+                ...item,
+                quantity: Math.max(1, Math.min(item.product.stock_quantity > 0 ? item.product.stock_quantity : quantity, quantity))
+              }
             : item
         )
         .filter((item) => item.quantity > 0);
@@ -91,5 +121,11 @@ export const useCartStore = create<CartState>((set) => ({
   clear: () => {
     persist([]);
     return set({ items: [], isOpen: false });
-  }
+  },
+  count: () => get().items.reduce((sum, item) => sum + item.quantity, 0),
+  total: () =>
+    get().items.reduce(
+      (sum, item) => sum + item.product.price_kopecks * item.quantity,
+      0
+    )
 }));

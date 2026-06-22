@@ -3,9 +3,18 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { listCentralSites, setSiteStatus, CreateSiteInput, CentralSite } from "@/lib/multi-site/api";
+import { LogOut, Plus, RefreshCw } from "lucide-react";
+
+import {
+  listCentralSites,
+  setSiteStatus,
+  CentralSite
+} from "@/lib/multi-site/api";
 import { useCentralAuthStore } from "@/lib/multi-site/store";
 import { TEMPLATES } from "@/lib/templates/templates";
+import { toast } from "@/components/toaster";
+
+import "../central.css";
 
 export default function CentralDashboardPage() {
   const router = useRouter();
@@ -28,7 +37,9 @@ export default function CentralDashboardPage() {
     if (!token) return;
     setLoading(true);
     try {
-      const list = await listCentralSites(token, { search: filter || undefined });
+      const list = await listCentralSites(token, {
+        search: filter || undefined
+      });
       setSites(list);
     } finally {
       setLoading(false);
@@ -40,136 +51,151 @@ export default function CentralDashboardPage() {
       total: sites.length,
       ready: sites.filter((s) => s.status === "READY").length,
       suspended: sites.filter((s) => s.status === "SUSPENDED").length,
-      provisioning: sites.filter((s) => s.status === "PROVISIONING").length,
+      provisioning: sites.filter((s) => s.status === "PROVISIONING").length
     };
   }, [sites]);
 
   async function toggleStatus(s: CentralSite) {
     if (!token) return;
-    const next = s.status === "READY" ? "SUSPENDED" : "READY";
+    const next: CentralSite["status"] =
+      s.status === "READY" ? "SUSPENDED" : "READY";
     try {
       await setSiteStatus(token, s.id, next);
+      toast.success(
+        next === "READY" ? "Магазин активирован" : "Магазин приостановлен",
+        s.name
+      );
       await refresh();
-    } catch (e) {
-      // best effort
+    } catch (e: any) {
+      toast.error("Ошибка", e?.message || "Не удалось изменить статус");
     }
   }
 
   return (
-    <main style={{ minHeight: "100vh", background: "#0A0A0A", color: "#fff", fontFamily: "'Manrope', system-ui, sans-serif" }}>
-      <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 32px", borderBottom: "1px solid #222" }}>
+    <main className="central-shell">
+      <header className="central-header">
         <div>
-          <p style={{ fontSize: 11, letterSpacing: 4, textTransform: "uppercase", color: "#888", margin: 0 }}>Sun.store Platform</p>
-          <h1 style={{ fontSize: 22, margin: "4px 0 0", fontWeight: 600 }}>Центральная панель</h1>
+          <p className="central-header__eyebrow">Sun.store Platform</p>
+          <h1 className="central-header__title">Центральная панель</h1>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <Link
-            href="/central/setup"
-            style={{
-              padding: "10px 16px",
-              borderRadius: 8,
-              background: "#00FF88",
-              color: "#000",
-              fontWeight: 600,
-              textDecoration: "none",
-            }}
-          >
-            + Создать магазин
+        <div className="central-header__actions">
+          <Link href="/central/setup" className="central-btn central-btn--primary">
+            <Plus size={14} /> Создать магазин
           </Link>
           <button
-            onClick={() => { clear(); router.push("/central/login"); }}
-            style={{ padding: "10px 16px", borderRadius: 8, background: "transparent", color: "#aaa", border: "1px solid #333", cursor: "pointer" }}
+            onClick={() => {
+              clear();
+              toast.info("Сессия завершена");
+              router.push("/central/login");
+            }}
+            className="central-btn central-btn--ghost"
           >
-            Выйти
+            <LogOut size={14} /> Выйти
           </button>
         </div>
       </header>
 
-      <section style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, padding: 24 }}>
+      <section className="central-stats">
         {[
           { label: "Всего сайтов", v: counts.total },
           { label: "Активных", v: counts.ready },
           { label: "Provisioning", v: counts.provisioning },
-          { label: "Suspended", v: counts.suspended },
+          { label: "Suspended", v: counts.suspended }
         ].map((c) => (
-          <div key={c.label} style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: 16 }}>
-            <p style={{ fontSize: 11, color: "#888", textTransform: "uppercase", letterSpacing: 2, margin: 0 }}>{c.label}</p>
-            <p style={{ fontSize: 32, fontWeight: 700, margin: "8px 0 0" }}>{c.v}</p>
+          <div key={c.label} className="central-stat">
+            <p className="central-stat__label">{c.label}</p>
+            <p className="central-stat__value">{c.v}</p>
           </div>
         ))}
       </section>
 
       <section style={{ padding: "0 24px 24px" }}>
-        <input
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          onKeyDown={(e) => { if (e.key === "Enter") refresh(); }}
-          placeholder="Поиск по имени или slug…"
-          style={{ width: "100%", padding: 12, borderRadius: 8, background: "#111", border: "1px solid #222", color: "#fff", marginBottom: 16 }}
-        />
+        <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+          <input
+            value={filter}
+            onChange={(e) => setFilter(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") refresh();
+            }}
+            placeholder="Поиск по имени или slug…"
+            className="central-search"
+            style={{ marginBottom: 0 }}
+          />
+          <button
+            onClick={refresh}
+            disabled={loading}
+            className="central-btn central-btn--ghost"
+            aria-label="Обновить список"
+          >
+            <RefreshCw size={14} className={loading ? "spin" : ""} />
+          </button>
+        </div>
 
         {loading ? (
-          <p style={{ color: "#888" }}>Загрузка…</p>
+          <p style={{ color: "#888", padding: 24 }}>Загрузка…</p>
         ) : sites.length === 0 ? (
-          <div style={{ padding: 32, textAlign: "center", background: "#111", borderRadius: 12, border: "1px solid #222" }}>
-            <p style={{ color: "#aaa" }}>Пока нет магазинов.</p>
+          <div className="central-empty">
+            <p className="central-empty__text">Пока нет магазинов.</p>
             <Link
               href="/central/setup"
-              style={{ display: "inline-block", marginTop: 12, padding: "10px 16px", borderRadius: 8, background: "#00FF88", color: "#000", fontWeight: 600, textDecoration: "none" }}
+              className="central-btn central-btn--primary"
+              style={{ marginTop: 12, display: "inline-flex" }}
             >
-              Создать первый магазин
+              <Plus size={14} /> Создать первый магазин
             </Link>
           </div>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 16 }}>
+          <div className="central-sites-grid">
             {sites.map((s) => {
               const template = TEMPLATES.find((t) => t.id === s.template_id);
               return (
-                <article key={s.id} style={{ background: "#111", border: "1px solid #222", borderRadius: 12, padding: 18 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <article key={s.id} className="central-site-card">
+                  <div className="central-site-card__head">
                     <div>
-                      <p style={{ fontSize: 18, fontWeight: 600, margin: 0 }}>{s.name}</p>
-                      <p style={{ color: "#888", fontSize: 12, margin: "4px 0 0" }}>slug: {s.slug} · niche: {s.niche}</p>
+                      <p className="central-site-card__name">{s.name}</p>
+                      <p className="central-site-card__meta">
+                        slug: {s.slug} · niche: {s.niche}
+                      </p>
                     </div>
-                    <span style={{
-                      fontSize: 10,
-                      padding: "4px 8px",
-                      borderRadius: 99,
-                      background: s.status === "READY" ? "rgba(0,255,136,0.15)" : "rgba(255,180,0,0.15)",
-                      color: s.status === "READY" ? "#00FF88" : "#FFB400",
-                      letterSpacing: 1,
-                      textTransform: "uppercase",
-                    }}>{s.status}</span>
+                    <span
+                      className={`central-status-pill central-status-pill--${s.status.toLowerCase()}`}
+                    >
+                      {s.status}
+                    </span>
                   </div>
-                  <p style={{ color: "#aaa", fontSize: 13, margin: "12px 0" }}>{s.tagline || template?.branding.tagline || "—"}</p>
-                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
-                    {template?.categories.map((c) => (
-                      <span key={c.id} style={{ fontSize: 11, padding: "2px 8px", background: "#1f1f1f", border: "1px solid #2a2a2a", borderRadius: 99, color: "#bbb" }}>{c.name}</span>
+                  <p className="central-site-card__tagline">
+                    {s.tagline || template?.branding.tagline || "—"}
+                  </p>
+                  <div className="central-site-card__cats">
+                    {template?.categories.slice(0, 5).map((c) => (
+                      <span key={c.id} className="central-site-card__cat">
+                        {c.name}
+                      </span>
                     ))}
                   </div>
-                  <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  <div className="central-site-card__actions">
                     <Link
                       href={`/sites/${s.slug}`}
                       target="_blank"
-                      style={{ padding: "8px 12px", borderRadius: 6, background: "transparent", border: "1px solid #00FF88", color: "#00FF88", textDecoration: "none", fontSize: 12 }}
+                      className="central-site-card__action central-site-card__action--primary"
                     >
                       Открыть витрину
                     </Link>
                     <Link
                       href={`/sites/${s.slug}/admin`}
-                      style={{ padding: "8px 12px", borderRadius: 6, background: "transparent", border: "1px solid #FFB400", color: "#FFB400", textDecoration: "none", fontSize: 12 }}
+                      className="central-site-card__action central-site-card__action--warning"
                     >
                       Админ панель
                     </Link>
                     <Link
                       href={`/central/sites/${s.id}/admins`}
-                      style={{ padding: "8px 12px", borderRadius: 6, background: "transparent", border: "1px solid #888", color: "#888", textDecoration: "none", fontSize: 12 }}
+                      className="central-site-card__action"
                     >
                       Команда
                     </Link>
                     <button
                       onClick={() => toggleStatus(s)}
-                      style={{ padding: "8px 12px", borderRadius: 6, background: "transparent", border: "1px solid #888", color: "#888", cursor: "pointer", fontSize: 12 }}
+                      className="central-site-card__action"
                     >
                       {s.status === "READY" ? "Suspend" : "Activate"}
                     </button>
