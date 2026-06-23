@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Minus, Plus, Check, ShoppingBag } from "lucide-react";
+import { Minus, Plus, Check, ShoppingBag, Bolt } from "lucide-react";
 
 import { useCartStore } from "@/store/cart";
 import { toast } from "@/components/toaster";
@@ -102,7 +102,7 @@ export function BuyBox({ product }: BuyBoxProps) {
           </>
         ) : (
           <>
-            <ShoppingBag size={16} aria-hidden="true" /> В корзину
+            <Bolt size={16} aria-hidden="true" /> Купить сейчас
           </>
         )}
       </button>

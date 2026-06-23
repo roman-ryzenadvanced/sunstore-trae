@@ -100,6 +100,7 @@ export interface ApiEnvelope<T> {
 
 export interface CatalogQuery {
   category?: string;
+  search?: string;
   sort?: ProductSort;
   limit?: number;
   offset?: number;

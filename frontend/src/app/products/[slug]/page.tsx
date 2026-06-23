@@ -18,6 +18,7 @@ import {
 import { BuyBox } from "@/components/buy-box";
 import { ProductGallery } from "@/components/product-gallery";
 import { SmartImage } from "@/components/smart-image";
+import { WatchButton } from "@/components/watch-button";
 import { getStorefrontProduct, listStorefrontProducts } from "@/lib/api";
 import { formatDate, formatPrice } from "@/lib/format";
 import { getProductSpecs, getProductHighlights } from "@/lib/product-specs";
@@ -98,7 +99,10 @@ export default async function ProductPage({ params }: PageProps) {
             <p className="eyebrow">
               {product.category_name_ru ?? "Sun Panels Store selection"}
             </p>
-            <h1>{product.title_ru}</h1>
+            <div className="product-buy__title-row">
+              <h1>{product.title_ru}</h1>
+              <WatchButton productId={product.id} label="В список" />
+            </div>
             <div className="product-buy__meta">
               <span className="product-buy__sku">Артикул: {product.sku}</span>
               {outOfStock ? (
@@ -123,6 +127,23 @@ export default async function ProductPage({ params }: PageProps) {
               с НДС · бесплатная доставка
             </span>
           </div>
+
+          <ul className="product-ebay-badges" aria-label="Условия покупки">
+            <li>
+              <Truck size={16} aria-hidden="true" />
+              <span>
+                <strong>Бесплатная доставка</strong>
+                <small>1–3 дня по региону</small>
+              </span>
+            </li>
+            <li>
+              <Shield size={16} aria-hidden="true" />
+              <span>
+                <strong>Возврат 14 дней</strong>
+                <small>Гарантия возврата средств</small>
+              </span>
+            </li>
+          </ul>
 
           <p className="product-buy__desc">{product.description_ru}</p>
 

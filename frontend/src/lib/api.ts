@@ -145,6 +145,7 @@ export async function listStorefrontProducts(query: CatalogQuery = {}) {
     return await request<Product[]>(
       `/products${buildQuery({
         category: query.category,
+        search: query.search,
         sort: query.sort,
         limit: query.limit,
         offset: query.offset

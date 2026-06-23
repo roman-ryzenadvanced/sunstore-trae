@@ -41,11 +41,14 @@ export default async function CatalogPage({
     typeof params.category === "string" ? params.category : "";
   const activeSort =
     (typeof params.sort === "string" ? params.sort : "newest") as ProductSort;
+  const activeQuery =
+    typeof params.q === "string" ? params.q.trim() : "";
 
   let products: Awaited<ReturnType<typeof listStorefrontProducts>> = [];
   try {
     products = await listStorefrontProducts({
       category: activeCategory || undefined,
+      search: activeQuery || undefined,
       sort: activeSort
     });
   } catch {
@@ -53,27 +56,32 @@ export default async function CatalogPage({
   }
 
   const buildHref = (
-    overrides: Partial<{ category: string; sort: ProductSort }>
+    overrides: Partial<{ category: string; sort: ProductSort; q: string }>
   ) => {
     const search = new URLSearchParams();
     const category = overrides.category ?? activeCategory;
     const sort = overrides.sort ?? activeSort;
+    const q = overrides.q ?? activeQuery;
+    if (q) search.set("q", q);
     if (category) search.set("category", category);
     if (sort && sort !== "newest") search.set("sort", sort);
-    const q = search.toString();
-    return `/catalog${q ? `?${q}` : ""}` as Route;
+    const s = search.toString();
+    return `/catalog${s ? `?${s}` : ""}` as Route;
   };
 
   return (
     <div className="shell page-stack">
       <section className="section-heading section-heading--page">
         <div>
-          <p className="eyebrow">Sun Panels Store / catalog</p>
-          <h1>Каталог</h1>
+          <p className="eyebrow">Sun Panels Store / каталог</p>
+          <h1>{activeQuery ? `«${activeQuery}»` : "Все категории"}</h1>
+          <p className="muted">
+            Найдено товаров: <strong>{products.length}</strong>
+            {activeCategory
+              ? ` · категория: ${CATEGORIES.find((c) => c.slug === activeCategory)?.label ?? activeCategory}`
+              : ""}
+          </p>
         </div>
-        <p className="muted">
-          Отбор по категориям и сортировка — параметры передаются в backend API.
-        </p>
       </section>
 
       <div className="filter-strip" role="toolbar" aria-label="Фильтры каталога">
@@ -114,7 +122,20 @@ export default async function CatalogPage({
       </div>
 
       {products.length === 0 ? (
-        <ProductGridSkeleton count={4} />
+        activeQuery ? (
+          <div className="empty-state">
+            <h2>Ничего не найдено</h2>
+            <p className="muted">
+              По запросу «{activeQuery}» ничего нет. Попробуйте изменить запрос
+              или сбросить фильтры.
+            </p>
+            <Link href={buildHref({ q: "", category: "" })} className="button button--ghost">
+              Сбросить
+            </Link>
+          </div>
+        ) : (
+          <ProductGridSkeleton count={4} />
+        )
       ) : (
         <div className="product-grid">
           {products.map((product) => (
