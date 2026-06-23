@@ -23,6 +23,19 @@ export default function CentralDashboardPage() {
   const [sites, setSites] = useState<CentralSite[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("");
+  const [theme, setTheme] = useState<'light' | 'dark'>("dark");
+
+  // Apply theme to document element
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  // Restore theme from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('theme') as 'light' | 'dark' | null;
+    if (saved) setTheme(saved);
+  }, []);
 
   useEffect(() => {
     if (token === null) {
@@ -75,7 +88,7 @@ export default function CentralDashboardPage() {
     <main className="central-shell">
       <header className="central-header">
         <div>
-          <p className="central-header__eyebrow">Sun.store Super Admin</p>
+          <p className="central-header__eyebrow">Sun Panels Store Super Admin</p>
           <h1 className="central-header__title">Единая супер-админ панель</h1>
           <p style={{ color: "#888", fontSize: 12, marginTop: 4 }}>
             Управляйте всеми магазинами, их темами, товарами, заказами и email-настройками отсюда.

@@ -1,5 +1,5 @@
 /**
- * Solar Panels theme — the flagship "main shop" theme for Sun.store.
+ * Solar Panels theme — the flagship "main shop" theme for Sun Panels Store.
  *
  * Designed for selling solar panels, inverters, batteries, mounting kits
  * and related installation services. Bold amber-on-charcoal palette evokes

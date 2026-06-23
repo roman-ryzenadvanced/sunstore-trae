@@ -9,7 +9,7 @@ export default function AdminLayout({
   return (
     <div className="admin-shell">
       <aside className="admin-sidebar">
-        <p className="eyebrow">Sun.store / admin</p>
+        <p className="eyebrow">Sun Panels Store / admin</p>
         <h2>Back office</h2>
         <nav className="admin-nav">
           <Link href={"/admin/login" as Route}>Вход</Link>

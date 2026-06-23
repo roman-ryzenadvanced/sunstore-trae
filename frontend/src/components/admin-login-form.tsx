@@ -60,7 +60,7 @@ export function AdminLoginForm() {
   return (
     <form className="admin-login-card" onSubmit={handleSubmit} noValidate>
       <div>
-        <p className="eyebrow">Sun.store back office</p>
+        <p className="eyebrow">Sun Panels Store back office</p>
         <h1>Вход в админ-панель</h1>
         <p className="muted">
           Используйте учётные данные API. При недоступном backend включится

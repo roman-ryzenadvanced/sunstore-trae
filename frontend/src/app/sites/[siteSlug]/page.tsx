@@ -272,7 +272,7 @@ export default function PerSiteStorefront() {
           <p className="muted">{b.tagline}</p>
         </div>
         <p className="muted site-storefront__footer-powered">
-          Powered by <Link href="/">Sun.store</Link> ·{" "}
+          Powered by <Link href="/">Sun Panels Store</Link> ·{" "}
           <Link href="/central/dashboard">Super Admin</Link>
         </p>
       </footer>
@@ -496,7 +496,7 @@ function SolarStorefront({
           <p>Пн–Вс: 9:00 — 21:00</p>
         </div>
         <p className="solar-footer__powered">
-          Powered by <Link href="/">Sun.store</Link> ·{" "}
+          Powered by <Link href="/">Sun Panels Store</Link> ·{" "}
           <Link href="/central/dashboard">Super Admin</Link>
         </p>
       </footer>

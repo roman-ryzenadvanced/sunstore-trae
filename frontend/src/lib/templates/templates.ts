@@ -1,5 +1,5 @@
 /**
- * 20 Niche Templates for Sun.store
+ * 20 Niche Templates for Sun Panels Store
  * 
  * Each template is a complete storefront configuration with unique:
  * - Branding (store name, tagline, logo)

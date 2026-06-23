@@ -3,11 +3,32 @@
  * Dark, futuristic aesthetic — distinct from the boutique storefront.
  */
 
+:root {
+  --color-primary: #00ff88;
+  --color-bg: #0a0a0a;
+  --color-bg-dark: #121212;
+  --color-text: #ffffff;
+  --color-muted: #888888;
+  --font-family: 'Inter', system-ui, sans-serif;
+}
+
+[data-theme="dark"] {
+  --color-bg: #0a0a0a;
+  --color-text: #ffffff;
+  --color-muted: #888888;
+}
+
+[data-theme="light"] {
+  --color-bg: #ffffff;
+  --color-text: #000000;
+  --color-muted: #555555;
+}
+
 .central-shell {
   min-height: 100vh;
-  background: #0a0a0a;
-  color: #fff;
-  font-family: "Manrope", system-ui, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-family);
 }
 
 .central-header {

@@ -77,7 +77,7 @@ function DefaultFallback() {
       <span className="smart-image__mark" aria-hidden="true">
         ◐
       </span>
-      <span className="smart-image__label">Sun.store</span>
+      <span className="smart-image__label">Sun Panels Store</span>
     </div>
   );
 }

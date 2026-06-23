@@ -44,7 +44,7 @@ export default function CentralLoginPage() {
   return (
     <main className="central-login-wrap">
       <form onSubmit={submit} className="central-login">
-        <p className="central-header__eyebrow">Sun.store / Platform</p>
+        <p className="central-header__eyebrow">Sun Panels Store / Platform</p>
         <h1 style={{ fontSize: 26, fontWeight: 600, margin: "8px 0 24px" }}>
           Центральный вход
         </h1>
