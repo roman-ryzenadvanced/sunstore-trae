@@ -89,7 +89,7 @@ export default async function HomePage() {
             <article
               className="hero-object"
               style={{
-                backgroundImage: `linear-gradient(180deg, rgba(18, 12, 7, 0.04), rgba(18, 12, 7, 0.4)), url(${featured.images[0]})`
+                backgroundImage: `linear-gradient(180deg, rgba(12, 20, 16, 0.06), rgba(12, 20, 16, 0.52)), url(${featured.images[0]})`
               }}
             >
               <div className="hero-object__caption">

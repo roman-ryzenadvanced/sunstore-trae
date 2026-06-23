@@ -29,17 +29,17 @@ export const SOLAR_PANELS_TEMPLATE: Template = {
   description:
     "Солнечные панели, инверторы, аккумуляторы и монтажные комплекты для дома и бизнеса",
   colors: {
-    background: "#0E0F12",
-    surface: "#15171C",
-    surfaceAlt: "#1B1E25",
-    text: "#F5F6F7",
-    textMuted: "#9AA0AB",
-    accent: "#F59E0B",
-    accentText: "#0E0F12",
-    border: "#262A33",
-    success: "#10B981",
-    warning: "#F59E0B",
-    danger: "#EF4444"
+    background: "#FFFFFF",
+    surface: "#F4F6F5",
+    surfaceAlt: "#EBEFEC",
+    text: "#1C2420",
+    textMuted: "#6B7570",
+    accent: "#1BAE3B",
+    accentText: "#FFFFFF",
+    border: "#DFE4E1",
+    success: "#1BAE3B",
+    warning: "#E8821A",
+    danger: "#DC2626"
   },
   typography: {
     ...baseTypography,
@@ -53,7 +53,7 @@ export const SOLAR_PANELS_TEMPLATE: Template = {
     description:
       "Солнечные электростанции под ключ: панели, инверторы, аккумуляторы и монтаж.",
     logoMark: "☀",
-    iconColor: "#F59E0B"
+    iconColor: "#1BAE3B"
   },
   categories: [
     { id: "panels", name: "Солнечные панели", description: "Mono/Poly модули 100–600 Вт" },
