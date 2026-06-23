@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Inter, Space_Grotesk } from "next/font/google";
+import { Manrope } from "next/font/google";
 
 import { CartDrawer } from "@/components/cart-drawer";
 import { SiteFooter } from "@/components/site-footer";
@@ -8,18 +8,13 @@ import { Toaster } from "@/components/toaster";
 
 import "./globals.css";
 
-const inter = Inter({
-  subsets: ['latin', 'cyrillic'],
-  variable: '--font-inter',
-  weight: ['400', '500', '600', '700'],
-  display: 'swap'
-});
-
-// Display face referenced by the Solar Panels theme (var(--font-display)).
-const spaceGrotesk = Space_Grotesk({
-  subsets: ['latin'],
-  variable: '--font-display',
-  weight: ['500', '600', '700'],
+// Single geometric humanist typeface (close cousin of Yandex "YS Text" and
+// Sberbank "SB Sans") with full Cyrillic coverage. Hierarchy is built from
+// weight + size rather than a second family, the way both reference sites do.
+const manrope = Manrope({
+  subsets: ['latin', 'latin-ext', 'cyrillic', 'cyrillic-ext'],
+  variable: '--font-sans',
+  weight: ['400', '500', '600', '700', '800'],
   display: 'swap'
 });
 
@@ -54,8 +49,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ru">
-      <body className={`${inter.variable} ${spaceGrotesk.variable}`}>
+    <html lang="ru" className={manrope.variable}>
+      <body>
         <div className="page-chrome" />
         <SiteHeader />
         <main id="main-content" tabIndex={-1}>

@@ -46,6 +46,11 @@
   --radius-md: 12px;
   --radius-sm: 8px;
   --radius-xs: 5px;
+
+  /* Type — single Manrope family (Yandex/Sberbank-style hierarchy by weight).
+     --font-sans is injected by next/font; the aliases keep the call-sites readable. */
+  --font-body: var(--font-sans), system-ui, sans-serif;
+  --font-display: var(--font-sans), system-ui, sans-serif;
   --radius-pill: 999px;
   --transition: 180ms cubic-bezier(0.2, 0.7, 0.3, 1);
 }
@@ -62,11 +67,13 @@ body {
   margin: 0;
   min-width: 320px;
   color: var(--text);
+  font-size: 16px;
+  line-height: 1.5;
   background:
     radial-gradient(circle at top left, rgba(27, 174, 59, 0.07), transparent 32%),
     radial-gradient(circle at top right, rgba(98, 167, 15, 0.05), transparent 28%),
     linear-gradient(180deg, #FFFFFF 0%, #F7F9F8 48%, #F4F6F5 100%);
-  font-family: var(--font-inter), var(--font-body), sans-serif;
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
@@ -170,14 +177,16 @@ main:focus-visible {
   display: inline-flex;
   gap: 12px;
   align-items: center;
-  font-family: var(--font-display), serif;
+  font-family: var(--font-display);
   font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   white-space: nowrap;
 }
 
 .brand-mark small {
   display: block;
-  font-family: var(--font-body), sans-serif;
+  font-family: var(--font-body);
   font-size: 0.68rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -474,9 +483,10 @@ main:focus-visible {
 .admin-login-card h1,
 .product-hero__copy h1 {
   margin: 0;
-  font-family: var(--font-display), serif;
-  font-weight: 600;
-  line-height: 0.94;
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 0.96;
 }
 
 .hero-copy h1 {
@@ -563,8 +573,9 @@ main:focus-visible {
 
 .empty-state h2 {
   margin: 0;
-  font-family: var(--font-display), serif;
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .hero-object,
@@ -610,7 +621,7 @@ main:focus-visible {
 
 .hero-object__caption em {
   font-style: normal;
-  font-family: var(--font-display), serif;
+  font-family: var(--font-display);
   font-size: 1.4rem;
 }
 
@@ -676,9 +687,10 @@ main:focus-visible {
 .admin-panel h2,
 .order-card h3 {
   margin: 0;
-  font-family: var(--font-display), serif;
+  font-family: var(--font-display);
   font-size: 2rem;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 /* ------------------------- Product cards ------------------------- */
@@ -775,7 +787,7 @@ main:focus-visible {
 
 .product-card__title h3 {
   margin: 0;
-  font-family: var(--font-inter), sans-serif;
+  font-family: var(--font-body);
   font-size: 0.96rem;
   font-weight: 500;
   line-height: 1.35;
@@ -1206,11 +1218,11 @@ main:focus-visible {
 
 .product-buy__head h1 {
   margin: 6px 0 0;
-  font-family: var(--font-display), serif;
+  font-family: var(--font-display);
   font-size: clamp(1.8rem, 2.6vw, 2.4rem);
-  font-weight: 600;
-  line-height: 1.12;
-  letter-spacing: -0.01em;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
 }
 
 .product-buy__title-row {
@@ -1225,11 +1237,11 @@ main:focus-visible {
   margin: 6px 0 0;
   flex: 1 1 auto;
   min-width: 0;
-  font-family: var(--font-display), serif;
+  font-family: var(--font-display);
   font-size: clamp(1.8rem, 2.6vw, 2.4rem);
-  font-weight: 600;
-  line-height: 1.12;
-  letter-spacing: -0.01em;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
 }
 
 /* eBay-style shipping/returns badges above the description */
@@ -1870,9 +1882,10 @@ main:focus-visible {
 .site-footer h3 {
   margin: 0;
   max-width: 16ch;
-  font-family: var(--font-display), serif;
+  font-family: var(--font-display);
   font-size: 2rem;
-  font-weight: 600;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .site-footer__meta {
@@ -1911,8 +1924,10 @@ main:focus-visible {
 
 .admin-sidebar h2 {
   margin: 0 0 18px;
-  font-family: var(--font-display), serif;
+  font-family: var(--font-display);
   font-size: 2.2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
 }
 
 .admin-nav {
@@ -1963,8 +1978,9 @@ main:focus-visible {
 .admin-empty h3 {
   margin: 0;
   color: var(--text);
-  font-family: var(--font-display), serif;
+  font-family: var(--font-display);
   font-size: 1.4rem;
+  font-weight: 700;
 }
 
 .admin-empty svg {
