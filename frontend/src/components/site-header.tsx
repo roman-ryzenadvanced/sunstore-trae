@@ -49,11 +49,11 @@ export function SiteHeader() {
   return (
     <header className="site-header">
       <div className="site-header__inner shell">
-        <Link href={"/" as Route} className="brand-mark" aria-label="Sun.store — на главную">
+        <Link href={"/" as Route} className="brand-mark" aria-label="Sun Panels Store — на главную">
           <span className="brand-mark__sun" aria-hidden="true" />
           <span>
-            Sun.store
-            <small>atelier selection</small>
+            Sun Panels Store
+            <small>solar solutions</small>
           </span>
         </Link>
 

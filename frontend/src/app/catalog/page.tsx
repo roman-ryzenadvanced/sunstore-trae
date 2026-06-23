@@ -10,16 +10,18 @@ import type { ProductSort } from "@/types/api";
 export const metadata: Metadata = {
   title: "Каталог",
   description:
-    "Полный каталог Sun.store: ювелирные изделия, объекты интерьера и парфюмерия.",
+    "Полный каталог Sun Panels Store: солнечные панели, инверторы, аккумуляторы и монтажные комплекты.",
   alternates: { canonical: "/catalog" }
 };
 
 export const revalidate = 300;
 
 const CATEGORIES: Array<{ slug: string; label: string }> = [
-  { slug: "signature", label: "Signature" },
-  { slug: "objects", label: "Objects" },
-  { slug: "fragrance", label: "Fragrance" }
+  { slug: "panels", label: "Панели" },
+  { slug: "inverters", label: "Инверторы" },
+  { slug: "batteries", label: "Аккумуляторы" },
+  { slug: "mounting", label: "Монтаж" },
+  { slug: "services", label: "Услуги" }
 ];
 
 const SORTS: Array<{ slug: ProductSort; label: string }> = [
@@ -66,7 +68,7 @@ export default async function CatalogPage({
     <div className="shell page-stack">
       <section className="section-heading section-heading--page">
         <div>
-          <p className="eyebrow">Sun.store / catalog</p>
+          <p className="eyebrow">Sun Panels Store / catalog</p>
           <h1>Каталог</h1>
         </div>
         <p className="muted">

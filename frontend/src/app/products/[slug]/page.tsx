@@ -2,11 +2,25 @@ import type { Metadata } from "next";
 import type { Route } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import {
+  Shield,
+  Truck,
+  Clock,
+  Zap,
+  Award,
+  CheckCircle,
+  Sun,
+  Wrench,
+  Headphones,
+  ArrowRight
+} from "lucide-react";
 
-import { AddToCartButton } from "@/components/add-to-cart-button";
+import { BuyBox } from "@/components/buy-box";
+import { ProductGallery } from "@/components/product-gallery";
 import { SmartImage } from "@/components/smart-image";
 import { getStorefrontProduct, listStorefrontProducts } from "@/lib/api";
 import { formatDate, formatPrice } from "@/lib/format";
+import { getProductSpecs, getProductHighlights } from "@/lib/product-specs";
 
 export const revalidate = 300;
 
@@ -36,6 +50,13 @@ export async function generateMetadata({
   }
 }
 
+const TRUST_BADGES = [
+  { icon: Truck, label: "Доставка", value: "1–3 дня по РФ" },
+  { icon: Shield, label: "Гарантия", value: "До 25 лет" },
+  { icon: Clock, label: "Возврат", value: "14 дней" },
+  { icon: Headphones, label: "Поддержка", value: "7 дней в неделю" }
+];
+
 export default async function ProductPage({ params }: PageProps) {
   const { slug } = await params;
 
@@ -54,6 +75,8 @@ export default async function ProductPage({ params }: PageProps) {
 
   const outOfStock = product.stock_quantity <= 0;
   const lowStock = !outOfStock && product.stock_quantity <= 5;
+  const specs = getProductSpecs(product);
+  const highlights = getProductHighlights(product);
 
   return (
     <div className="shell page-stack">
@@ -65,57 +88,124 @@ export default async function ProductPage({ params }: PageProps) {
         <span aria-current="page">{product.title_ru}</span>
       </nav>
 
-      <section className="product-hero">
+      <section className="product-hero product-hero--v2">
         <div className="product-hero__media">
-          <SmartImage
-            src={product.images?.[0]}
-            alt={product.title_ru}
-            aspectRatio="auto"
-            priority
-            sizes="(max-width: 720px) 100vw, 50vw"
-          />
+          <ProductGallery title={product.title_ru} images={product.images} />
         </div>
-        <div className="product-hero__copy">
-          <p className="eyebrow">
-            {product.category_name_ru ?? "Sun.store selection"}
-          </p>
-          <h1>{product.title_ru}</h1>
-          <strong className="product-price">
-            {formatPrice(product.price_kopecks)}
-          </strong>
-          <p>{product.description_ru}</p>
 
-          {outOfStock ? (
-            <p className="status-pill status-pill--rejected">Нет в наличии</p>
-          ) : lowStock ? (
-            <p className="status-pill status-pill--pending">
-              Осталось: {product.stock_quantity} шт.
+        <div className="product-buy">
+          <div className="product-buy__head">
+            <p className="eyebrow">
+              {product.category_name_ru ?? "Sun Panels Store selection"}
             </p>
-          ) : (
-            <p className="status-pill status-pill--confirmed">В наличии</p>
-          )}
-
-          <div className="detail-list">
-            <div>
-              <span>SKU</span>
-              <strong>{product.sku}</strong>
-            </div>
-            <div>
-              <span>Наличие</span>
-              <strong>{product.stock_quantity} шт.</strong>
-            </div>
-            <div>
-              <span>Обновлено</span>
-              <strong>{formatDate(product.updated_at)}</strong>
+            <h1>{product.title_ru}</h1>
+            <div className="product-buy__meta">
+              <span className="product-buy__sku">Артикул: {product.sku}</span>
+              {outOfStock ? (
+                <span className="status-pill status-pill--rejected">Нет в наличии</span>
+              ) : lowStock ? (
+                <span className="status-pill status-pill--pending">
+                  Осталось: {product.stock_quantity} шт.
+                </span>
+              ) : (
+                <span className="status-pill status-pill--confirmed">
+                  В наличии · {product.stock_quantity} шт.
+                </span>
+              )}
             </div>
           </div>
 
-          <div className="hero-actions">
-            <AddToCartButton product={product} />
-            <Link href={"/catalog" as Route} className="button button--ghost">
-              Назад в каталог
-            </Link>
+          <div className="product-buy__price">
+            <strong className="product-price">
+              {formatPrice(product.price_kopecks)}
+            </strong>
+            <span className="product-price-note">
+              с НДС · бесплатная доставка
+            </span>
           </div>
+
+          <p className="product-buy__desc">{product.description_ru}</p>
+
+          <BuyBox product={product} />
+
+          <ul className="product-trust">
+            {TRUST_BADGES.map(({ icon: Icon, label, value }) => (
+              <li key={label} className="trust-item">
+                <Icon size={18} aria-hidden="true" />
+                <span>
+                  <strong>{value}</strong>
+                  <small>{label}</small>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      <section className="section-block product-details">
+        <div className="product-details__grid">
+          <div className="product-details__main">
+            <div className="section-heading section-heading--page">
+              <div>
+                <p className="eyebrow">Технические характеристики</p>
+                <h2>Спецификация</h2>
+              </div>
+            </div>
+
+            {highlights.length > 0 ? (
+              <ul className="spec-highlights">
+                {highlights.map((line) => (
+                  <li key={line}>
+                    <CheckCircle size={16} aria-hidden="true" />
+                    <span>{line}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+
+            <dl className="spec-table">
+              {specs.map((spec) => (
+                <div key={spec.label} className="spec-table__row">
+                  <dt>{spec.label}</dt>
+                  <dd>{spec.value}</dd>
+                </div>
+              ))}
+              <div className="spec-table__row">
+                <dt>Обновлено</dt>
+                <dd>{formatDate(product.updated_at)}</dd>
+              </div>
+            </dl>
+          </div>
+
+          <aside className="product-details__aside">
+            <article className="info-card perk-card">
+              <span className="perk-card__icon" aria-hidden="true">
+                <Zap size={20} />
+              </span>
+              <h3>Высокая эффективность</h3>
+              <p>
+                Монокристаллические модули последнего поколения с КПД до 21–22%.
+              </p>
+            </article>
+            <article className="info-card perk-card">
+              <span className="perk-card__icon" aria-hidden="true">
+                <Shield size={20} />
+              </span>
+              <h3>Гарантия 25 лет</h3>
+              <p>
+                Сертификация по международным стандартам и официальная гарантия производителя.
+              </p>
+            </article>
+            <article className="info-card perk-card">
+              <span className="perk-card__icon" aria-hidden="true">
+                <Wrench size={20} />
+              </span>
+              <h3>Монтаж под ключ</h3>
+              <p>
+                Проектирование, доставка и установка бригадой сертифицированных инженеров.
+              </p>
+            </article>
+          </aside>
         </div>
       </section>
 
@@ -123,9 +213,12 @@ export default async function ProductPage({ params }: PageProps) {
         <section className="section-block">
           <div className="section-heading">
             <div>
-              <p className="eyebrow">Похожие вещи</p>
+              <p className="eyebrow">Похожие товары</p>
               <h2>Вам может понравиться</h2>
             </div>
+            <Link href={"/catalog" as Route} className="button button--ghost">
+              Смотреть все <ArrowRight size={16} aria-hidden="true" />
+            </Link>
           </div>
           <div className="mini-grid">
             {related.map((entry) => (

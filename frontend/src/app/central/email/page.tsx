@@ -179,7 +179,7 @@ export default function PlatformEmailPage() {
               <ol style={{ margin: 0, paddingLeft: 18 }}>
                 <li>Включите двухэтапную аутентификацию: <code>myaccount.google.com → Security → 2-Step Verification</code></li>
                 <li>Откройте <code>Security → App passwords</code></li>
-                <li>Создайте новый пароль для приложения «Mail / Other (Custom name: Sun.store)»</li>
+                <li>Создайте новый пароль для приложения «Mail / Other (Custom name: Sun Panels Store)»</li>
                 <li>Скопируйте 16-значный пароль и вставьте его в поле SMTP password ниже</li>
                 <li>From-адрес = ваш Gmail (например, <code>your.shop@gmail.com</code>)</li>
               </ol>
@@ -191,7 +191,7 @@ export default function PlatformEmailPage() {
           <p className="central-stat__label">Параметры SMTP</p>
           <div className="central-setup__fields" style={{ marginTop: 12 }}>
             <Field label="From (адрес отправителя)" value={fromAddress} onChange={setFromAddress} />
-            <Field label="Имя отправителя" value={fromName} onChange={setFromName} placeholder="Sun.store Platform" />
+            <Field label="Имя отправителя" value={fromName} onChange={setFromName} placeholder="Sun Panels Store Platform" />
             <Field label="SMTP host" value={smtpHost} onChange={setSmtpHost} placeholder={provider === "gmail" ? "smtp.gmail.com" : "smtp.yandex.ru"} />
             <Field label="SMTP port" value={smtpPort} onChange={setSmtpPort} type="number" />
             <Field label="SMTP username" value={smtpUsername} onChange={setSmtpUsername} placeholder={fromAddress || "user@gmail.com"} />

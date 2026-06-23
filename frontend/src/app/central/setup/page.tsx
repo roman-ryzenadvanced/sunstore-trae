@@ -145,7 +145,7 @@ export default function CentralSetupPage() {
     <main className="central-shell">
       <header className="central-header">
         <div>
-          <p className="central-header__eyebrow">Sun.store / Setup</p>
+          <p className="central-header__eyebrow">Sun Panels Store / Setup</p>
           <h1 className="central-header__title">Создание магазина</h1>
         </div>
         <Link href="/central/dashboard" className="central-btn central-btn--ghost">

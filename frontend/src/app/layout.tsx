@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Manrope } from "next/font/google";
+import { Inter, Space_Grotesk } from "next/font/google";
 
 import { CartDrawer } from "@/components/cart-drawer";
 import { SiteFooter } from "@/components/site-footer";
@@ -8,39 +8,40 @@ import { Toaster } from "@/components/toaster";
 
 import "./globals.css";
 
-const display = Cormorant_Garamond({
-  subsets: ["latin", "cyrillic"],
-  variable: "--font-display",
-  weight: ["400", "500", "600", "700"],
-  display: "swap"
+const inter = Inter({
+  subsets: ['latin', 'cyrillic'],
+  variable: '--font-inter',
+  weight: ['400', '500', '600', '700'],
+  display: 'swap'
 });
 
-const body = Manrope({
-  subsets: ["latin", "cyrillic"],
-  variable: "--font-body",
-  weight: ["400", "500", "600", "700"],
-  display: "swap"
+// Display face referenced by the Solar Panels theme (var(--font-display)).
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  variable: '--font-display',
+  weight: ['500', '600', '700'],
+  display: 'swap'
 });
 
 export const metadata: Metadata = {
   title: {
-    default: "Sun.store — curated Russian boutique e-commerce",
-    template: "%s · Sun.store"
+    default: "Sun Panels Store — premium solar panel showcase",
+    template: "%s · Sun Panels Store"
   },
   description:
-    "Тихая роскошь для вещей, которые хочется рассматривать медленно. Витрина вдохновлена Sun.store: светлая, коллекционная, с акцентом на редкие предметы.",
+    "Элегантные солнечные панели для современного дома. Высококачественные решения с акцентом на эффективность и дизайн.",
   keywords: [
-    "Sun.store",
-    "boutique",
-    "e-commerce",
-    "российский магазин",
-    "тихая роскошь"
+    "Sun Panels Store",
+    "solar panels",
+    "солнечные панели",
+    "энергоэффективность",
+    "зелёная энергия"
   ],
-  authors: [{ name: "Sun.store" }],
+  authors: [{ name: "Sun Panels Store" }],
   openGraph: {
-    title: "Sun.store — curated Russian boutique",
+    title: "Sun Panels Store — premium solar panels",
     description:
-      "Тихая роскошь для вещей, которые хочется рассматривать медленно.",
+      "Элегантные солнечные панели для современного дома.",
     type: "website",
     locale: "ru_RU"
   },
@@ -54,7 +55,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ru">
-      <body className={`${display.variable} ${body.variable}`}>
+      <body className={`${inter.variable} ${spaceGrotesk.variable}`}>
         <div className="page-chrome" />
         <SiteHeader />
         <main id="main-content" tabIndex={-1}>
