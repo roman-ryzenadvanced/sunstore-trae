@@ -240,14 +240,16 @@ func (d *DB) ListAllSiteOrders(ctx context.Context, f domain.CrossStoreOrderFilt
 	}
 	return out, total, rows.Err()
 }
-        tag, err := d.Pool.Exec(ctx, `DELETE FROM sites WHERE id = $1`, id)
-        if err != nil {
-                return err
-        }
-        if tag.RowsAffected() == 0 {
-                return ErrNotFound
-        }
-        return nil
+
+func (d *DB) DeleteSite(ctx context.Context, id int64) error {
+	tag, err := d.Pool.Exec(ctx, `DELETE FROM sites WHERE id = $1`, id)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return ErrNotFound
+	}
+	return nil
 }
 
 // --- Site Admins ---
