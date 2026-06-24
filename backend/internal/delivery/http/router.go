@@ -92,9 +92,13 @@ func NewRouter(deps RouterDeps) *gin.Engine {
                         central.POST("/auth/login", superAdminLoginHandler(deps.Super))
 
                         // Shop list + create + lifecycle
-                        central.GET("/sites", centralAuthMiddleware(), siteHandler.List)
-                        central.POST("/sites", centralAuthMiddleware(), siteHandler.Create)
-                        central.PATCH("/sites/:id/status", centralAuthMiddleware(), siteHandler.SetStatus)
+			central.GET("/sites", centralAuthMiddleware(), siteHandler.List)
+			central.POST("/sites", centralAuthMiddleware(), siteHandler.Create)
+			central.PATCH("/sites/:id/status", centralAuthMiddleware(), siteHandler.SetStatus)
+
+			// Cross-store unified views (super-admin "all orders" / "all products")
+			central.GET("/orders", centralAuthMiddleware(), superHandler.ListAllOrders)
+			central.GET("/products", centralAuthMiddleware(), superHandler.ListAllProducts)
 
                         // Shop detail (super-admin consolidated panel)
                         central.GET("/sites/:id", centralAuthMiddleware(), superHandler.GetShop)

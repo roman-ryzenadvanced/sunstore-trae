@@ -187,20 +187,69 @@ func (d *DB) ListSiteOrders(ctx context.Context, siteID int64, limit, offset int
                         &o.CreatedAt, &o.UpdatedAt); err != nil {
                         return nil, 0, err
                 }
-                out = append(out, o)
-        }
-        return out, total, rows.Err()
+		out = append(out, o)
+	}
+	return out, total, rows.Err()
+}
+
+// ListAllSiteOrders returns orders across every store, optionally narrowed by
+// site/status/search. Each row carries the owning site's name + slug so the
+// super-admin can attribute it without a second round-trip.
+func (d *DB) ListAllSiteOrders(ctx context.Context, f domain.CrossStoreOrderFilter) ([]*domain.SiteOrder, int, error) {
+	if f.Limit <= 0 || f.Limit > 200 {
+		f.Limit = 50
+	}
+	if f.Offset < 0 {
+		f.Offset = 0
+	}
+	var total int
+	if err := d.Pool.QueryRow(ctx,
+		`SELECT COUNT(*) FROM site_orders o
+		 WHERE ($1::bigint = 0 OR o.site_id = $1)
+		   AND ($2::text = '' OR o.status = $2::order_status)
+		   AND ($3::text = '' OR o.customer_name ILIKE '%'||$3||'%' OR o.customer_email ILIKE '%'||$3||'%' OR o.tbank_order_id ILIKE '%'||$3||'%')`,
+		f.SiteID, string(f.Status), f.Search,
+	).Scan(&total); err != nil {
+		return nil, 0, err
+	}
+	q := `SELECT o.id, o.site_id, o.tbank_order_id, o.tbank_payment_id, o.customer_name,
+	             o.customer_email, o.customer_phone, o.total_amount_kopecks, o.status,
+	             o.raw_tbank_response, o.created_at, o.updated_at,
+	             s.name AS site_name, s.slug AS site_slug
+	      FROM site_orders o
+	      JOIN sites s ON s.id = o.site_id
+	      WHERE ($1::bigint = 0 OR o.site_id = $1)
+	        AND ($2::text = '' OR o.status = $2::order_status)
+	        AND ($3::text = '' OR o.customer_name ILIKE '%'||$3||'%' OR o.customer_email ILIKE '%'||$3||'%' OR o.tbank_order_id ILIKE '%'||$3||'%')
+	      ORDER BY o.created_at DESC LIMIT $4 OFFSET $5`
+	rows, err := d.Pool.Query(ctx, q, f.SiteID, string(f.Status), f.Search, f.Limit, f.Offset)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+	out := make([]*domain.SiteOrder, 0, f.Limit)
+	for rows.Next() {
+		o := &domain.SiteOrder{}
+		if err := rows.Scan(&o.ID, &o.SiteID, &o.TBankOrderID, &o.TBankPaymentID,
+			&o.CustomerName, &o.CustomerEmail, &o.CustomerPhone,
+			&o.TotalAmountKopecks, &o.Status, &o.RawTBankResponse,
+			&o.CreatedAt, &o.UpdatedAt, &o.SiteName, &o.SiteSlug); err != nil {
+			return nil, 0, err
+		}
+		out = append(out, o)
+	}
+	return out, total, rows.Err()
 }
 
 func (d *DB) DeleteSite(ctx context.Context, id int64) error {
-        tag, err := d.Pool.Exec(ctx, `DELETE FROM sites WHERE id = $1`, id)
-        if err != nil {
-                return err
-        }
-        if tag.RowsAffected() == 0 {
-                return ErrNotFound
-        }
-        return nil
+	tag, err := d.Pool.Exec(ctx, `DELETE FROM sites WHERE id = $1`, id)
+	if err != nil {
+		return err
+	}
+	if tag.RowsAffected() == 0 {
+		return ErrNotFound
+	}
+	return nil
 }
 
 // --- Site Admins ---
@@ -308,8 +357,56 @@ func (d *DB) ListSiteProducts(ctx context.Context, siteID int64, onlyActive bool
                         return nil, err
                 }
                 out = append(out, p)
-        }
-        return out, rows.Err()
+	}
+	return out, rows.Err()
+}
+
+// ListAllSiteProducts returns products across every store, optionally narrowed
+// by site/search/category. Each row carries the owning site's name + slug.
+func (d *DB) ListAllSiteProducts(ctx context.Context, f domain.CrossStoreProductFilter) ([]*domain.SiteProduct, int, error) {
+	if f.Limit <= 0 || f.Limit > 200 {
+		f.Limit = 50
+	}
+	if f.Offset < 0 {
+		f.Offset = 0
+	}
+	var total int
+	if err := d.Pool.QueryRow(ctx,
+		`SELECT COUNT(*) FROM site_products p
+		 WHERE ($1::bigint = 0 OR p.site_id = $1)
+		   AND (NOT $2::boolean OR p.is_active = TRUE)
+		   AND ($3::text = '' OR p.category = $3)
+		   AND ($4::text = '' OR p.title_ru ILIKE '%'||$4||'%' OR p.sku ILIKE '%'||$4||'%')`,
+		f.SiteID, f.ActiveOnly, f.Category, f.Search,
+	).Scan(&total); err != nil {
+		return nil, 0, err
+	}
+	q := `SELECT p.id, p.site_id, p.slug, p.title_ru, p.description_ru, p.price_kopecks,
+	             p.sku, p.stock_quantity, p.images, p.category, p.is_active, p.created_at, p.updated_at,
+	             s.name AS site_name, s.slug AS site_slug
+	      FROM site_products p
+	      JOIN sites s ON s.id = p.site_id
+	      WHERE ($1::bigint = 0 OR p.site_id = $1)
+	        AND (NOT $2::boolean OR p.is_active = TRUE)
+	        AND ($3::text = '' OR p.category = $3)
+	        AND ($4::text = '' OR p.title_ru ILIKE '%'||$4||'%' OR p.sku ILIKE '%'||$4||'%')
+	      ORDER BY p.created_at DESC LIMIT $5 OFFSET $6`
+	rows, err := d.Pool.Query(ctx, q, f.SiteID, f.ActiveOnly, f.Category, f.Search, f.Limit, f.Offset)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
+	out := make([]*domain.SiteProduct, 0, f.Limit)
+	for rows.Next() {
+		p := &domain.SiteProduct{}
+		if err := rows.Scan(&p.ID, &p.SiteID, &p.Slug, &p.Title, &p.Description, &p.PriceKopecks, &p.SKU,
+			&p.StockQuantity, &p.Images, &p.Category, &p.IsActive, &p.CreatedAt, &p.UpdatedAt,
+			&p.SiteName, &p.SiteSlug); err != nil {
+			return nil, 0, err
+		}
+		out = append(out, p)
+	}
+	return out, total, rows.Err()
 }
 
 func (d *DB) GetSiteProductBySlug(ctx context.Context, siteID int64, slug string) (*domain.SiteProduct, error) {

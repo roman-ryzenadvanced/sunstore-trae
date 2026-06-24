@@ -56,45 +56,53 @@ type SuperAdmin struct {
 
 // SiteProduct is a product owned by a single site.
 type SiteProduct struct {
-	ID            int64
-	SiteID        int64
-	Slug          string
-	Title         string
-	Description   string
-	PriceKopecks  int64
-	SKU           string
-	StockQuantity int
-	Images        []string
-	Category      string
-	IsActive      bool
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
+	ID            int64     `json:"id"`
+	SiteID        int64     `json:"site_id"`
+	Slug          string    `json:"slug"`
+	Title         string    `json:"title"`
+	Description   string    `json:"description"`
+	PriceKopecks  int64     `json:"price_kopecks"`
+	SKU           string    `json:"sku"`
+	StockQuantity int       `json:"stock_quantity"`
+	Images        []string  `json:"images"`
+	Category      string    `json:"category"`
+	IsActive      bool      `json:"is_active"`
+	CreatedAt     time.Time `json:"created_at"`
+	UpdatedAt     time.Time `json:"updated_at"`
+
+	// Populated only by cross-store queries (JOIN sites). site_id is always set.
+	SiteName string `json:"site_name,omitempty"`
+	SiteSlug string `json:"site_slug,omitempty"`
 }
 
 // SiteOrder is an order tied to a site.
 type SiteOrder struct {
-	ID                  int64
-	SiteID              int64
-	TBankOrderID        string
-	TBankPaymentID      *string
-	CustomerName        string
-	CustomerEmail       string
-	CustomerPhone       string
-	TotalAmountKopecks  int64
-	Status              OrderStatus
-	RawTBankResponse    map[string]any
-	CreatedAt           time.Time
-	UpdatedAt           time.Time
-	Items               []SiteOrderItem
+	ID                 int64          `json:"id"`
+	SiteID             int64          `json:"site_id"`
+	TBankOrderID       string         `json:"tbank_order_id"`
+	TBankPaymentID     *string        `json:"tbank_payment_id,omitempty"`
+	CustomerName       string         `json:"customer_name"`
+	CustomerEmail      string         `json:"customer_email"`
+	CustomerPhone      string         `json:"customer_phone"`
+	TotalAmountKopecks int64          `json:"total_amount_kopecks"`
+	Status             OrderStatus    `json:"status"`
+	RawTBankResponse   map[string]any `json:"raw_tbank_response,omitempty"`
+	CreatedAt          time.Time      `json:"created_at"`
+	UpdatedAt          time.Time      `json:"updated_at"`
+	Items              []SiteOrderItem `json:"items,omitempty"`
+
+	// Populated only by cross-store queries (JOIN sites). site_id is always set.
+	SiteName string `json:"site_name,omitempty"`
+	SiteSlug string `json:"site_slug,omitempty"`
 }
 
 // SiteOrderItem is a line item snapshot of a site order.
 type SiteOrderItem struct {
-	ID                    int64
-	OrderID               int64
-	ProductID             *int64
-	Quantity              int
-	PriceAtPurchaseKopeck int64
+	ID                    int64 `json:"id"`
+	OrderID               int64 `json:"order_id"`
+	ProductID             *int64 `json:"product_id,omitempty"`
+	Quantity              int   `json:"quantity"`
+	PriceAtPurchaseKopeck int64 `json:"price_at_purchase_kopecks"`
 }
 
 // SiteFilter narrows the result set when listing sites.
@@ -103,6 +111,27 @@ type SiteFilter struct {
 	Niche      string
 	TemplateID string
 	Search     string
+	Limit      int
+	Offset     int
+}
+
+// CrossStoreOrderFilter narrows the cross-store order listing. SiteID == 0
+// means "all stores".
+type CrossStoreOrderFilter struct {
+	SiteID int64
+	Status OrderStatus // empty = any status
+	Search string      // customer name / email / tbank order id
+	Limit  int
+	Offset int
+}
+
+// CrossStoreProductFilter narrows the cross-store product listing. SiteID == 0
+// means "all stores".
+type CrossStoreProductFilter struct {
+	SiteID     int64
+	Search     string // title / sku
+	Category   string
+	ActiveOnly bool
 	Limit      int
 	Offset     int
 }

@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogOut, Mail, Plus, RefreshCw, Settings } from "lucide-react";
+import { LogOut, Mail, Package, Plus, RefreshCw, Settings, ShoppingBag } from "lucide-react";
 
 import {
   listCentralSites,
@@ -95,6 +95,12 @@ export default function CentralDashboardPage() {
           </p>
         </div>
         <div className="central-header__actions">
+          <Link href="/central/orders" className="central-btn central-btn--ghost">
+            <ShoppingBag size={14} /> Все заказы
+          </Link>
+          <Link href="/central/products" className="central-btn central-btn--ghost">
+            <Package size={14} /> Все товары
+          </Link>
           <Link href="/central/email" className="central-btn central-btn--ghost">
             <Mail size={14} /> Email платформы
           </Link>

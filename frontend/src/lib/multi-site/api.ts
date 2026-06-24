@@ -77,6 +77,9 @@ export interface ShopProduct {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+  /** Populated by the cross-store listing (GET /central/products). */
+  site_name?: string;
+  site_slug?: string;
 }
 
 export interface ShopOrder {
@@ -91,6 +94,9 @@ export interface ShopOrder {
   status: string;
   created_at: string;
   updated_at: string;
+  /** Populated by the cross-store listing (GET /central/orders). */
+  site_name?: string;
+  site_slug?: string;
 }
 
 export interface EmailConfigDTO {
@@ -300,6 +306,55 @@ export async function listShopOrders(token: string, id: number): Promise<ShopOrd
     return r.items || [];
   } catch {
     return [];
+  }
+}
+
+// --- Cross-store unified views (super-admin) ---
+
+/** Orders across every store. site_id 0/omitted = all stores. */
+export async function listAllShopOrders(
+  token: string,
+  q?: { site_id?: number; status?: string; search?: string; limit?: number; offset?: number }
+): Promise<{ items: ShopOrder[]; total: number }> {
+  const params = new URLSearchParams();
+  if (q?.site_id) params.set("site_id", String(q.site_id));
+  if (q?.status) params.set("status", q.status);
+  if (q?.search) params.set("q", q.search);
+  if (q?.limit) params.set("limit", String(q.limit));
+  if (q?.offset) params.set("offset", String(q.offset));
+  const qs = params.toString();
+  try {
+    return await request<{ items: ShopOrder[]; total: number }>(
+      `/central/orders${qs ? `?${qs}` : ""}`,
+      {},
+      token
+    );
+  } catch {
+    return { items: [], total: 0 };
+  }
+}
+
+/** Products across every store. site_id 0/omitted = all stores. */
+export async function listAllShopProducts(
+  token: string,
+  q?: { site_id?: number; search?: string; category?: string; active?: boolean; limit?: number; offset?: number }
+): Promise<{ items: ShopProduct[]; total: number }> {
+  const params = new URLSearchParams();
+  if (q?.site_id) params.set("site_id", String(q.site_id));
+  if (q?.search) params.set("q", q.search);
+  if (q?.category) params.set("category", q.category);
+  if (q?.active) params.set("active", "1");
+  if (q?.limit) params.set("limit", String(q.limit));
+  if (q?.offset) params.set("offset", String(q.offset));
+  const qs = params.toString();
+  try {
+    return await request<{ items: ShopProduct[]; total: number }>(
+      `/central/products${qs ? `?${qs}` : ""}`,
+      {},
+      token
+    );
+  } catch {
+    return { items: [], total: 0 };
   }
 }
 

@@ -220,12 +220,22 @@ func (s *SiteService) DeleteSiteProduct(ctx context.Context, siteID, productID i
 
 // ListSiteProducts returns the products of a site.
 func (s *SiteService) ListSiteProducts(ctx context.Context, siteID int64, onlyActive bool) ([]*domain.SiteProduct, error) {
-        return s.db.ListSiteProducts(ctx, siteID, onlyActive)
+	return s.db.ListSiteProducts(ctx, siteID, onlyActive)
+}
+
+// ListAllSiteProducts returns products across every store (super-admin view).
+func (s *SiteService) ListAllSiteProducts(ctx context.Context, f domain.CrossStoreProductFilter) ([]*domain.SiteProduct, int, error) {
+	return s.db.ListAllSiteProducts(ctx, f)
 }
 
 // ListSiteOrders returns the orders of a site (paginated).
 func (s *SiteService) ListSiteOrders(ctx context.Context, siteID int64, limit, offset int) ([]*domain.SiteOrder, int, error) {
-        return s.db.ListSiteOrders(ctx, siteID, limit, offset)
+	return s.db.ListSiteOrders(ctx, siteID, limit, offset)
+}
+
+// ListAllSiteOrders returns orders across every store (super-admin view).
+func (s *SiteService) ListAllSiteOrders(ctx context.Context, f domain.CrossStoreOrderFilter) ([]*domain.SiteOrder, int, error) {
+	return s.db.ListAllSiteOrders(ctx, f)
 }
 
 // --- Site Admin auth ---

@@ -244,6 +244,55 @@ func (h *SuperAdminHandler) ListShopOrders(c *gin.Context) {
 	})
 }
 
+// ListAllOrders returns orders across every store (super-admin unified view).
+// Query params: site_id (0/omit = all), status, q (customer/email/order id),
+// limit, offset.
+func (h *SuperAdminHandler) ListAllOrders(c *gin.Context) {
+	f := domain.CrossStoreOrderFilter{
+		SiteID: int64(atoiDefault(c.Query("site_id"), 0)),
+		Status: domain.OrderStatus(c.Query("status")),
+		Search: c.Query("q"),
+		Limit:  atoiDefault(c.Query("limit"), 50),
+		Offset: atoiDefault(c.Query("offset"), 0),
+	}
+	orders, total, err := h.sites.ListAllSiteOrders(c.Request.Context(), f)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "list_failed"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"items":  orders,
+		"total":  total,
+		"limit":  f.Limit,
+		"offset": f.Offset,
+	})
+}
+
+// ListAllProducts returns products across every store (super-admin unified view).
+// Query params: site_id (0/omit = all), q (title/sku), category, active,
+// limit, offset.
+func (h *SuperAdminHandler) ListAllProducts(c *gin.Context) {
+	f := domain.CrossStoreProductFilter{
+		SiteID:     int64(atoiDefault(c.Query("site_id"), 0)),
+		Search:     c.Query("q"),
+		Category:   c.Query("category"),
+		ActiveOnly: c.Query("active") == "1" || c.Query("active") == "true",
+		Limit:      atoiDefault(c.Query("limit"), 50),
+		Offset:     atoiDefault(c.Query("offset"), 0),
+	}
+	products, total, err := h.sites.ListAllSiteProducts(c.Request.Context(), f)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "list_failed"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{
+		"items":  products,
+		"total":  total,
+		"limit":  f.Limit,
+		"offset": f.Offset,
+	})
+}
+
 // ---------------------------------------------------------------------------
 // Platform-level email config
 // ---------------------------------------------------------------------------
