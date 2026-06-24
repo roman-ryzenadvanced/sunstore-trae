@@ -424,6 +424,208 @@ export async function testSiteEmail(token: string, siteId: number, to: string): 
 
 const MOCK_SITES_KEY = "sunstore-central-sites";
 
+// ---------------------------------------------------------------------------
+// CRM: custom domains, support tickets, mailing lists
+// ---------------------------------------------------------------------------
+
+export interface PlatformDNSInfo {
+  nameservers: string[];
+  apex_ip: string;
+  preview_base_url: string;
+  api_docs_url: string;
+}
+
+export interface DomainInstructions {
+  domain: string;
+  status: "NONE" | "PENDING" | "ACTIVE" | "FAILED";
+  verified_at?: string | null;
+  nameservers: string[];
+  a_record: string;
+  cname_record: string;
+  preview_url: string;
+  custom_domain_url?: string;
+}
+
+export interface SupportTicket {
+  id: number;
+  site_id: number;
+  name: string;
+  email: string;
+  phone: string;
+  subject: string;
+  message: string;
+  status: "NEW" | "OPEN" | "REPLIED" | "CLOSED";
+  source: string;
+  ip_address: string;
+  reply_subject?: string | null;
+  reply_body?: string | null;
+  replied_at?: string | null;
+  created_at: string;
+  updated_at: string;
+  site_name?: string;
+  site_slug?: string;
+}
+
+export interface Subscriber {
+  id: number;
+  site_id: number;
+  email: string;
+  name: string;
+  status: "SUBSCRIBED" | "UNSUBSCRIBED";
+  source: string;
+  created_at: string;
+  unsubscribed_at?: string | null;
+  site_name?: string;
+  site_slug?: string;
+}
+
+export async function getPlatformDNS(token: string): Promise<PlatformDNSInfo> {
+  try {
+    return await request<PlatformDNSInfo>(`/central/dns/platform`, {}, token);
+  } catch {
+    return {
+      nameservers: ["ns1.sun.store", "ns2.sun.store"],
+      apex_ip: "76.76.21.21",
+      preview_base_url: "https://sunstore.vercel.app",
+      api_docs_url: "",
+    };
+  }
+}
+
+export async function getDomainInstructions(token: string, siteId: number): Promise<DomainInstructions | null> {
+  try {
+    return await request<DomainInstructions>(`/central/sites/${siteId}/domain`, {}, token);
+  } catch {
+    return null;
+  }
+}
+
+export async function attachDomain(token: string, siteId: number, domain: string): Promise<DomainInstructions> {
+  return request(`/central/sites/${siteId}/domain`, {
+    method: "POST",
+    body: JSON.stringify({ domain }),
+  }, token);
+}
+
+export async function removeDomain(token: string, siteId: number): Promise<void> {
+  return request(`/central/sites/${siteId}/domain`, {
+    method: "DELETE",
+  }, token);
+}
+
+export async function verifyDomain(token: string, siteId: number): Promise<{ status: string; verified: boolean }> {
+  return request(`/central/sites/${siteId}/domain/verify`, {
+    method: "POST",
+  }, token);
+}
+
+export async function listAllTickets(
+  token: string,
+  q?: { site_id?: number; status?: string; search?: string }
+): Promise<SupportTicket[]> {
+  const params = new URLSearchParams();
+  if (q?.site_id) params.set("site_id", String(q.site_id));
+  if (q?.status) params.set("status", q.status);
+  if (q?.search) params.set("q", q.search);
+  const qs = params.toString();
+  try {
+    const r = await request<{ items: SupportTicket[] }>(`/central/tickets${qs ? `?${qs}` : ""}`, {}, token);
+    return r.items || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function listShopTickets(token: string, siteId: number): Promise<SupportTicket[]> {
+  try {
+    const r = await request<{ items: SupportTicket[] }>(`/central/sites/${siteId}/tickets`, {}, token);
+    return r.items || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function updateTicket(
+  token: string, siteId: number, ticketId: number,
+  body: { status?: string; reply_subject?: string; reply_body?: string }
+): Promise<SupportTicket> {
+  return request(`/central/sites/${siteId}/tickets/${ticketId}`, {
+    method: "PATCH",
+    body: JSON.stringify(body),
+  }, token);
+}
+
+export async function listAllSubscribers(
+  token: string,
+  q?: { site_id?: number; status?: string; search?: string }
+): Promise<Subscriber[]> {
+  const params = new URLSearchParams();
+  if (q?.site_id) params.set("site_id", String(q.site_id));
+  if (q?.status) params.set("status", q.status);
+  if (q?.search) params.set("q", q.search);
+  const qs = params.toString();
+  try {
+    const r = await request<{ items: Subscriber[] }>(`/central/subscribers${qs ? `?${qs}` : ""}`, {}, token);
+    return r.items || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function listShopSubscribers(token: string, siteId: number): Promise<Subscriber[]> {
+  try {
+    const r = await request<{ items: Subscriber[] }>(`/central/sites/${siteId}/subscribers`, {}, token);
+    return r.items || [];
+  } catch {
+    return [];
+  }
+}
+
+export async function removeSubscriber(token: string, siteId: number, subscriberId: number): Promise<void> {
+  return request(`/central/sites/${siteId}/subscribers/${subscriberId}`, {
+    method: "DELETE",
+  }, token);
+}
+
+export async function broadcast(
+  token: string,
+  body: { site_id?: number; subject: string; html_body: string }
+): Promise<{ sent: number; failed: number }> {
+  return request(`/central/broadcast`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  }, token);
+}
+
+// --- Public storefront CRM endpoints (no token needed) ---
+
+export async function publicContact(
+  slug: string,
+  body: { name: string; email: string; phone?: string; subject: string; message: string }
+): Promise<{ ok: boolean }> {
+  return request(`/sites/${encodeURIComponent(slug)}/contact`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function publicSubscribe(
+  slug: string,
+  body: { email: string; name?: string }
+): Promise<{ ok: boolean }> {
+  return request(`/sites/${encodeURIComponent(slug)}/subscribe`, {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+}
+
+export async function publicUnsubscribe(slug: string, email: string): Promise<{ ok: boolean }> {
+  return request(`/sites/${encodeURIComponent(slug)}/subscribe`, {
+    method: "DELETE",
+    body: JSON.stringify({ email }),
+  });
+}
+
 function mockCentralSites(): CentralSite[] {
   if (typeof window === "undefined") return [];
   try {

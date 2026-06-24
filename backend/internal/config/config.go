@@ -19,10 +19,21 @@ import (
 
 // Config is the fully-resolved runtime configuration for the API service.
 type Config struct {
-	App   AppConfig
-	DB    PostgresConfig
-	TBank TBankConfig
-	JWT   JWTConfig
+	App      AppConfig
+	DB       PostgresConfig
+	TBank    TBankConfig
+	JWT      JWTConfig
+	Platform PlatformConfig
+}
+
+// PlatformConfig describes the hosted-store platform (nameservers, apex IP,
+// preview base URL) used to generate custom-domain + onboarding instructions.
+type PlatformConfig struct {
+	Name           string   // platform display name, e.g. "Sun.store"
+	Nameservers    []string // nameservers store owners must set at their registrar
+	ApexIP         string   // A-record target for apex domains
+	PreviewBaseURL string   // base URL for slug-based previews (e.g. the Vercel app)
+	APIDocsURL     string   // public API / docs URL
 }
 
 // AppConfig covers HTTP-server-level concerns.
@@ -119,6 +130,13 @@ func Load() (*Config, error) {
 			Secret: []byte(os.Getenv("JWT_SECRET")),
 			TTL:    getDuration("JWT_TTL", 12*time.Hour),
 			Issuer: getString("JWT_ISSUER", "sunstore-api"),
+		},
+		Platform: PlatformConfig{
+			Name:           getString("PLATFORM_NAME", "Sun.store"),
+			Nameservers:    splitCSV(getString("PLATFORM_NAMESERVERS", "ns1.sun.store,ns2.sun.store")),
+			ApexIP:         getString("PLATFORM_APEX_IP", "76.76.21.21"),
+			PreviewBaseURL: getString("PLATFORM_PREVIEW_BASE_URL", "https://sunstore.vercel.app"),
+			APIDocsURL:     getString("PLATFORM_API_DOCS_URL", "https://sunstore.vercel.app"),
 		},
 	}
 

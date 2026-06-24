@@ -902,3 +902,42 @@
   .solar-cta-card { padding: 32px 20px; }
   .solar-footer { padding: 32px 20px 24px; }
 }
+
+/* ---- Contact form + Newsletter (storefront CRM) ---- */
+
+.site-storefront__contact {
+  padding: 48px 24px;
+  max-width: var(--site-shell);
+  margin: 0 auto;
+}
+
+.site-storefront__input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--site-border, #e8dfd0);
+  border-radius: var(--site-radius-button, 8px);
+  background: var(--site-surface, #fff);
+  color: var(--site-text, #1a1a1a);
+  font-size: 14px;
+  font-family: var(--site-body-font, inherit);
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.site-storefront__input:focus {
+  border-color: var(--site-accent, #8b6f47);
+}
+
+.site-storefront__newsletter {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border: 1px solid var(--site-border, #e8dfd0);
+  border-left: 3px solid var(--site-accent, #8b6f47);
+  border-radius: var(--site-radius-button, 8px);
+  background: var(--site-surface-alt, #f5efe6);
+  color: var(--site-text, #1a1a1a);
+  margin: 16px 0;
+  flex-wrap: wrap;
+}

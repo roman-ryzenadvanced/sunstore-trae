@@ -12,6 +12,7 @@ import type { Template } from "@/lib/templates/types";
 import { formatPrice } from "@/lib/format";
 import { toast } from "@/components/toaster";
 import { Skeleton } from "@/components/skeletons";
+import { StorefrontContact, StorefrontSubscribe } from "@/components/storefront-crm";
 import type { Product } from "@/types/api";
 
 import "./storefront.css";
@@ -264,6 +265,8 @@ export default function PerSiteStorefront() {
         )}
       </section>
 
+      <StorefrontContact slug={slug} accent={c.accent} />
+
       <footer className="site-storefront__footer">
         <div>
           <Link href={`/sites/${slug}`} className="site-storefront__footer-brand">
@@ -271,6 +274,7 @@ export default function PerSiteStorefront() {
           </Link>
           <p className="muted">{b.tagline}</p>
         </div>
+        <StorefrontSubscribe slug={slug} accent={c.accent} />
         <p className="muted site-storefront__footer-powered">
           Powered by <Link href="/">Sun Panels Store</Link> ·{" "}
           <Link href="/central/dashboard">Super Admin</Link>
@@ -485,11 +489,14 @@ function SolarStorefront({
       </section>
 
       {/* CONTACT FOOTER */}
+      <StorefrontContact slug={site.slug} accent={c.accent} />
+
       <footer id="contact" className="solar-footer">
         <div>
           <p className="solar-footer__brand">{b.logoMark} {b.storeName}</p>
           <p className="solar-footer__tagline">{b.tagline}</p>
         </div>
+        <StorefrontSubscribe slug={site.slug} accent={c.accent} />
         <div className="solar-footer__contact">
           <p>Тел: <a href="tel:+78001234567">8 800 123-45-67</a></p>
           <p>Email: <a href="mailto:hello@sunvolt.ru">hello@sunvolt.ru</a></p>

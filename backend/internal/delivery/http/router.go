@@ -33,6 +33,7 @@ type RouterDeps struct {
         SiteAuth      *usecase.SiteAuthService
         Super         *usecase.SuperAdminService
         Email         *usecase.EmailUseCase
+        CRM           *usecase.CRMUseCase
 }
 
 // NewRouter builds the entire HTTP surface.
@@ -48,6 +49,7 @@ func NewRouter(deps RouterDeps) *gin.Engine {
         webhookHandler := NewWebhookHandler(deps.Logger, deps.Notifications)
         siteHandler := NewSiteHandler(deps.Sites, deps.SiteAuth)
         superHandler := NewSuperAdminHandler(deps.Sites, deps.Email)
+        crmHandler := NewCRMHandler(deps.CRM, deps.Sites, deps.Email, deps.Config.Platform)
 
         r.GET("/healthz", func(c *gin.Context) {
                 pingCtx, cancel := context.WithTimeout(c.Request.Context(), 2*time.Second)
@@ -133,6 +135,24 @@ func NewRouter(deps RouterDeps) *gin.Engine {
                         central.GET("/sites/:id/admins", centralAuthMiddleware(), siteHandler.ListSiteAdmins)
                         central.POST("/sites/:id/admins", centralAuthMiddleware(), siteHandler.AddSiteAdmin)
                         central.DELETE("/sites/:id/admins/:adminId", centralAuthMiddleware(), siteHandler.RemoveSiteAdmin)
+
+                        // ── CRM: custom domains + DNS ──────────────────────────────────
+                        central.GET("/dns/platform", centralAuthMiddleware(), crmHandler.PlatformDNS)
+                        central.GET("/sites/:id/domain", centralAuthMiddleware(), crmHandler.AttachDomain) // GET returns instructions
+                        central.POST("/sites/:id/domain", centralAuthMiddleware(), crmHandler.AttachDomain)
+                        central.DELETE("/sites/:id/domain", centralAuthMiddleware(), crmHandler.RemoveDomain)
+                        central.POST("/sites/:id/domain/verify", centralAuthMiddleware(), crmHandler.VerifyDomain)
+
+                        // ── CRM: support / contact-form inbox ─────────────────────────
+                        central.GET("/tickets", centralAuthMiddleware(), crmHandler.ListAllTickets)
+                        central.GET("/sites/:id/tickets", centralAuthMiddleware(), crmHandler.ListShopTickets)
+                        central.PATCH("/sites/:id/tickets/:ticketId", centralAuthMiddleware(), crmHandler.UpdateTicket)
+
+                        // ── CRM: mailing-list management ───────────────────────────────
+                        central.GET("/subscribers", centralAuthMiddleware(), crmHandler.ListAllSubscribers)
+                        central.GET("/sites/:id/subscribers", centralAuthMiddleware(), crmHandler.ListShopSubscribers)
+                        central.DELETE("/sites/:id/subscribers/:subscriberId", centralAuthMiddleware(), crmHandler.RemoveSubscriber)
+                        central.POST("/broadcast", centralAuthMiddleware(), crmHandler.Broadcast)
                 }
 
                 // Per-site public profile (theme + identity)
@@ -140,6 +160,11 @@ func NewRouter(deps RouterDeps) *gin.Engine {
 
                 // Per-site admin login
                 api.POST("/sites/:siteSlug/admin/auth/login", siteHandler.SiteAdminLogin)
+
+                // ── Public storefront CRM endpoints (contact form + newsletter) ────
+                api.POST("/sites/:siteSlug/contact", crmHandler.PublicContact)
+                api.POST("/sites/:siteSlug/subscribe", crmHandler.PublicSubscribe)
+                api.DELETE("/sites/:siteSlug/subscribe", crmHandler.PublicUnsubscribe)
 
                 // T-Bank webhook (existing)
                 webhooks := api.Group("/webhooks")

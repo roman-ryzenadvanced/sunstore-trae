@@ -4,8 +4,9 @@ import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import {
-  ArrowLeft, Box, Eye, EyeOff, Loader2, LogOut, Mail, PackageOpen,
-  Palette, Plus, RefreshCw, Save, Settings, ShoppingBag, Store, Trash2, Wand2
+  ArrowLeft, Box, Eye, EyeOff, Globe, Loader2, LogOut, Mail, MessageSquare,
+  PackageOpen, Palette, Plus, RefreshCw, Save, Send, Settings, ShoppingBag,
+  Store, Trash2, Users, Wand2
 } from "lucide-react";
 
 import {
@@ -14,7 +15,10 @@ import {
   updateShopTheme, updateShopBranding,
   createShopProduct, updateShopProduct, deleteShopProduct,
   getSiteEmailConfig, upsertSiteEmailConfig, deleteSiteEmailConfig, testSiteEmail,
-  EmailConfigDTO, EmailConfigInput
+  EmailConfigDTO, EmailConfigInput,
+  getDomainInstructions, attachDomain, removeDomain, verifyDomain, DomainInstructions,
+  listShopTickets, updateTicket, SupportTicket,
+  listShopSubscribers, removeSubscriber as apiRemoveSubscriber, Subscriber,
 } from "@/lib/multi-site/api";
 import { useCentralAuthStore } from "@/lib/multi-site/store";
 import { TEMPLATES } from "@/lib/templates/templates";
@@ -23,7 +27,7 @@ import { formatPrice, slugify } from "@/lib/format";
 
 import "../../central.css";
 
-type Tab = "overview" | "theme" | "products" | "orders" | "email";
+type Tab = "overview" | "theme" | "products" | "orders" | "email" | "domain" | "support" | "subscribers";
 
 export default function ShopDetailPage() {
   const router = useRouter();
@@ -39,6 +43,10 @@ export default function ShopDetailPage() {
   const [orders, setOrders] = useState<ShopOrder[]>([]);
   const [productsLoaded, setProductsLoaded] = useState(false);
   const [ordersLoaded, setOrdersLoaded] = useState(false);
+  const [tickets, setTickets] = useState<SupportTicket[]>([]);
+  const [ticketsLoaded, setTicketsLoaded] = useState(false);
+  const [subscribers, setSubscribers] = useState<Subscriber[]>([]);
+  const [subscribersLoaded, setSubscribersLoaded] = useState(false);
 
   useEffect(() => {
     if (token === null) {
@@ -127,10 +135,34 @@ export default function ShopDetailPage() {
     }
   }
 
+  async function loadTickets() {
+    if (!token || !id) return;
+    setTicketsLoaded(false);
+    try {
+      const list = await listShopTickets(token, id);
+      setTickets(list);
+    } finally {
+      setTicketsLoaded(true);
+    }
+  }
+
+  async function loadSubscribers() {
+    if (!token || !id) return;
+    setSubscribersLoaded(false);
+    try {
+      const list = await listShopSubscribers(token, id);
+      setSubscribers(list);
+    } finally {
+      setSubscribersLoaded(true);
+    }
+  }
+
   function switchTab(next: Tab) {
     setTab(next);
     if (next === "products" && !productsLoaded) loadProducts();
     if (next === "orders" && !ordersLoaded) loadOrders();
+    if (next === "support" && !ticketsLoaded) loadTickets();
+    if (next === "subscribers" && !subscribersLoaded) loadSubscribers();
   }
 
   if (loading) {
@@ -190,6 +222,9 @@ export default function ShopDetailPage() {
           ["theme", "Тема", Palette],
           ["products", "Товары", Box],
           ["orders", "Заказы", ShoppingBag],
+          ["domain", "Домен", Globe],
+          ["support", "Поддержка", MessageSquare],
+          ["subscribers", "Рассылка", Users],
           ["email", "Email", Mail]
         ] as [Tab, string, any][]).map(([key, label, Icon]) => (
           <button
@@ -223,6 +258,25 @@ export default function ShopDetailPage() {
         )}
         {tab === "email" && (
           <EmailTab siteId={site.id} />
+        )}
+        {tab === "domain" && (
+          <DomainTab siteId={site.id} slug={site.slug} />
+        )}
+        {tab === "support" && (
+          <SupportTab
+            siteId={site.id}
+            tickets={tickets}
+            loaded={ticketsLoaded}
+            onChange={loadTickets}
+          />
+        )}
+        {tab === "subscribers" && (
+          <SubscribersTab
+            siteId={site.id}
+            subscribers={subscribers}
+            loaded={subscribersLoaded}
+            onChange={loadSubscribers}
+          />
         )}
       </section>
     </main>
@@ -904,6 +958,367 @@ function EmailTab({ siteId }: { siteId: number }) {
             <Wand2 size={14} /> Отправить тест
           </button>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ===========================================================================
+// Domain tab — attach custom domain + DNS instructions
+// ===========================================================================
+
+function DomainTab({ siteId, slug }: { siteId: number; slug: string }) {
+  const token = useCentralAuthStore((s) => s.token);
+  const [info, setInfo] = useState<DomainInstructions | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [domainInput, setDomainInput] = useState("");
+
+  function refresh() {
+    if (!token) return;
+    setLoading(true);
+    getDomainInstructions(token, siteId)
+      .then((d) => {
+        setInfo(d);
+        if (d?.domain) setDomainInput(d.domain);
+      })
+      .finally(() => setLoading(false));
+  }
+
+  useEffect(() => { refresh(); /* eslint-disable-next-line */ }, [token, siteId]);
+
+  async function doAttach() {
+    if (!token || !domainInput.trim()) return;
+    setBusy(true);
+    try {
+      const d = await attachDomain(token, siteId, domainInput.trim());
+      setInfo(d);
+      toast.success("Домен привязан", domainInput);
+    } catch (e: any) {
+      toast.error("Ошибка привязки домена", e?.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function doRemove() {
+    if (!token) return;
+    if (!confirm("Отвязать домен?")) return;
+    setBusy(true);
+    try {
+      await removeDomain(token, siteId);
+      setInfo(null);
+      setDomainInput("");
+      toast.info("Домен отвязан");
+    } catch (e: any) {
+      toast.error("Ошибка", e?.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function doVerify() {
+    if (!token) return;
+    setBusy(true);
+    try {
+      const r = await verifyDomain(token, siteId);
+      if (r.verified) toast.success("Домен подтверждён и активен!");
+      else toast.info("DNS ещё не готовы", `Текущий статус: ${r.status}`);
+      refresh();
+    } catch (e: any) {
+      toast.error("Ошибка проверки", e?.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (loading) return <p style={{ color: "#888", padding: 24 }}>Загрузка доменных настроек…</p>;
+
+  return (
+    <div style={{ display: "grid", gap: 16 }}>
+      <div className="central-stat" style={{ padding: 20 }}>
+        <p className="central-stat__label">Preview URL ( slug-based )</p>
+        <p style={{ marginTop: 8, fontSize: 14 }}>
+          <Link href={`/sites/${slug}`} target="_blank" style={{ color: "#00ff88" }}>
+            {info?.preview_url || `/sites/${slug}`}
+          </Link>
+        </p>
+      </div>
+
+      <div className="central-stat" style={{ padding: 20 }}>
+        <p className="central-stat__label">Привязать домен</p>
+        <div style={{ display: "flex", gap: 8, marginTop: 8, flexWrap: "wrap" }}>
+          <input
+            value={domainInput}
+            onChange={(e) => setDomainInput(e.target.value)}
+            placeholder="mystore.com"
+            className="central-setup__field-input"
+            style={{ flex: "1 1 240px", marginBottom: 0 }}
+          />
+          <button onClick={doAttach} disabled={busy} className="central-btn central-btn--primary">
+            {busy ? <Loader2 size={14} className="spin" /> : <Globe size={14} />} Привязать
+          </button>
+          {info?.domain && (
+            <button onClick={doVerify} disabled={busy} className="central-btn central-btn--ghost">
+              <Wand2 size={14} /> Проверить DNS
+            </button>
+          )}
+          {info?.domain && (
+            <button onClick={doRemove} disabled={busy} className="central-btn central-btn--danger">
+              <Trash2 size={14} /> Отвязать
+            </button>
+          )}
+        </div>
+        {info?.domain && (
+          <p style={{ marginTop: 8, fontSize: 12 }}>
+            Статус: <span className={`central-status-pill central-status-pill--${String(info.status).toLowerCase()}`}>{info.status}</span>
+            {info.verified_at && <span style={{ color: "#888", marginLeft: 8 }}>подтверждён: {new Date(info.verified_at).toLocaleString("ru-RU")}</span>}
+          </p>
+        )}
+      </div>
+
+      {info?.domain && (
+        <div className="central-stat" style={{ padding: 20 }}>
+          <p className="central-stat__label">Инструкция по DNS (настройте у регистратора домена, напр. Namecheap)</p>
+          <div style={{ marginTop: 12, display: "grid", gap: 12 }}>
+            <div>
+              <p style={{ fontSize: 12, color: "#888", marginBottom: 4 }}>Вариант A — Nameservers (рекомендуется):</p>
+              <pre style={{ background: "#0a0a0a", padding: 12, borderRadius: 8, fontSize: 12, overflow: "auto", margin: 0 }}>
+{info.nameservers.map((ns) => ns).join("\n")}
+              </pre>
+            </div>
+            <div>
+              <p style={{ fontSize: 12, color: "#888", marginBottom: 4 }}>Вариант B — A-запись (апекс-домен {domainInput || "example.com"}):</p>
+              <pre style={{ background: "#0a0a0a", padding: 12, borderRadius: 8, fontSize: 12, margin: 0 }}>
+@  A  {info.a_record}
+              </pre>
+            </div>
+            <div>
+              <p style={{ fontSize: 12, color: "#888", marginBottom: 4 }}>Вариант C — CNAME (www):</p>
+              <pre style={{ background: "#0a0a0a", padding: 12, borderRadius: 8, fontSize: 12, margin: 0 }}>
+www  CNAME  {info.cname_record}
+              </pre>
+            </div>
+          </div>
+          <p style={{ marginTop: 12, fontSize: 12, color: "#888" }}>
+            После настройки DNS нажмите «Проверить DNS». Домен станет активным после успешной проверки.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ===========================================================================
+// Support tab — contact-form tickets for this shop
+// ===========================================================================
+
+function SupportTab({
+  siteId, tickets, loaded, onChange
+}: {
+  siteId: number;
+  tickets: SupportTicket[];
+  loaded: boolean;
+  onChange: () => void;
+}) {
+  const token = useCentralAuthStore((s) => s.token);
+  const [replyTo, setReplyTo] = useState<SupportTicket | null>(null);
+  const [replySubject, setReplySubject] = useState("");
+  const [replyBody, setReplyBody] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  function openReply(t: SupportTicket) {
+    setReplyTo(t);
+    setReplySubject(`Re: ${t.subject}`);
+    setReplyBody("");
+  }
+
+  async function sendReply() {
+    if (!token || !replyTo) return;
+    if (!replyBody.trim()) { toast.error("Введите текст ответа"); return; }
+    setBusy(true);
+    try {
+      await updateTicket(token, siteId, replyTo.id, {
+        status: "REPLIED",
+        reply_subject: replySubject,
+        reply_body: replyBody,
+      });
+      toast.success("Ответ отправлен", replyTo.email);
+      setReplyTo(null);
+      onChange();
+    } catch (e: any) {
+      toast.error("Ошибка отправки", e?.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function closeTicket(t: SupportTicket) {
+    if (!token) return;
+    try {
+      await updateTicket(token, siteId, t.id, { status: "CLOSED" });
+      toast.info("Тикет закрыт");
+      onChange();
+    } catch (e: any) {
+      toast.error("Ошибка", e?.message);
+    }
+  }
+
+  if (!loaded) return <p style={{ color: "#888", padding: 24 }}>Загрузка обращений…</p>;
+  if (tickets.length === 0) {
+    return (
+      <div className="central-empty">
+        <MessageSquare size={32} style={{ opacity: 0.4 }} />
+        <p className="central-empty__text">Обращений из формы контактов пока нет.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: "grid", gap: 12 }}>
+      {replyTo && (
+        <div className="central-stat" style={{ padding: 20, border: "1px solid #00ff88" }}>
+          <p className="central-stat__label">Ответ на #{replyTo.id} — {replyTo.email}</p>
+          <input
+            value={replySubject}
+            onChange={(e) => setReplySubject(e.target.value)}
+            className="central-setup__field-input"
+            style={{ margin: "8px 0" }}
+            placeholder="Тема ответа"
+          />
+          <textarea
+            value={replyBody}
+            onChange={(e) => setReplyBody(e.target.value)}
+            className="central-setup__field-input"
+            style={{ width: "100%", minHeight: 100, fontFamily: "inherit" }}
+            placeholder="Текст ответа…"
+          />
+          <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
+            <button onClick={sendReply} disabled={busy} className="central-btn central-btn--primary">
+              {busy ? <Loader2 size={14} className="spin" /> : <Send size={14} />} Отправить
+            </button>
+            <button onClick={() => setReplyTo(null)} className="central-btn central-btn--ghost">Отмена</button>
+          </div>
+        </div>
+      )}
+
+      {tickets.map((t) => (
+        <div key={t.id} className="central-stat" style={{ padding: 16 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
+            <div>
+              <p style={{ fontSize: 14, fontWeight: 700, margin: 0 }}>
+                {t.subject}
+                <span className={`central-status-pill central-status-pill--${String(t.status).toLowerCase()}`} style={{ marginLeft: 8, fontSize: 10 }}>
+                  {t.status}
+                </span>
+              </p>
+              <p style={{ fontSize: 12, color: "#888", margin: "4px 0 0" }}>
+                #{t.id} · {t.name} &lt;{t.email}&gt; {t.phone && `· ${t.phone}`} · {new Date(t.created_at).toLocaleString("ru-RU")}
+              </p>
+            </div>
+            <div style={{ display: "flex", gap: 4 }}>
+              {t.status !== "CLOSED" && (
+                <button onClick={() => openReply(t)} className="central-btn central-btn--ghost" style={{ fontSize: 11, padding: "4px 8px" }}>
+                  <Send size={11} /> Ответить
+                </button>
+              )}
+              {t.status !== "CLOSED" && (
+                <button onClick={() => closeTicket(t)} className="central-btn central-btn--ghost" style={{ fontSize: 11, padding: "4px 8px" }}>
+                  Закрыть
+                </button>
+              )}
+            </div>
+          </div>
+          <p style={{ marginTop: 8, fontSize: 13, color: "#ccc", whiteSpace: "pre-wrap" }}>{t.message}</p>
+          {t.reply_body && (
+            <div style={{ marginTop: 8, padding: 8, background: "#0a0a0a", borderRadius: 6, fontSize: 12, color: "#aaa" }}>
+              <p style={{ fontWeight: 700, margin: 0 }}>↳ Ответ: {t.reply_subject}</p>
+              <p style={{ margin: "4px 0 0", whiteSpace: "pre-wrap" }}>{t.reply_body}</p>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ===========================================================================
+// Subscribers tab — mailing list for this shop
+// ===========================================================================
+
+function SubscribersTab({
+  siteId, subscribers, loaded, onChange
+}: {
+  siteId: number;
+  subscribers: Subscriber[];
+  loaded: boolean;
+  onChange: () => void;
+}) {
+  const token = useCentralAuthStore((s) => s.token);
+
+  async function remove(id: number) {
+    if (!token) return;
+    if (!confirm("Удалить подписчика?")) return;
+    try {
+      await apiRemoveSubscriber(token, siteId, id);
+      toast.success("Подписчик удалён");
+      onChange();
+    } catch (e: any) {
+      toast.error("Ошибка", e?.message);
+    }
+  }
+
+  if (!loaded) return <p style={{ color: "#888", padding: 24 }}>Загрузка подписчиков…</p>;
+  if (subscribers.length === 0) {
+    return (
+      <div className="central-empty">
+        <Users size={32} style={{ opacity: 0.4 }} />
+        <p className="central-empty__text">Подписчиков пока нет.</p>
+      </div>
+    );
+  }
+
+  const active = subscribers.filter((s) => s.status === "SUBSCRIBED").length;
+
+  return (
+    <div>
+      <div style={{ marginBottom: 12 }}>
+        <h2 style={{ fontSize: 16, margin: 0 }}>База подписчиков</h2>
+        <p style={{ color: "#888", fontSize: 12, margin: "4px 0 0" }}>
+          Всего: {subscribers.length} · Активных: {active}
+        </p>
+      </div>
+      <div style={{ background: "#111", border: "1px solid #222", borderRadius: 12, overflow: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 480 }}>
+          <thead>
+            <tr style={{ background: "#1a1a1a", color: "#888", fontSize: 11, letterSpacing: 1, textTransform: "uppercase" }}>
+              <th style={{ padding: 12, textAlign: "left" }}>Email</th>
+              <th style={{ padding: 12, textAlign: "left" }}>Имя</th>
+              <th style={{ padding: 12, textAlign: "left" }}>Статус</th>
+              <th style={{ padding: 12, textAlign: "left" }}>Дата</th>
+              <th style={{ padding: 12, textAlign: "right" }}></th>
+            </tr>
+          </thead>
+          <tbody>
+            {subscribers.map((s) => (
+              <tr key={s.id} style={{ borderTop: "1px solid #1a1a1a" }}>
+                <td style={{ padding: 12, fontSize: 13 }}>{s.email}</td>
+                <td style={{ padding: 12, fontSize: 12, color: "#aaa" }}>{s.name || "—"}</td>
+                <td style={{ padding: 12, fontSize: 12 }}>
+                  <span className={`central-status-pill central-status-pill--${String(s.status).toLowerCase()}`}>{s.status}</span>
+                </td>
+                <td style={{ padding: 12, fontSize: 12, color: "#aaa" }}>
+                  {new Date(s.created_at).toLocaleString("ru-RU")}
+                </td>
+                <td style={{ padding: 12, textAlign: "right" }}>
+                  <button onClick={() => remove(s.id)} className="central-btn central-btn--danger" style={{ fontSize: 11, padding: "4px 8px" }}>
+                    <Trash2 size={11} />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );

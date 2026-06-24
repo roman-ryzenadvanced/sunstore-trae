@@ -81,6 +81,7 @@ func run(logger *slog.Logger) error {
         siteAuthSvc := usecase.NewSiteAuthService(db)
         superSvc := usecase.NewSuperAdminService(db)
         emailSvc := usecase.NewEmailUseCase(db)
+        crmSvc := usecase.NewCRMUseCase(db)
         if err := superSvc.EnsureDefault(rootCtx, "admin", "changeme123"); err != nil {
                 logger.Warn("default super-admin bootstrap failed", slog.String("err", err.Error()))
         }
@@ -101,6 +102,7 @@ func run(logger *slog.Logger) error {
                 SiteAuth:      siteAuthSvc,
                 Super:         superSvc,
                 Email:         emailSvc,
+                CRM:           crmSvc,
         })
 
         srv := &http.Server{
