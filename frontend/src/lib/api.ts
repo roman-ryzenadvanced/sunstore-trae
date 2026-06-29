@@ -173,7 +173,8 @@ export async function getStorefrontProduct(slug: string) {
 
 export async function adminLogin(username: string, password: string) {
   try {
-    return await request<AdminLoginResponse>("/admin/auth/login", {
+    // Use central admin login endpoint
+    return await request<AdminLoginResponse>("/central/auth/login", {
       method: "POST",
       body: JSON.stringify({ username, password })
     });
@@ -190,8 +191,9 @@ export async function listAdminProducts(
   query: AdminProductQuery = {}
 ) {
   try {
+    // Use central admin products endpoint (manages all sites)
     return await request<Product[]>(
-      `/admin/products${buildQuery({
+      `/central/products${buildQuery({
         category: query.category,
         search: query.search,
         sort: query.sort,
@@ -207,7 +209,8 @@ export async function listAdminProducts(
 
 export async function createAdminProduct(token: string, input: UpsertProductInput) {
   try {
-    return await request<Product>("/admin/products", {
+    // Use central admin products endpoint
+    return await request<Product>("/central/products", {
       method: "POST",
       token,
       body: JSON.stringify(input)
@@ -238,7 +241,8 @@ export async function updateAdminProduct(
   input: UpsertProductInput
 ) {
   try {
-    return await request<Product>(`/admin/products/${id}`, {
+    // Use central admin products endpoint
+    return await request<Product>(`/central/products/${id}`, {
       method: "PUT",
       token,
       body: JSON.stringify(input)
@@ -265,7 +269,8 @@ export async function updateAdminProduct(
 
 export async function deleteAdminProduct(token: string, id: number) {
   try {
-    await request<{ success: true }>(`/admin/products/${id}`, {
+    // Use central admin products endpoint
+    await request<{ success: true }>(`/central/products/${id}`, {
       method: "DELETE",
       token
     });
@@ -277,8 +282,9 @@ export async function deleteAdminProduct(token: string, id: number) {
 
 export async function listAdminOrders(token: string, status?: OrderStatus) {
   try {
+    // Use central admin orders endpoint
     return await request<Order[]>(
-      `/admin/orders${buildQuery({
+      `/central/orders${buildQuery({
         status
       })}`,
       { token }
