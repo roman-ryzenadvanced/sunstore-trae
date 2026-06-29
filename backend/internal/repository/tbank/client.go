@@ -72,7 +72,19 @@ type initResponse struct {
 }
 
 // InitPayment calls /v2/Init and returns a stable gateway result.
+//
+// When the terminal key looks like a demo placeholder (starts with "demo" or is
+// the documented placeholder "demo-terminal-key"), the client short-circuits
+// the network call and returns a synthetic payment URL pointing at the
+// frontend /checkout/demo page. This lets the full flow (init → redirect →
+// success/cancel webhook) be exercised end-to-end without a real T-Bank test
+// terminal. Real T-Bank sandboxes still work as soon as a real terminal key
+// is configured.
 func (c *Client) InitPayment(ctx context.Context, input usecase.PaymentInitRequest) (*usecase.PaymentInitResult, error) {
+	if IsDemoTerminal(c.terminalKey) {
+		return c.initDemo(input)
+	}
+
 	payload := map[string]any{
 		"TerminalKey":     c.terminalKey,
 		"Amount":          input.AmountKopecks,
@@ -147,4 +159,72 @@ func truncate(value string, max int) string {
 		return value
 	}
 	return value[:max]
+}
+
+// IsDemoTerminal reports whether the configured terminal key looks like a
+// placeholder (not a real T-Bank-issued test terminal).
+func IsDemoTerminal(key string) bool {
+	k := strings.ToLower(strings.TrimSpace(key))
+	if k == "" {
+		return true
+	}
+	if strings.HasPrefix(k, "demo") {
+		return true
+	}
+	return false
+}
+
+// initDemo synthesises a payment URL and a fake PaymentId so the frontend can
+// redirect to a local demo page that simulates the customer's bank-confirmation
+// step and then fires the webhook.
+func (c *Client) initDemo(input usecase.PaymentInitRequest) (*usecase.PaymentInitResult, error) {
+	paymentID := "demo-" + strings.ToLower(input.TBankOrderID)
+	// Route the customer to the frontend's demo payment page.
+	// The frontend exposes /checkout/demo?order=<id>&payment=<id>.
+	demoURL := strings.TrimRight(c.successURL, "/")
+	// Strip everything after the host to get a clean origin.
+	if idx := strings.Index(demoURL, "/checkout/"); idx >= 0 {
+		demoURL = demoURL[:idx]
+	}
+	demoURL += "/checkout/demo?order=" + urlQueryEscape(input.TBankOrderID) + "&payment=" + urlQueryEscape(paymentID)
+
+	raw, _ := json.Marshal(initResponse{
+		Success:     true,
+		ErrorCode:   "0",
+		TerminalKey: c.terminalKey,
+		Status:      "NEW",
+		PaymentID:   paymentID,
+		OrderID:     input.TBankOrderID,
+		Amount:      input.AmountKopecks,
+		PaymentURL:  demoURL,
+	})
+	c.logger.Info("tbank DEMO payment initialized (no real T-Bank call)",
+		slog.String("order_id", input.TBankOrderID),
+		slog.String("payment_id", paymentID),
+		slog.String("status", "NEW"),
+	)
+	return &usecase.PaymentInitResult{
+		PaymentURL: demoURL,
+		PaymentID:  paymentID,
+		Raw:        raw,
+	}, nil
+}
+
+// urlQueryEscape is a tiny URL-query escaper to avoid pulling in net/url just
+// for one call site (keeps the diff minimal relative to the existing file).
+func urlQueryEscape(s string) string {
+	var b strings.Builder
+	for _, r := range s {
+		switch {
+		case r == ' ':
+			b.WriteByte('+')
+		case (r >= 'A' && r <= 'Z') || (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9'):
+			b.WriteRune(r)
+		case strings.ContainsRune("-_.~", r):
+			b.WriteRune(r)
+		default:
+			b.WriteString(fmt.Sprintf("%%%02X", r))
+		}
+	}
+	return b.String()
 }

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Eye, EyeOff, Loader2, LogOut, Mail, Save, Trash2, Wand2 } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, Loader2, LogOut, Save, Wand2 } from "lucide-react";
 
 import {
   EmailConfigDTO, EmailConfigInput,
@@ -25,7 +25,7 @@ export default function PlatformEmailPage() {
   const [testTo, setTestTo] = useState("");
 
   // Form state
-  const [provider, setProvider] = useState<"smtp" | "gmail">("smtp");
+  const [provider, setProvider] = useState<"smtp" | "gmail" | "yandex">("smtp");
   const [fromAddress, setFromAddress] = useState("");
   const [fromName, setFromName] = useState("");
   const [smtpHost, setSmtpHost] = useState("");
@@ -111,6 +111,13 @@ export default function PlatformEmailPage() {
     setUseTLS(true);
     setUseSSL(false);
   }
+  function pickYandex() {
+    setProvider("yandex");
+    setSmtpHost("postbox.cloud");
+    setSmtpPort("587");
+    setUseTLS(true);
+    setUseSSL(false);
+  }
   function pickSMTP() {
     setProvider("smtp");
   }
@@ -172,6 +179,12 @@ export default function PlatformEmailPage() {
             >
               Gmail (App Password)
             </button>
+            <button
+              onClick={pickYandex}
+              className={`central-btn ${provider === "yandex" ? "central-btn--primary" : "central-btn--ghost"}`}
+            >
+              Yandex Postbox
+            </button>
           </div>
           {provider === "gmail" && (
             <div style={{ marginTop: 12, padding: 12, background: "#0a0a0a", borderRadius: 8, border: "1px solid #2a2a2a", fontSize: 12, color: "#aaa", lineHeight: 1.6 }}>
@@ -183,6 +196,19 @@ export default function PlatformEmailPage() {
                 <li>Скопируйте 16-значный пароль и вставьте его в поле SMTP password ниже</li>
                 <li>From-адрес = ваш Gmail (например, <code>your.shop@gmail.com</code>)</li>
               </ol>
+            </div>
+          )}
+          {provider === "yandex" && (
+            <div style={{ marginTop: 12, padding: 12, background: "#0a0a0a", borderRadius: 8, border: "1px solid #2a2a2a", fontSize: 12, color: "#aaa", lineHeight: 1.6 }}>
+              <p style={{ margin: 0, fontWeight: 600, color: "#fff", marginBottom: 6 }}>Настройка Yandex Postbox (postbox.cloud):</p>
+              <ol style={{ margin: 0, paddingLeft: 18 }}>
+                <li>Зарегистрируйтесь в <a href="https://postbox.cloud" target="_blank" rel="noreferrer" style={{ color: "#5ac8fa" }}>postbox.cloud</a> и подтвердите домен (или используйте служебный адрес <code>@postbox.cloud</code>)</li>
+                <li>В личном кабинете Yandex Cloud создайте сервисный аккаунт и получите SMTP-credentials</li>
+                <li>Host: <code>postbox.cloud</code> · Port: <code>587</code> · STARTTLS включён</li>
+                <li>From = подтверждённый адрес (например, <code>orders@your-domain.ru</code>)</li>
+                <li>Username = AWS SES-стиль IAM key, Password = секрет</li>
+              </ol>
+              <p style={{ margin: "10px 0 0", color: "#888" }}>Документация: <a href="https://yandex.cloud/ru/docs/postbox/operations/send-email" target="_blank" rel="noreferrer" style={{ color: "#5ac8fa" }}>yandex.cloud/ru/docs/postbox/operations/send-email</a></p>
             </div>
           )}
         </div>

@@ -104,6 +104,19 @@ func (uc *EmailUseCase) Send(ctx context.Context, in SendInput) error {
                         user = cfg.FromAddress
                 }
         }
+        // Yandex Postbox (postbox.cloud) defaults. Docs:
+        // https://yandex.cloud/ru/docs/postbox/operations/send-email
+        if cfg.Provider == domain.EmailProviderYandex {
+                if host == "" {
+                        host = "postbox.cloud"
+                }
+                if port == 0 {
+                        port = 587
+                }
+                if user == "" {
+                        user = cfg.FromAddress
+                }
+        }
         if host == "" || port == 0 {
                 return errors.New("email: smtp host/port not configured")
         }

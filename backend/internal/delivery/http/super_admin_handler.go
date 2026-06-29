@@ -460,7 +460,10 @@ type emailConfigInput struct {
 
 func (in emailConfigInput) toDomain(scope domain.EmailConfigScope, siteID *int64) *domain.EmailConfig {
 	provider := domain.EmailProvider(in.Provider)
-	if provider != domain.EmailProviderGmail && provider != domain.EmailProviderSMTP {
+	switch provider {
+	case domain.EmailProviderGmail, domain.EmailProviderSMTP, domain.EmailProviderYandex:
+		// ok
+	default:
 		provider = domain.EmailProviderSMTP
 	}
 	if in.FromName == "" {

@@ -85,6 +85,8 @@ func run(logger *slog.Logger) error {
                 logger.Warn("default super-admin bootstrap failed", slog.String("err", err.Error()))
         }
 
+        contactHandler := httpdelivery.NewContactHandler(db)
+
         // Initialize the JWT signer used by the central/super and site tokens.
         httpdelivery.SetJWTConfig(cfg.JWT)
 
@@ -101,6 +103,7 @@ func run(logger *slog.Logger) error {
                 SiteAuth:      siteAuthSvc,
                 Super:         superSvc,
                 Email:         emailSvc,
+                Contacts:      contactHandler,
         })
 
         srv := &http.Server{

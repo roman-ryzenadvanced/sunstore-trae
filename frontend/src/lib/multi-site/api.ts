@@ -119,7 +119,7 @@ export interface EmailConfigDTO {
 }
 
 export interface EmailConfigInput {
-  provider: "smtp" | "gmail";
+  provider: "smtp" | "gmail" | "yandex";
   from_address: string;
   from_name?: string;
   smtp_host?: string;
@@ -418,6 +418,63 @@ export async function testSiteEmail(token: string, siteId: number, to: string): 
   } catch (e: any) {
     return { ok: false, error: e?.message || "send_failed" };
   }
+}
+
+// ----- Contact submissions -----
+
+export interface ContactSubmission {
+  id: number;
+  name: string;
+  email: string;
+  phone?: string;
+  subject?: string;
+  message: string;
+  source_url?: string;
+  user_ip?: string;
+  is_read: boolean;
+  handled_at?: string | null;
+  created_at: string;
+}
+
+export interface ContactSubmitInput {
+  name: string;
+  email: string;
+  phone?: string;
+  subject?: string;
+  message: string;
+}
+
+// Public endpoint — no token needed.
+export async function submitContactForm(input: ContactSubmitInput): Promise<{ ok: boolean; id?: number; error?: string }> {
+  try {
+    const r = await request<{ id: number; ok: boolean }>(`/contact`, {
+      method: "POST",
+      body: JSON.stringify(input),
+    });
+    return { ok: true, id: r.id };
+  } catch (e: any) {
+    return { ok: false, error: e?.message || "send_failed" };
+  }
+}
+
+export async function listContactSubmissions(token: string, opts?: { unreadOnly?: boolean; limit?: number }): Promise<{ items: ContactSubmission[]; unread_count: number; total: number }> {
+  const params = new URLSearchParams();
+  if (opts?.unreadOnly) params.set("unread", "1");
+  if (opts?.limit) params.set("limit", String(opts.limit));
+  return request(`/central/contacts${params.toString() ? `?${params}` : ""}`, {}, token);
+}
+
+export async function setContactRead(token: string, id: number, isRead: boolean): Promise<void> {
+  await request(`/central/contacts/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify({ is_read: isRead }),
+  }, token);
+}
+
+export async function deleteContactSubmission(token: string, id: number): Promise<void> {
+  await request(`/central/contacts/${id}`, {
+    method: "DELETE",
+  }, token);
 }
 
 // ----- Mock fallback (in-memory, dev-only) -----

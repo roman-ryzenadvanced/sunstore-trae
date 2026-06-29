@@ -149,10 +149,42 @@ main:focus-visible {
   position: sticky;
   top: 0;
   z-index: 20;
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  background: rgba(255, 255, 255, 0.85);
+  background: #ffffff;
   border-bottom: 1px solid var(--line);
+}
+
+/* Utility bar — Amazon/eBay top thin dark strip with help links */
+.site-header__utility {
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+  color: #ffffff;
+  font-size: 0.76rem;
+}
+.site-header__utility-inner {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  min-height: 28px;
+  padding: 6px 0;
+}
+.site-header__utility-left strong {
+  font-weight: 700;
+}
+.site-header__utility-nav {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+}
+.site-header__utility-nav a {
+  color: rgba(255, 255, 255, 0.82);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: var(--transition);
+}
+.site-header__utility-nav a:hover {
+  color: #ffffff;
+  text-decoration: underline;
 }
 
 .site-header__inner {
@@ -169,8 +201,32 @@ main:focus-visible {
 
 .site-header__actions {
   display: flex;
-  gap: 8px;
+  gap: 12px;
   align-items: center;
+}
+
+/* Sign-in card (Amazon-style two-line label) */
+.site-header__signin {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+  padding: 6px 10px;
+  border-radius: var(--radius-xs);
+  transition: var(--transition);
+}
+.site-header__signin:hover {
+  background: var(--surface-tint-2);
+  border: 1px solid var(--line);
+  padding: 5px 9px;
+}
+.site-header__signin-hello {
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+.site-header__signin-acct {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--text);
 }
 
 .brand-mark {
@@ -264,6 +320,19 @@ main:focus-visible {
 .cat-nav__link:hover {
   color: var(--brand);
   background: var(--brand-soft);
+}
+
+/* "All categories" pill — emphasized like eBay's main browse entry */
+.cat-nav__link--all {
+  font-weight: 700;
+}
+.cat-nav__link--deal {
+  color: var(--price);
+  font-weight: 600;
+}
+.cat-nav__link--deal:hover {
+  background: rgba(229, 35, 77, 0.08);
+  color: var(--price);
 }
 
 .site-nav {
@@ -1865,49 +1934,181 @@ main:focus-visible {
   color: #6a2424;
 }
 
-/* ------------------------- Footer ------------------------- */
+/* ------------------------- Footer (eBay/Amazon multi-column) ------------------------- */
 .site-footer {
-  padding-bottom: 32px;
+  margin-top: 60px;
+  padding: 0;
+  background: #ffffff;
+  border-top: 1px solid var(--line);
 }
 
-.site-footer__inner {
+/* Top dark CTA bar */
+.site-footer__cta {
+  background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
+  color: #ffffff;
+  padding: 22px 0;
+}
+.site-footer__cta-inner {
   display: flex;
-  align-items: end;
   justify-content: space-between;
+  align-items: center;
   gap: 24px;
-  padding: 26px;
-  border-top: 1px solid rgba(66, 46, 31, 0.1);
+  flex-wrap: wrap;
+}
+.site-footer__cta-inner strong {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+.site-footer__cta-inner span {
+  font-size: 0.9rem;
+  opacity: 0.78;
+}
+.site-footer__cta-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 11px 22px;
+  background: var(--brand);
+  color: #ffffff;
+  border-radius: var(--radius-pill);
+  font-weight: 600;
+  font-size: 0.92rem;
+  transition: var(--transition);
+  white-space: nowrap;
+}
+.site-footer__cta-btn:hover {
+  background: var(--brand-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px rgba(54, 101, 243, 0.36);
 }
 
-.site-footer h3 {
-  margin: 0;
-  max-width: 16ch;
+/* Main grid: brand block + 4 link columns */
+.site-footer__main {
+  display: grid;
+  grid-template-columns: 1.1fr 3fr;
+  gap: 40px;
+  padding: 40px 0 32px;
+}
+.site-footer__brand {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.site-footer__logo {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
   font-family: var(--font-display);
-  font-size: 2rem;
+  font-size: 1.35rem;
   font-weight: 700;
   letter-spacing: -0.02em;
 }
-
-.site-footer__meta {
-  max-width: 38ch;
+.site-footer__logo small {
+  display: block;
+  font-family: var(--font-body);
+  font-size: 0.68rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   color: var(--muted);
+  font-weight: 500;
 }
-
-.site-footer__nav {
+.site-footer__sun {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: radial-gradient(circle at center, rgba(98, 167, 15, 0.98), rgba(27, 174, 59, 0.92) 58%, rgba(21, 137, 46, 1) 100%);
+  box-shadow: 0 0 18px rgba(27, 174, 59, 0.32);
+}
+.site-footer__tagline {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.6;
+  max-width: 32ch;
+}
+.site-footer__trust {
   display: flex;
-  gap: 16px;
-  margin: 8px 0;
   flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+.site-footer__trust-pill {
+  padding: 5px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 
-.site-footer__nav a:hover {
+/* Columns: 4-column grid on desktop */
+.site-footer__cols {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px;
+}
+.site-footer__col h4 {
+  margin: 0 0 12px;
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   color: var(--text);
+}
+.site-footer__col ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+.site-footer__col a {
+  font-size: 0.86rem;
+  color: var(--muted);
+  transition: var(--transition);
+}
+.site-footer__col a:hover {
+  color: var(--brand);
   text-decoration: underline;
 }
 
-.site-footer__copyright {
-  font-size: 0.85rem;
-  opacity: 0.7;
+/* Legal strip at the very bottom */
+.site-footer__legal {
+  padding: 18px 0 28px;
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 4px;
+}
+.site-footer__legal p {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.site-footer__legal-notice {
+  opacity: 0.72;
+}
+
+/* Responsive footer */
+@media (max-width: 960px) {
+  .site-footer__main {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .site-footer__cols {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+  }
+}
+@media (max-width: 560px) {
+  .site-footer__cta-inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .site-footer__cols {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ------------------------- Admin ------------------------- */
@@ -2371,6 +2572,54 @@ main:focus-visible {
   to {
     transform: rotate(360deg);
   }
+}
+
+/* ------------------------- Legal documents ------------------------- */
+.legal-doc {
+  padding: 24px 0 40px;
+  color: var(--text);
+  line-height: 1.7;
+}
+.legal-doc h1 {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 4px 0 8px;
+}
+.legal-doc h2 {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 700;
+  margin: 28px 0 10px;
+  color: var(--text);
+}
+.legal-doc p {
+  margin: 0 0 10px;
+  color: var(--text);
+}
+.legal-doc ul {
+  margin: 0 0 14px;
+  padding-left: 22px;
+}
+.legal-doc li {
+  margin-bottom: 6px;
+  color: var(--muted);
+}
+.legal-doc__updated {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin: 0 0 20px !important;
+}
+.legal-doc a {
+  color: var(--brand);
+  text-decoration: underline;
+}
+.legal-doc code {
+  padding: 1px 6px;
+  background: var(--surface-tint-1);
+  border-radius: 4px;
+  font-size: 0.92em;
 }
 
 /* ------------------------- Focus / a11y ------------------------- */

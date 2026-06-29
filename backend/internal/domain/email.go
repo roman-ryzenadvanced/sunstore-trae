@@ -7,8 +7,9 @@ import "time"
 type EmailProvider string
 
 const (
-	EmailProviderSMTP  EmailProvider = "smtp"
-	EmailProviderGmail EmailProvider = "gmail"
+	EmailProviderSMTP   EmailProvider = "smtp"
+	EmailProviderGmail  EmailProvider = "gmail"
+	EmailProviderYandex EmailProvider = "yandex"
 )
 
 // EmailConfigScope tells whether this config is the platform default

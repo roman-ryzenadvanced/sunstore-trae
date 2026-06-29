@@ -21,18 +21,19 @@ type HealthChecker interface {
 
 // RouterDeps groups all delivery-layer dependencies.
 type RouterDeps struct {
-        Config        *config.Config
-        Logger        *slog.Logger
-        DB            HealthChecker
-        Products      *usecase.ProductUseCase
-        Orders        *usecase.OrderUseCase
-        Payments      *usecase.PaymentUseCase
-        Admins        *usecase.AdminUseCase
-        Notifications *usecase.PaymentNotificationUseCase
-        Sites         *usecase.SiteService
-        SiteAuth      *usecase.SiteAuthService
-        Super         *usecase.SuperAdminService
-        Email         *usecase.EmailUseCase
+	Config        *config.Config
+	Logger        *slog.Logger
+	DB            HealthChecker
+	Products      *usecase.ProductUseCase
+	Orders        *usecase.OrderUseCase
+	Payments      *usecase.PaymentUseCase
+	Admins        *usecase.AdminUseCase
+	Notifications *usecase.PaymentNotificationUseCase
+	Sites         *usecase.SiteService
+	SiteAuth      *usecase.SiteAuthService
+	Super         *usecase.SuperAdminService
+	Email         *usecase.EmailUseCase
+	Contacts      *ContactHandler
 }
 
 // NewRouter builds the entire HTTP surface.
@@ -71,6 +72,7 @@ func NewRouter(deps RouterDeps) *gin.Engine {
                 api.GET("/products", productHandler.ListStorefront)
                 api.GET("/products/:slug", productHandler.GetStorefrontBySlug)
                 api.POST("/checkout/init", orderHandler.CheckoutInit)
+                api.POST("/contact", deps.Contacts.Submit)
 
                 // Legacy single-tenant admin (kept for backward-compat)
                 adminAuth := api.Group("/admin/auth")
@@ -117,6 +119,11 @@ func NewRouter(deps RouterDeps) *gin.Engine {
                         // Email outbox (audit log)
                         central.GET("/email-outbox", centralAuthMiddleware(), superHandler.ListEmailOutbox)
                         central.GET("/sites/:id/email-outbox", centralAuthMiddleware(), superHandler.ListEmailOutbox)
+
+                        // Contact form inbox (central only — one inbox for all stores)
+                        central.GET("/contacts", centralAuthMiddleware(), deps.Contacts.List)
+                        central.PATCH("/contacts/:id", centralAuthMiddleware(), deps.Contacts.SetRead)
+                        central.DELETE("/contacts/:id", centralAuthMiddleware(), deps.Contacts.Delete)
 
                         // Platform-level email config
                         central.GET("/email-config", centralAuthMiddleware(), superHandler.GetPlatformEmail)

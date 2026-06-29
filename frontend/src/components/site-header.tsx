@@ -4,7 +4,7 @@ import { Suspense, useEffect, useState } from "react";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, ShoppingBag, X } from "lucide-react";
+import { HelpCircle, Menu, Phone, ShoppingBag, X } from "lucide-react";
 
 import { cn } from "@/lib/format";
 import { useCartStore } from "@/store/cart";
@@ -13,8 +13,8 @@ import { SearchBar } from "@/components/search-bar";
 const links: Array<{ href: Route; label: string }> = [
   { href: "/" as Route, label: "Главная" },
   { href: "/catalog" as Route, label: "Каталог" },
-  { href: "/checkout" as Route, label: "Оформление" },
-  { href: "/admin/login" as Route, label: "Админ" }
+  { href: "/contacts" as Route, label: "Контакты" },
+  { href: "/central/login" as Route, label: "Войти" }
 ];
 
 const categories: Array<{ href: Route; label: string }> = [
@@ -57,11 +57,33 @@ export function SiteHeader() {
 
   return (
     <header className="site-header">
+      {/* Utility bar — Amazon-style top row */}
+      <div className="site-header__utility">
+        <div className="shell site-header__utility-inner">
+          <div className="site-header__utility-left">
+            <span>
+              <strong>☀ Sun Store</strong> — маркетплейс солнечной энергетики
+            </span>
+          </div>
+          <nav className="site-header__utility-nav" aria-label="Сервисная навигация">
+            <Link href={"/contacts" as Route}>
+              <Phone size={12} aria-hidden="true" /> +7 800 000-00-00
+            </Link>
+            <Link href={"/delivery" as Route}>Доставка</Link>
+            <Link href={"/warranty" as Route}>Гарантия</Link>
+            <Link href={"/contacts" as Route}>
+              <HelpCircle size={12} aria-hidden="true" /> Помощь
+            </Link>
+          </nav>
+        </div>
+      </div>
+
+      {/* Main row: logo + search + cart */}
       <div className="site-header__inner shell">
-        <Link href={"/" as Route} className="brand-mark" aria-label="Sun Panels Store — на главную">
+        <Link href={"/" as Route} className="brand-mark" aria-label="Sun Store — на главную">
           <span className="brand-mark__sun" aria-hidden="true" />
           <span>
-            Sun Panels Store
+            Sun Store
             <small>solar marketplace</small>
           </span>
         </Link>
@@ -73,6 +95,14 @@ export function SiteHeader() {
         </div>
 
         <div className="site-header__actions">
+          <Link
+            href={"/central/login" as Route}
+            className="site-header__signin"
+            aria-label="Войти или зарегистрироваться"
+          >
+            <span className="site-header__signin-hello">Здравствуйте, войдите</span>
+            <span className="site-header__signin-acct">Аккаунт ⟩</span>
+          </Link>
           <button
             type="button"
             className="cart-trigger"
@@ -94,25 +124,23 @@ export function SiteHeader() {
         </div>
       </div>
 
+      {/* Category nav bar (second header row) */}
       <nav className="cat-nav shell" aria-label="Категории товаров">
-        <Link
-          href={"/catalog" as Route}
-          className="cat-nav__link"
-        >
-          Все категории
+        <Link href={"/catalog" as Route} className="cat-nav__link cat-nav__link--all">
+          ☰ Все категории
         </Link>
         {categories.map((c) => (
           <Link key={c.href} href={c.href} className="cat-nav__link">
             {c.label}
           </Link>
         ))}
+        <Link href={"/catalog?sort=price_asc" as Route} className="cat-nav__link cat-nav__link--deal">
+          🔥 Deals
+        </Link>
       </nav>
 
       {mobileOpen ? (
-        <nav
-          className="site-nav site-nav--mobile"
-          aria-label="Мобильная навигация"
-        >
+        <nav className="site-nav site-nav--mobile" aria-label="Мобильная навигация">
           {links.map((link) => {
             const active =
               link.href === "/"
