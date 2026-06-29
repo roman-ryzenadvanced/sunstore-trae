@@ -189,9 +189,9 @@ export default function CentralDashboardPage() {
                       </p>
                     </div>
                     <span
-                      className={`central-status-pill central-status-pill--${s.status.toLowerCase()}`}
+                      className={`central-status-pill central-status-pill--${String(s.status || "unknown").toLowerCase()}`}
                     >
-                      {s.status}
+                      {s.status || "unknown"}
                     </span>
                   </div>
                   <p className="central-site-card__tagline">

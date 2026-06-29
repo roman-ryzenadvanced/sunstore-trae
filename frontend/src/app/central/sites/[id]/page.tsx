@@ -241,7 +241,7 @@ function OverviewTab({ site, template }: { site: CentralSite; template?: any }) 
         <p className="central-stat__value" style={{ fontSize: 22 }}>{site.name}</p>
         <p style={{ color: "#888", fontSize: 12, marginTop: 8 }}>slug: {site.slug}</p>
         <p style={{ color: "#888", fontSize: 12 }}>niche: {site.niche}</p>
-        <p style={{ color: "#888", fontSize: 12 }}>status: <span className={`central-status-pill central-status-pill--${site.status.toLowerCase()}`}>{site.status}</span></p>
+        <p style={{ color: "#888", fontSize: 12 }}>status: <span className={`central-status-pill central-status-pill--${String(site.status || "unknown").toLowerCase()}`}>{site.status || "unknown"}</span></p>
       </div>
       <div className="central-stat" style={{ padding: 20 }}>
         <p className="central-stat__label">Тема</p>
