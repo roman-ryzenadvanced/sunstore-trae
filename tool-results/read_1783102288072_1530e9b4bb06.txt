@@ -1,0 +1,1214 @@
+     1→// Multi-site API client. All calls go through the central /api/v1/central
+     2→// namespace except per-site endpoints which use /api/v1/sites/{slug}/...
+     3→// Falls back to local mock data when the backend is unreachable so the
+     4→// admin UI stays usable during development.
+     5→
+     6→import { Product } from "@/types/api";
+     7→import { Template } from "@/lib/templates/types";
+     8→import { TEMPLATES } from "@/lib/templates/templates";
+     9→import { mockOrders, mockProducts } from "@/lib/mock-data";
+    10→
+    11→const DEFAULT_API_BASE_URL = "http://localhost:8080/api/v1";
+    12→const ENABLE_DEMO_FALLBACKS =
+    13→  process.env.NEXT_PUBLIC_ENABLE_DEMO_FALLBACKS !== "false";
+    14→
+    15→function getApiBaseUrl(): string {
+    16→  return (
+    17→    process.env.NEXT_PUBLIC_API_BASE_URL ||
+    18→    (typeof window !== "undefined" && (window as any).__API_BASE__) ||
+    19→    DEFAULT_API_BASE_URL
+    20→  ).replace(/\/+$/, "");
+    21→}
+    22→
+    23→function hasExplicitApiBaseUrl(): boolean {
+    24→  return Boolean(
+    25→    process.env.NEXT_PUBLIC_API_BASE_URL ||
+    26→      (typeof window !== "undefined" && (window as any).__API_BASE__)
+    27→  );
+    28→}
+    29→
+    30→function isLocalPlaceholderApiBase(baseUrl = getApiBaseUrl()): boolean {
+    31→  return /^https?:\/\/(localhost|127(?:\.\d+){3})(:\d+)?(\/|$)/i.test(baseUrl);
+    32→}
+    33→
+    34→function shouldUseEmbeddedSiteMocks(): boolean {
+    35→  return (
+    36→    ENABLE_DEMO_FALLBACKS &&
+    37→    isLocalPlaceholderApiBase() &&
+    38→    !hasExplicitApiBaseUrl()
+    39→  );
+    40→}
+    41→
+    42→// ---------------------------------------------------------------------------
+    43→// Client-side demo store (Vercel / frontend-only)
+    44→// ---------------------------------------------------------------------------
+    45→
+    46→type DemoCentralState = {
+    47→  sites: CentralSite[];
+    48→  siteAdmins: Record<number, CentralSiteAdmin[]>;
+    49→  siteProducts: Record<number, ShopProduct[]>;
+    50→  siteOrders: Record<number, ShopOrder[]>;
+    51→  platformEmail: EmailConfigDTO;
+    52→  subscribers: Array<{ id: number; email: string; name?: string; created_at: string }>;
+    53→  tickets: Array<{ id: number; name: string; email: string; phone?: string; subject: string; message: string; created_at: string }>;
+    54→};
+    55→
+    56→const DEMO_STORAGE_KEY = "sunstore-demo-central-v1";
+    57→
+    58→function shouldUseClientDemoCentral(): boolean {
+    59→  return ENABLE_DEMO_FALLBACKS && typeof window !== "undefined" && shouldUseEmbeddedSiteMocks();
+    60→}
+    61→
+    62→function safeNow(): string {
+    63→  return new Date().toISOString();
+    64→}
+    65→
+    66→function buildStorefrontUrl(siteSlug: string): string {
+    67→  // Works on Vercel preview/prod, same-origin and slug-based routing
+    68→  return `/sites/${encodeURIComponent(siteSlug)}`;
+    69→}
+    70→
+    71→function buildAdminUrl(siteId: number): string {
+    72→  return `/central/sites/${siteId}`;
+    73→}
+    74→
+    75→function toShopProduct(site: CentralSite, product: Product, idx: number): ShopProduct {
+    76→  return {
+    77→    id: Number(product.id) || idx + 1,
+    78→    site_id: site.id,
+    79→    site_slug: site.slug,
+    80→    site_name: site.name,
+    81→    slug: product.slug,
+    82→    title: product.title_ru,
+    83→    description: product.description_ru,
+    84→    price_kopecks: product.price_kopecks,
+    85→    sku: product.sku,
+    86→    stock_quantity: product.stock_quantity,
+    87→    images: product.images ?? [],
+    88→    category: product.category_slug || product.category_name_ru || "general",
+    89→    is_active: product.is_active,
+    90→    created_at: product.created_at ?? safeNow(),
+    91→    updated_at: product.updated_at ?? safeNow()
+    92→  };
+    93→}
+    94→
+    95→function toShopOrder(site: CentralSite, order: any, idx: number): ShopOrder {
+    96→  return {
+    97→    id: Number(order.id) || idx + 1,
+    98→    site_id: site.id,
+    99→    site_slug: site.slug,
+   100→    site_name: site.name,
+   101→    tbank_order_id: order.tbank_order_id ?? `SUN-MOCK-${idx + 1}`,
+   102→    tbank_payment_id: order.tbank_payment_id ?? null,
+   103→    customer_name: order.customer_name ?? "Покупатель",
+   104→    customer_email: order.customer_email ?? "buyer@example.com",
+   105→    customer_phone: order.customer_phone ?? "+7 999 000-00-00",
+   106→    total_amount_kopecks: order.total_amount_kopecks ?? 0,
+   107→    status: order.status ?? "CONFIRMED",
+   108→    created_at: order.created_at ?? safeNow(),
+   109→    updated_at: order.updated_at ?? safeNow()
+   110→  };
+   111→}
+   112→
+   113→function initDemoState(): DemoCentralState {
+   114→  const sites = mockCentralSites();
+   115→  const siteAdmins: Record<number, CentralSiteAdmin[]> = {};
+   116→  const siteProducts: Record<number, ShopProduct[]> = {};
+   117→  const siteOrders: Record<number, ShopOrder[]> = {};
+   118→
+   119→  for (const site of sites) {
+   120→    siteAdmins[site.id] = [
+   121→      {
+   122→        id: site.id * 100 + 1,
+   123→        site_id: site.id,
+   124→        username: "admin",
+   125→        role: "owner",
+   126→        is_active: true,
+   127→        last_login_at: null,
+   128→        created_at: safeNow()
+   129→      }
+   130→    ];
+   131→
+   132→    // Product set: for the "solar panels" demo site use the storefront mock catalog,
+   133→    // for template-driven sites use template products.
+   134→    if (site.slug === "sun-panels") {
+   135→      siteProducts[site.id] = mockProducts.map((p, idx) => toShopProduct(site, p, idx));
+   136→      siteOrders[site.id] = mockOrders.map((o, idx) => toShopOrder(site, o, idx));
+   137→    } else {
+   138→      const template = TEMPLATES.find((t) => t.id === site.template_id);
+   139→      siteProducts[site.id] = (template?.products ?? []).map((p, idx) => ({
+   140→        id: Number(p.id.replace(/\D/g, "")) || idx + 1,
+   141→        site_id: site.id,
+   142→        site_slug: site.slug,
+   143→        site_name: site.name,
+   144→        slug: p.slug,
+   145→        title: p.title,
+   146→        description: p.description,
+   147→        price_kopecks: p.price_kopecks,
+   148→        sku: p.sku,
+   149→        stock_quantity: p.stock_quantity,
+   150→        images: p.images,
+   151→        category: p.category_id,
+   152→        is_active: p.is_active,
+   153→        created_at: safeNow(),
+   154→        updated_at: safeNow()
+   155→      }));
+   156→      siteOrders[site.id] = [];
+   157→    }
+   158→  }
+   159→
+   160→  return {
+   161→    sites,
+   162→    siteAdmins,
+   163→    siteProducts,
+   164→    siteOrders,
+   165→    platformEmail: { configured: false },
+   166→    subscribers: [],
+   167→    tickets: []
+   168→  };
+   169→}
+   170→
+   171→function loadDemoState(): DemoCentralState {
+   172→  if (typeof window === "undefined") return initDemoState();
+   173→  try {
+   174→    const raw = window.localStorage.getItem(DEMO_STORAGE_KEY);
+   175→    if (!raw) {
+   176→      const initial = initDemoState();
+   177→      window.localStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(initial));
+   178→      return initial;
+   179→    }
+   180→    const parsed = JSON.parse(raw) as DemoCentralState;
+   181→    if (!parsed?.sites) throw new Error("bad demo store");
+   182→    return parsed;
+   183→  } catch {
+   184→    const initial = initDemoState();
+   185→    try {
+   186→      window.localStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(initial));
+   187→    } catch {
+   188→      // ignore
+   189→    }
+   190→    return initial;
+   191→  }
+   192→}
+   193→
+   194→function saveDemoState(next: DemoCentralState): void {
+   195→  if (typeof window === "undefined") return;
+   196→  try {
+   197→    window.localStorage.setItem(DEMO_STORAGE_KEY, JSON.stringify(next));
+   198→  } catch {
+   199→    // ignore
+   200→  }
+   201→}
+   202→
+   203→function requireDemoToken(token?: string | null): void {
+   204→  if (!token) throw new Error("HTTP 401: missing token");
+   205→}
+   206→
+   207→function nextId(values: Array<{ id: number }>, base = 1): number {
+   208→  const max = values.reduce((acc, v) => Math.max(acc, v.id || 0), 0);
+   209→  return Math.max(max + 1, base);
+   210→}
+   211→
+   212→export interface CentralSite {
+   213→  id: number;
+   214→  slug: string;
+   215→  name: string;
+   216→  niche: string;
+   217→  template_id: string;
+   218→  status: "PROVISIONING" | "READY" | "SUSPENDED" | "ARCHIVED";
+   219→  custom_domain?: string | null;
+   220→  primary_color?: string | null;
+   221→  logo_mark?: string | null;
+   222→  tagline?: string | null;
+   223→  description?: string | null;
+   224→  created_at: string;
+   225→  updated_at: string;
+   226→  launched_at?: string | null;
+   227→  settings?: Record<string, any>;
+   228→}
+   229→
+   230→export interface CentralSiteAdmin {
+   231→  id: number;
+   232→  site_id: number;
+   233→  username: string;
+   234→  role: string;
+   235→  is_active: boolean;
+   236→  last_login_at?: string | null;
+   237→  created_at: string;
+   238→}
+   239→
+   240→export interface CreateSiteInput {
+   241→  slug: string;
+   242→  name: string;
+   243→  niche: string;
+   244→  template_id: string;
+   245→  owner_email: string;
+   246→  owner_username: string;
+   247→  owner_password: string;
+   248→  primary_color?: string;
+   249→  logo_mark?: string;
+   250→  tagline?: string;
+   251→  description?: string;
+   252→  custom_domain?: string;
+   253→}
+   254→
+   255→// ---------------------------------------------------------------------------
+   256→// Super-admin types (new consolidated API surface)
+   257→// ---------------------------------------------------------------------------
+   258→
+   259→export interface ShopProduct {
+   260→  id: number;
+   261→  site_id: number;
+   262→  slug: string;
+   263→  title: string;
+   264→  description: string;
+   265→  price_kopecks: number;
+   266→  sku: string;
+   267→  stock_quantity: number;
+   268→  images: string[];
+   269→  category: string;
+   270→  is_active: boolean;
+   271→  created_at: string;
+   272→  updated_at: string;
+   273→  /** Populated by the cross-store listing (GET /central/products). */
+   274→  site_name?: string;
+   275→  site_slug?: string;
+   276→}
+   277→
+   278→export interface ShopOrder {
+   279→  id: number;
+   280→  site_id: number;
+   281→  tbank_order_id: string;
+   282→  tbank_payment_id?: string | null;
+   283→  customer_name: string;
+   284→  customer_email: string;
+   285→  customer_phone: string;
+   286→  total_amount_kopecks: number;
+   287→  status: string;
+   288→  created_at: string;
+   289→  updated_at: string;
+   290→  /** Populated by the cross-store listing (GET /central/orders). */
+   291→  site_name?: string;
+   292→  site_slug?: string;
+   293→}
+   294→
+   295→export interface EmailConfigDTO {
+   296→  configured: boolean;
+   297→  id?: number;
+   298→  scope?: "platform" | "site";
+   299→  site_id?: number | null;
+   300→  provider?: "smtp" | "gmail";
+   301→  from_address?: string;
+   302→  from_name?: string;
+   303→  smtp_host?: string;
+   304→  smtp_port?: number;
+   305→  smtp_username?: string;
+   306→  smtp_password?: string; // masked when read
+   307→  use_tls?: boolean;
+   308→  use_ssl?: boolean;
+   309→  reply_to?: string;
+   310→  is_active?: boolean;
+   311→  updated_at?: string;
+   312→}
+   313→
+   314→export interface EmailConfigInput {
+   315→  provider: "smtp" | "gmail";
+   316→  from_address: string;
+   317→  from_name?: string;
+   318→  smtp_host?: string;
+   319→  smtp_port?: number;
+   320→  smtp_username?: string;
+   321→  smtp_password?: string; // empty = keep existing
+   322→  use_tls?: boolean;
+   323→  use_ssl?: boolean;
+   324→  reply_to?: string;
+   325→  is_active?: boolean;
+   326→}
+   327→
+   328→async function request<T>(path: string, init: RequestInit = {}, token?: string): Promise<T> {
+   329→  const headers: Record<string, string> = {
+   330→    "Content-Type": "application/json",
+   331→    ...((init.headers as Record<string, string>) || {}),
+   332→  };
+   333→  if (token) headers.Authorization = `Bearer ${token}`;
+   334→  const res = await fetch(`${getApiBaseUrl()}${path}`, { ...init, headers });
+   335→  if (!res.ok) {
+   336→    let detail = "";
+   337→    try {
+   338→      const j = await res.json();
+   339→      detail = j.error || j.detail || JSON.stringify(j);
+   340→    } catch {
+   341→      detail = await res.text();
+   342→    }
+   343→    throw new Error(`HTTP ${res.status}: ${detail || res.statusText}`);
+   344→  }
+   345→  if (res.status === 204) return undefined as unknown as T;
+   346→  return (await res.json()) as T;
+   347→}
+   348→
+   349→// ----- Central admin auth -----
+   350→
+   351→export async function centralLogin(username: string, password: string): Promise<{ token: string; username: string }> {
+   352→  try {
+   353→    return await request("/central/auth/login", {
+   354→      method: "POST",
+   355→      body: JSON.stringify({ username, password }),
+   356→    });
+   357→  } catch (error) {
+   358→    if (!ENABLE_DEMO_FALLBACKS) throw error;
+   359→    if (!username.trim() || !password.trim()) {
+   360→      throw new Error("HTTP 400: Введите логин и пароль");
+   361→    }
+   362→    // Frontend-only demo: accept credentials locally and issue a mock token.
+   363→    if (shouldUseClientDemoCentral()) {
+   364→      // Prefer the documented dev bootstrap for clarity, but allow any non-empty
+   365→      // credentials in demo mode so users can proceed without backend wiring.
+   366→      const demoToken = "demo-central-token";
+   367→      return { token: demoToken, username: username.trim() };
+   368→    }
+   369→    throw error;
+   370→  }
+   371→}
+   372→
+   373→// ----- Sites -----
+   374→
+   375→export async function listCentralSites(token: string, q?: { status?: string; niche?: string; search?: string }): Promise<CentralSite[]> {
+   376→  try {
+   377→    const params = new URLSearchParams();
+   378→    if (q?.status) params.set("status", q.status);
+   379→    if (q?.niche) params.set("niche", q.niche);
+   380→    if (q?.search) params.set("q", q.search);
+   381→    const suffix = params.toString() ? `?${params}` : "";
+   382→    const r = await request<{ items: CentralSite[] }>(`/central/sites${suffix}`, {}, token);
+   383→    return r.items;
+   384→  } catch (error) {
+   385→    if (!ENABLE_DEMO_FALLBACKS) throw error;
+   386→    return mockCentralSites();
+   387→  }
+   388→}
+   389→
+   390→export async function createCentralSite(token: string, input: CreateSiteInput): Promise<{ site: CentralSite; admin: { id: number; username: string; role: string }; admin_url: string; storefront_url: string }> {
+   391→  if (shouldUseClientDemoCentral()) {
+   392→    requireDemoToken(token);
+   393→    const state = loadDemoState();
+   394→    const id = nextId(state.sites, 100);
+   395→    const site: CentralSite = {
+   396→      id,
+   397→      slug: input.slug,
+   398→      name: input.name,
+   399→      niche: input.niche,
+   400→      template_id: input.template_id,
+   401→      status: "READY",
+   402→      custom_domain: input.custom_domain ?? null,
+   403→      primary_color: input.primary_color ?? null,
+   404→      logo_mark: input.logo_mark ?? null,
+   405→      tagline: input.tagline ?? null,
+   406→      description: input.description ?? null,
+   407→      created_at: safeNow(),
+   408→      updated_at: safeNow(),
+   409→      launched_at: safeNow()
+   410→    };
+   411→
+   412→    const adminId = id * 100 + 1;
+   413→    const admin = { id: adminId, username: input.owner_username, role: "owner" };
+   414→    state.sites = [site, ...state.sites];
+   415→    state.siteAdmins[id] = [
+   416→      {
+   417→        id: adminId,
+   418→        site_id: id,
+   419→        username: input.owner_username,
+   420→        role: "owner",
+   421→        is_active: true,
+   422→        last_login_at: null,
+   423→        created_at: safeNow()
+   424→      }
+   425→    ];
+   426→
+   427→    const template = TEMPLATES.find((t) => t.id === input.template_id);
+   428→    state.siteProducts[id] = (template?.products ?? []).map((p, idx) => ({
+   429→      id: Number(p.id.replace(/\D/g, "")) || idx + 1,
+   430→      site_id: id,
+   431→      site_slug: input.slug,
+   432→      site_name: input.name,
+   433→      slug: p.slug,
+   434→      title: p.title,
+   435→      description: p.description,
+   436→      price_kopecks: p.price_kopecks,
+   437→      sku: p.sku,
+   438→      stock_quantity: p.stock_quantity,
+   439→      images: p.images,
+   440→      category: p.category_id,
+   441→      is_active: p.is_active,
+   442→      created_at: safeNow(),
+   443→      updated_at: safeNow()
+   444→    }));
+   445→    state.siteOrders[id] = [];
+   446→
+   447→    saveDemoState(state);
+   448→    return {
+   449→      site,
+   450→      admin,
+   451→      admin_url: buildAdminUrl(id),
+   452→      storefront_url: buildStorefrontUrl(input.slug)
+   453→    };
+   454→  }
+   455→
+   456→  return request("/central/sites", {
+   457→    method: "POST",
+   458→    body: JSON.stringify(input),
+   459→  }, token);
+   460→}
+   461→
+   462→export async function setSiteStatus(token: string, id: number, status: CentralSite["status"]): Promise<void> {
+   463→  if (shouldUseClientDemoCentral()) {
+   464→    requireDemoToken(token);
+   465→    const state = loadDemoState();
+   466→    state.sites = state.sites.map((s) =>
+   467→      s.id === id ? { ...s, status, updated_at: safeNow() } : s
+   468→    );
+   469→    saveDemoState(state);
+   470→    return;
+   471→  }
+   472→  return request(`/central/sites/${id}/status`, {
+   473→    method: "PATCH",
+   474→    body: JSON.stringify({ status }),
+   475→  }, token);
+   476→}
+   477→
+   478→export async function getSiteBySlug(slug: string): Promise<CentralSite | null> {
+   479→  if (shouldUseEmbeddedSiteMocks()) {
+   480→    return getEmbeddedSiteBySlug(slug);
+   481→  }
+   482→  try {
+   483→    return await request<CentralSite>(`/sites/${encodeURIComponent(slug)}`);
+   484→  } catch (error) {
+   485→    if (!ENABLE_DEMO_FALLBACKS) throw error;
+   486→    return getEmbeddedSiteBySlug(slug);
+   487→  }
+   488→}
+   489→
+   490→export async function listSiteProducts(slug: string): Promise<Product[]> {
+   491→  if (shouldUseEmbeddedSiteMocks()) {
+   492→    return getEmbeddedSiteProducts(slug);
+   493→  }
+   494→  try {
+   495→    const items = await request<Array<ShopProduct | Product>>(
+   496→      `/sites/${encodeURIComponent(slug)}/products`
+   497→    );
+   498→    return items.map((item: any) => normalizeStorefrontProduct(item, slug));
+   499→  } catch (error) {
+   500→    if (!ENABLE_DEMO_FALLBACKS) throw error;
+   501→    return getEmbeddedSiteProducts(slug);
+   502→  }
+   503→}
+   504→
+   505→// ----- Per-site admin -----
+   506→
+   507→export async function siteAdminLogin(slug: string, username: string, password: string): Promise<{ token: string; site: { id: number; slug: string; name: string } }> {
+   508→  return request(`/sites/${encodeURIComponent(slug)}/admin/auth/login`, {
+   509→    method: "POST",
+   510→    body: JSON.stringify({ username, password }),
+   511→  });
+   512→}
+   513→
+   514→export async function listSiteAdmins(token: string, siteId: number): Promise<CentralSiteAdmin[]> {
+   515→  if (shouldUseClientDemoCentral()) {
+   516→    requireDemoToken(token);
+   517→    const state = loadDemoState();
+   518→    return state.siteAdmins[siteId] ?? [];
+   519→  }
+   520→  const r = await request<{ items: CentralSiteAdmin[] }>(`/central/sites/${siteId}/admins`, {}, token);
+   521→  return r.items;
+   522→}
+   523→
+   524→export async function addSiteAdmin(token: string, siteId: number, username: string, password: string, role: string): Promise<CentralSiteAdmin> {
+   525→  if (shouldUseClientDemoCentral()) {
+   526→    requireDemoToken(token);
+   527→    if (!username.trim() || !password.trim()) {
+   528→      throw new Error("HTTP 400: Введите логин и пароль");
+   529→    }
+   530→    const state = loadDemoState();
+   531→    const list = state.siteAdmins[siteId] ?? [];
+   532→    const admin: CentralSiteAdmin = {
+   533→      id: nextId(list, siteId * 100 + 1),
+   534→      site_id: siteId,
+   535→      username: username.trim(),
+   536→      role: role || "manager",
+   537→      is_active: true,
+   538→      last_login_at: null,
+   539→      created_at: safeNow()
+   540→    };
+   541→    state.siteAdmins[siteId] = [admin, ...list];
+   542→    saveDemoState(state);
+   543→    return admin;
+   544→  }
+   545→  return request(`/central/sites/${siteId}/admins`, {
+   546→    method: "POST",
+   547→    body: JSON.stringify({ username, password, role }),
+   548→  }, token);
+   549→}
+   550→
+   551→export async function removeSiteAdmin(token: string, siteId: number, adminId: number): Promise<void> {
+   552→  if (shouldUseClientDemoCentral()) {
+   553→    requireDemoToken(token);
+   554→    const state = loadDemoState();
+   555→    state.siteAdmins[siteId] = (state.siteAdmins[siteId] ?? []).filter((a) => a.id !== adminId);
+   556→    saveDemoState(state);
+   557→    return;
+   558→  }
+   559→  return request(`/central/sites/${siteId}/admins/${adminId}`, {
+   560→    method: "DELETE",
+   561→  }, token);
+   562→}
+   563→
+   564→// ---------------------------------------------------------------------------
+   565→// Super-admin consolidated shop management
+   566→// ---------------------------------------------------------------------------
+   567→
+   568→export async function getShop(token: string, id: number): Promise<CentralSite | null> {
+   569→  if (shouldUseClientDemoCentral()) {
+   570→    requireDemoToken(token);
+   571→    const state = loadDemoState();
+   572→    return state.sites.find((s) => s.id === id) ?? null;
+   573→  }
+   574→  try {
+   575→    return await request<CentralSite>(`/central/sites/${id}`, {}, token);
+   576→  } catch (error) {
+   577→    if (!ENABLE_DEMO_FALLBACKS) throw error;
+   578→    return null;
+   579→  }
+   580→}
+   581→
+   582→export async function updateShopTheme(token: string, id: number, templateId: string): Promise<void> {
+   583→  if (shouldUseClientDemoCentral()) {
+   584→    requireDemoToken(token);
+   585→    const state = loadDemoState();
+   586→    state.sites = state.sites.map((s) =>
+   587→      s.id === id ? { ...s, template_id: templateId, updated_at: safeNow() } : s
+   588→    );
+   589→    const site = state.sites.find((s) => s.id === id);
+   590→    const template = TEMPLATES.find((t) => t.id === templateId);
+   591→    if (site && template) {
+   592→      state.siteProducts[id] = (template.products ?? []).map((p, idx) => ({
+   593→        id: Number(p.id.replace(/\D/g, "")) || idx + 1,
+   594→        site_id: id,
+   595→        site_slug: site.slug,
+   596→        site_name: site.name,
+   597→        slug: p.slug,
+   598→        title: p.title,
+   599→        description: p.description,
+   600→        price_kopecks: p.price_kopecks,
+   601→        sku: p.sku,
+   602→        stock_quantity: p.stock_quantity,
+   603→        images: p.images,
+   604→        category: p.category_id,
+   605→        is_active: p.is_active,
+   606→        created_at: safeNow(),
+   607→        updated_at: safeNow()
+   608→      }));
+   609→    }
+   610→    saveDemoState(state);
+   611→    return;
+   612→  }
+   613→  return request(`/central/sites/${id}/theme`, {
+   614→    method: "PATCH",
+   615→    body: JSON.stringify({ template_id: templateId }),
+   616→  }, token);
+   617→}
+   618→
+   619→export async function updateShopBranding(token: string, id: number, body: {
+   620→  name?: string;
+   621→  tagline?: string;
+   622→  primary_color?: string;
+   623→  logo_mark?: string;
+   624→}): Promise<void> {
+   625→  if (shouldUseClientDemoCentral()) {
+   626→    requireDemoToken(token);
+   627→    const state = loadDemoState();
+   628→    state.sites = state.sites.map((s) => {
+   629→      if (s.id !== id) return s;
+   630→      return {
+   631→        ...s,
+   632→        name: body.name ?? s.name,
+   633→        tagline: body.tagline ?? s.tagline,
+   634→        primary_color: body.primary_color ?? s.primary_color,
+   635→        logo_mark: body.logo_mark ?? s.logo_mark,
+   636→        updated_at: safeNow()
+   637→      };
+   638→    });
+   639→    saveDemoState(state);
+   640→    return;
+   641→  }
+   642→  return request(`/central/sites/${id}/branding`, {
+   643→    method: "PATCH",
+   644→    body: JSON.stringify(body),
+   645→  }, token);
+   646→}
+   647→
+   648→// --- Products (super-admin CRUD) ---
+   649→
+   650→export async function listShopProducts(token: string, id: number): Promise<ShopProduct[]> {
+   651→  if (shouldUseClientDemoCentral()) {
+   652→    requireDemoToken(token);
+   653→    const state = loadDemoState();
+   654→    return state.siteProducts[id] ?? [];
+   655→  }
+   656→  try {
+   657→    const r = await request<{ items: ShopProduct[] }>(`/central/sites/${id}/products`, {}, token);
+   658→    return r.items || [];
+   659→  } catch (error) {
+   660→    if (!ENABLE_DEMO_FALLBACKS) throw error;
+   661→    return [];
+   662→  }
+   663→}
+   664→
+   665→export async function createShopProduct(token: string, id: number, p: Partial<ShopProduct>): Promise<ShopProduct> {
+   666→  if (shouldUseClientDemoCentral()) {
+   667→    requireDemoToken(token);
+   668→    const state = loadDemoState();
+   669→    const list = state.siteProducts[id] ?? [];
+   670→    const site = state.sites.find((s) => s.id === id);
+   671→    const created: ShopProduct = {
+   672→      id: nextId(list, 1),
+   673→      site_id: id,
+   674→      site_slug: site?.slug,
+   675→      site_name: site?.name,
+   676→      slug: (p.slug || `product-${Date.now()}`).toString(),
+   677→      title: (p.title || "Новый товар").toString(),
+   678→      description: (p.description || "").toString(),
+   679→      price_kopecks: Number(p.price_kopecks || 0),
+   680→      sku: (p.sku || `SKU-${Date.now()}`).toString(),
+   681→      stock_quantity: Number(p.stock_quantity || 0),
+   682→      images: Array.isArray(p.images) ? p.images : [],
+   683→      category: (p.category || "general").toString(),
+   684→      is_active: p.is_active !== false,
+   685→      created_at: safeNow(),
+   686→      updated_at: safeNow()
+   687→    };
+   688→    state.siteProducts[id] = [created, ...list];
+   689→    saveDemoState(state);
+   690→    return created;
+   691→  }
+   692→  return request(`/central/sites/${id}/products`, {
+   693→    method: "POST",
+   694→    body: JSON.stringify(p),
+   695→  }, token);
+   696→}
+   697→
+   698→export async function updateShopProduct(token: string, id: number, productId: number, p: Partial<ShopProduct>): Promise<ShopProduct> {
+   699→  if (shouldUseClientDemoCentral()) {
+   700→    requireDemoToken(token);
+   701→    const state = loadDemoState();
+   702→    const list = state.siteProducts[id] ?? [];
+   703→    const next = list.map((item) => {
+   704→      if (item.id !== productId) return item;
+   705→      return {
+   706→        ...item,
+   707→        ...p,
+   708→        updated_at: safeNow()
+   709→      } as ShopProduct;
+   710→    });
+   711→    state.siteProducts[id] = next;
+   712→    saveDemoState(state);
+   713→    const found = next.find((x) => x.id === productId);
+   714→    if (!found) throw new Error("HTTP 404: Product not found");
+   715→    return found;
+   716→  }
+   717→  return request(`/central/sites/${id}/products/${productId}`, {
+   718→    method: "PUT",
+   719→    body: JSON.stringify(p),
+   720→  }, token);
+   721→}
+   722→
+   723→export async function deleteShopProduct(token: string, id: number, productId: number): Promise<void> {
+   724→  if (shouldUseClientDemoCentral()) {
+   725→    requireDemoToken(token);
+   726→    const state = loadDemoState();
+   727→    state.siteProducts[id] = (state.siteProducts[id] ?? []).filter((p) => p.id !== productId);
+   728→    saveDemoState(state);
+   729→    return;
+   730→  }
+   731→  return request(`/central/sites/${id}/products/${productId}`, {
+   732→    method: "DELETE",
+   733→  }, token);
+   734→}
+   735→
+   736→// --- Orders ---
+   737→
+   738→export async function listShopOrders(token: string, id: number): Promise<ShopOrder[]> {
+   739→  if (shouldUseClientDemoCentral()) {
+   740→    requireDemoToken(token);
+   741→    const state = loadDemoState();
+   742→    return state.siteOrders[id] ?? [];
+   743→  }
+   744→  try {
+   745→    const r = await request<{ items: ShopOrder[] }>(`/central/sites/${id}/orders`, {}, token);
+   746→    return r.items || [];
+   747→  } catch (error) {
+   748→    if (!ENABLE_DEMO_FALLBACKS) throw error;
+   749→    return [];
+   750→  }
+   751→}
+   752→
+   753→// --- Cross-store unified views (super-admin) ---
+   754→
+   755→/** Orders across every store. site_id 0/omitted = all stores. */
+   756→export async function listAllShopOrders(
+   757→  token: string,
+   758→  q?: { site_id?: number; status?: string; search?: string; limit?: number; offset?: number }
+   759→): Promise<{ items: ShopOrder[]; total: number }> {
+   760→  if (shouldUseClientDemoCentral()) {
+   761→    requireDemoToken(token);
+   762→    const state = loadDemoState();
+   763→    const all = Object.values(state.siteOrders).flat();
+   764→    const filtered = all.filter((o) => {
+   765→      if (q?.site_id && o.site_id !== q.site_id) return false;
+   766→      if (q?.status && o.status !== q.status) return false;
+   767→      if (q?.search) {
+   768→        const h = `${o.customer_name} ${o.customer_email} ${o.tbank_order_id}`.toLowerCase();
+   769→        if (!h.includes(q.search.toLowerCase())) return false;
+   770→      }
+   771→      return true;
+   772→    });
+   773→    return { items: filtered, total: filtered.length };
+   774→  }
+   775→  const params = new URLSearchParams();
+   776→  if (q?.site_id) params.set("site_id", String(q.site_id));
+   777→  if (q?.status) params.set("status", q.status);
+   778→  if (q?.search) params.set("q", q.search);
+   779→  if (q?.limit) params.set("limit", String(q.limit));
+   780→  if (q?.offset) params.set("offset", String(q.offset));
+   781→  const qs = params.toString();
+   782→  try {
+   783→    return await request<{ items: ShopOrder[]; total: number }>(
+   784→      `/central/orders${qs ? `?${qs}` : ""}`,
+   785→      {},
+   786→      token
+   787→    );
+   788→  } catch (error) {
+   789→    if (!ENABLE_DEMO_FALLBACKS) throw error;
+   790→    return { items: [], total: 0 };
+   791→  }
+   792→}
+   793→
+   794→/** Products across every store. site_id 0/omitted = all stores. */
+   795→export async function listAllShopProducts(
+   796→  token: string,
+   797→  q?: { site_id?: number; search?: string; category?: string; active?: boolean; limit?: number; offset?: number }
+   798→): Promise<{ items: ShopProduct[]; total: number }> {
+   799→  if (shouldUseClientDemoCentral()) {
+   800→    requireDemoToken(token);
+   801→    const state = loadDemoState();
+   802→    const all = Object.values(state.siteProducts).flat();
+   803→    const filtered = all.filter((p) => {
+   804→      if (q?.site_id && p.site_id !== q.site_id) return false;
+   805→      if (q?.category && p.category !== q.category) return false;
+   806→      if (q?.active && !p.is_active) return false;
+   807→      if (q?.search) {
+   808→        const h = `${p.title} ${p.description} ${p.sku}`.toLowerCase();
+   809→        if (!h.includes(q.search.toLowerCase())) return false;
+   810→      }
+   811→      return true;
+   812→    });
+   813→    return { items: filtered, total: filtered.length };
+   814→  }
+   815→  const params = new URLSearchParams();
+   816→  if (q?.site_id) params.set("site_id", String(q.site_id));
+   817→  if (q?.search) params.set("q", q.search);
+   818→  if (q?.category) params.set("category", q.category);
+   819→  if (q?.active) params.set("active", "1");
+   820→  if (q?.limit) params.set("limit", String(q.limit));
+   821→  if (q?.offset) params.set("offset", String(q.offset));
+   822→  const qs = params.toString();
+   823→  try {
+   824→    return await request<{ items: ShopProduct[]; total: number }>(
+   825→      `/central/products${qs ? `?${qs}` : ""}`,
+   826→      {},
+   827→      token
+   828→    );
+   829→  } catch (error) {
+   830→    if (!ENABLE_DEMO_FALLBACKS) throw error;
+   831→    return { items: [], total: 0 };
+   832→  }
+   833→}
+   834→
+   835→// --- Email config ---
+   836→
+   837→export async function getPlatformEmailConfig(token: string): Promise<EmailConfigDTO> {
+   838→  if (shouldUseClientDemoCentral()) {
+   839→    requireDemoToken(token);
+   840→    const state = loadDemoState();
+   841→    return state.platformEmail ?? { configured: false };
+   842→  }
+   843→  try {
+   844→    return await request<EmailConfigDTO>(`/central/email-config`, {}, token);
+   845→  } catch {
+   846→    return { configured: false };
+   847→  }
+   848→}
+   849→
+   850→export async function upsertPlatformEmailConfig(token: string, input: EmailConfigInput): Promise<EmailConfigDTO> {
+   851→  if (shouldUseClientDemoCentral()) {
+   852→    requireDemoToken(token);
+   853→    const state = loadDemoState();
+   854→    state.platformEmail = { ...input, configured: true } as EmailConfigDTO;
+   855→    saveDemoState(state);
+   856→    return state.platformEmail;
+   857→  }
+   858→  return request(`/central/email-config`, {
+   859→    method: "PUT",
+   860→    body: JSON.stringify(input),
+   861→  }, token);
+   862→}
+   863→
+   864→export async function testPlatformEmail(token: string, to: string): Promise<{ ok: boolean; error?: string }> {
+   865→  try {
+   866→    await request(`/central/email-config/test`, {
+   867→      method: "POST",
+   868→      body: JSON.stringify({ to }),
+   869→    }, token);
+   870→    return { ok: true };
+   871→  } catch (e: any) {
+   872→    return { ok: false, error: e?.message || "send_failed" };
+   873→  }
+   874→}
+   875→
+   876→export async function getSiteEmailConfig(token: string, siteId: number): Promise<EmailConfigDTO> {
+   877→  try {
+   878→    return await request<EmailConfigDTO>(`/central/sites/${siteId}/email-config`, {}, token);
+   879→  } catch {
+   880→    return { configured: false };
+   881→  }
+   882→}
+   883→
+   884→export async function upsertSiteEmailConfig(token: string, siteId: number, input: EmailConfigInput): Promise<EmailConfigDTO> {
+   885→  return request(`/central/sites/${siteId}/email-config`, {
+   886→    method: "PUT",
+   887→    body: JSON.stringify(input),
+   888→  }, token);
+   889→}
+   890→
+   891→export async function deleteSiteEmailConfig(token: string, siteId: number): Promise<void> {
+   892→  return request(`/central/sites/${siteId}/email-config`, {
+   893→    method: "DELETE",
+   894→  }, token);
+   895→}
+   896→
+   897→export async function testSiteEmail(token: string, siteId: number, to: string): Promise<{ ok: boolean; error?: string }> {
+   898→  try {
+   899→    await request(`/central/sites/${siteId}/email-config/test`, {
+   900→      method: "POST",
+   901→      body: JSON.stringify({ to }),
+   902→    }, token);
+   903→    return { ok: true };
+   904→  } catch (e: any) {
+   905→    return { ok: false, error: e?.message || "send_failed" };
+   906→  }
+   907→}
+   908→
+   909→// ----- Mock fallback (in-memory, dev-only) -----
+   910→
+   911→const MOCK_SITES_KEY = "sunstore-central-sites";
+   912→
+   913→// ---------------------------------------------------------------------------
+   914→// CRM: custom domains, support tickets, mailing lists
+   915→// ---------------------------------------------------------------------------
+   916→
+   917→export interface PlatformDNSInfo {
+   918→  nameservers: string[];
+   919→  apex_ip: string;
+   920→  preview_base_url: string;
+   921→  api_docs_url: string;
+   922→}
+   923→
+   924→export interface DomainInstructions {
+   925→  domain: string;
+   926→  status: "NONE" | "PENDING" | "ACTIVE" | "FAILED";
+   927→  verified_at?: string | null;
+   928→  nameservers: string[];
+   929→  a_record: string;
+   930→  cname_record: string;
+   931→  preview_url: string;
+   932→  custom_domain_url?: string;
+   933→}
+   934→
+   935→export interface SupportTicket {
+   936→  id: number;
+   937→  site_id: number;
+   938→  name: string;
+   939→  email: string;
+   940→  phone: string;
+   941→  subject: string;
+   942→  message: string;
+   943→  status: "NEW" | "OPEN" | "REPLIED" | "CLOSED";
+   944→  source: string;
+   945→  ip_address: string;
+   946→  reply_subject?: string | null;
+   947→  reply_body?: string | null;
+   948→  replied_at?: string | null;
+   949→  created_at: string;
+   950→  updated_at: string;
+   951→  site_name?: string;
+   952→  site_slug?: string;
+   953→}
+   954→
+   955→export interface Subscriber {
+   956→  id: number;
+   957→  site_id: number;
+   958→  email: string;
+   959→  name: string;
+   960→  status: "SUBSCRIBED" | "UNSUBSCRIBED";
+   961→  source: string;
+   962→  created_at: string;
+   963→  unsubscribed_at?: string | null;
+   964→  site_name?: string;
+   965→  site_slug?: string;
+   966→}
+   967→
+   968→export async function getPlatformDNS(token: string): Promise<PlatformDNSInfo> {
+   969→  try {
+   970→    return await request<PlatformDNSInfo>(`/central/dns/platform`, {}, token);
+   971→  } catch {
+   972→    return {
+   973→      nameservers: ["ns1.sun.store", "ns2.sun.store"],
+   974→      apex_ip: "76.76.21.21",
+   975→      preview_base_url: "https://sunstore.vercel.app",
+   976→      api_docs_url: "",
+   977→    };
+   978→  }
+   979→}
+   980→
+   981→export async function getDomainInstructions(token: string, siteId: number): Promise<DomainInstructions | null> {
+   982→  try {
+   983→    return await request<DomainInstructions>(`/central/sites/${siteId}/domain`, {}, token);
+   984→  } catch {
+   985→    return null;
+   986→  }
+   987→}
+   988→
+   989→export async function attachDomain(token: string, siteId: number, domain: string): Promise<DomainInstructions> {
+   990→  return request(`/central/sites/${siteId}/domain`, {
+   991→    method: "POST",
+   992→    body: JSON.stringify({ domain }),
+   993→  }, token);
+   994→}
+   995→
+   996→export async function removeDomain(token: string, siteId: number): Promise<void> {
+   997→  return request(`/central/sites/${siteId}/domain`, {
+   998→    method: "DELETE",
+   999→  }, token);
+  1000→}
+  1001→
+  1002→export async function verifyDomain(token: string, siteId: number): Promise<{ status: string; verified: boolean }> {
+  1003→  return request(`/central/sites/${siteId}/domain/verify`, {
+  1004→    method: "POST",
+  1005→  }, token);
+  1006→}
+  1007→
+  1008→export async function listAllTickets(
+  1009→  token: string,
+  1010→  q?: { site_id?: number; status?: string; search?: string }
+  1011→): Promise<SupportTicket[]> {
+  1012→  const params = new URLSearchParams();
+  1013→  if (q?.site_id) params.set("site_id", String(q.site_id));
+  1014→  if (q?.status) params.set("status", q.status);
+  1015→  if (q?.search) params.set("q", q.search);
+  1016→  const qs = params.toString();
+  1017→  try {
+  1018→    const r = await request<{ items: SupportTicket[] }>(`/central/tickets${qs ? `?${qs}` : ""}`, {}, token);
+  1019→    return r.items || [];
+  1020→  } catch {
+  1021→    return [];
+  1022→  }
+  1023→}
+  1024→
+  1025→export async function listShopTickets(token: string, siteId: number): Promise<SupportTicket[]> {
+  1026→  try {
+  1027→    const r = await request<{ items: SupportTicket[] }>(`/central/sites/${siteId}/tickets`, {}, token);
+  1028→    return r.items || [];
+  1029→  } catch {
+  1030→    return [];
+  1031→  }
+  1032→}
+  1033→
+  1034→export async function updateTicket(
+  1035→  token: string, siteId: number, ticketId: number,
+  1036→  body: { status?: string; reply_subject?: string; reply_body?: string }
+  1037→): Promise<SupportTicket> {
+  1038→  return request(`/central/sites/${siteId}/tickets/${ticketId}`, {
+  1039→    method: "PATCH",
+  1040→    body: JSON.stringify(body),
+  1041→  }, token);
+  1042→}
+  1043→
+  1044→export async function listAllSubscribers(
+  1045→  token: string,
+  1046→  q?: { site_id?: number; status?: string; search?: string }
+  1047→): Promise<Subscriber[]> {
+  1048→  const params = new URLSearchParams();
+  1049→  if (q?.site_id) params.set("site_id", String(q.site_id));
+  1050→  if (q?.status) params.set("status", q.status);
+  1051→  if (q?.search) params.set("q", q.search);
+  1052→  const qs = params.toString();
+  1053→  try {
+  1054→    const r = await request<{ items: Subscriber[] }>(`/central/subscribers${qs ? `?${qs}` : ""}`, {}, token);
+  1055→    return r.items || [];
+  1056→  } catch {
+  1057→    return [];
+  1058→  }
+  1059→}
+  1060→
+  1061→export async function listShopSubscribers(token: string, siteId: number): Promise<Subscriber[]> {
+  1062→  try {
+  1063→    const r = await request<{ items: Subscriber[] }>(`/central/sites/${siteId}/subscribers`, {}, token);
+  1064→    return r.items || [];
+  1065→  } catch {
+  1066→    return [];
+  1067→  }
+  1068→}
+  1069→
+  1070→export async function removeSubscriber(token: string, siteId: number, subscriberId: number): Promise<void> {
+  1071→  return request(`/central/sites/${siteId}/subscribers/${subscriberId}`, {
+  1072→    method: "DELETE",
+  1073→  }, token);
+  1074→}
+  1075→
+  1076→export async function broadcast(
+  1077→  token: string,
+  1078→  body: { site_id?: number; subject: string; html_body: string }
+  1079→): Promise<{ sent: number; failed: number }> {
+  1080→  return request(`/central/broadcast`, {
+  1081→    method: "POST",
+  1082→    body: JSON.stringify(body),
+  1083→  }, token);
+  1084→}
+  1085→
+  1086→// --- Public storefront CRM endpoints (no token needed) ---
+  1087→
+  1088→export async function publicContact(
+  1089→  slug: string,
+  1090→  body: { name: string; email: string; phone?: string; subject: string; message: string }
+  1091→): Promise<{ ok: boolean }> {
+  1092→  return request(`/sites/${encodeURIComponent(slug)}/contact`, {
+  1093→    method: "POST",
+  1094→    body: JSON.stringify(body),
+  1095→  });
+  1096→}
+  1097→
+  1098→export async function publicSubscribe(
+  1099→  slug: string,
+  1100→  body: { email: string; name?: string }
+  1101→): Promise<{ ok: boolean }> {
+  1102→  return request(`/sites/${encodeURIComponent(slug)}/subscribe`, {
+  1103→    method: "POST",
+  1104→    body: JSON.stringify(body),
+  1105→  });
+  1106→}
+  1107→
+  1108→export async function publicUnsubscribe(slug: string, email: string): Promise<{ ok: boolean }> {
+  1109→  return request(`/sites/${encodeURIComponent(slug)}/subscribe`, {
+  1110→    method: "DELETE",
+  1111→    body: JSON.stringify({ email }),
+  1112→  });
+  1113→}
+  1114→
+  1115→function mockCentralSites(): CentralSite[] {
+  1116→  if (typeof window === "undefined") return [];
+  1117→  try {
+  1118→    const raw = window.localStorage.getItem(MOCK_SITES_KEY);
+  1119→    if (raw) return JSON.parse(raw) as CentralSite[];
+  1120→  } catch {
+  1121→    // ignore
+  1122→  }
+  1123→  return [];
+  1124→}
+  1125→
+  1126→export function persistMockSite(site: CentralSite) {
+  1127→  if (typeof window === "undefined") return;
+  1128→  const all = mockCentralSites();
+  1129→  const existing = all.findIndex((s) => s.id === site.id);
+  1130→  if (existing >= 0) all[existing] = site;
+  1131→  else all.unshift(site);
+  1132→  window.localStorage.setItem(MOCK_SITES_KEY, JSON.stringify(all));
+  1133→}
+  1134→
+  1135→function normalizeStorefrontProduct(item: Partial<ShopProduct> & Partial<Product>, slug: string): Product {
+  1136→  return {
+  1137→    id: Number(item.id || 0),
+  1138→    site_id: item.site_id ?? null,
+  1139→    site_slug: item.site_slug ?? slug,
+  1140→    site_name: item.site_name ?? null,
+  1141→    category_id: item.category_id ?? null,
+  1142→    category_slug: item.category_slug ?? item.category ?? null,
+  1143→    category_name_ru: item.category_name_ru ?? item.category ?? null,
+  1144→    slug: item.slug || "",
+  1145→    title_ru: item.title_ru ?? item.title ?? "",
+  1146→    description_ru: item.description_ru ?? item.description ?? "",
+  1147→    price_kopecks: Number(item.price_kopecks || 0),
+  1148→    sku: item.sku || "",
+  1149→    stock_quantity: Number(item.stock_quantity || 0),
+  1150→    images: Array.isArray(item.images) ? item.images : [],
+  1151→    is_active: Boolean(item.is_active),
+  1152→    created_at: item.created_at || new Date(0).toISOString(),
+  1153→    updated_at: item.updated_at || new Date(0).toISOString()
+  1154→  };
+  1155→}
+  1156→
+  1157→function getEmbeddedSiteBySlug(slug: string): CentralSite | null {
+  1158→  const existing = mockCentralSites().find((site) => site.slug === slug);
+  1159→  if (existing) return existing;
+  1160→
+  1161→  const template = TEMPLATES.find((entry) => entry.id === slug);
+  1162→  if (!template) return null;
+  1163→
+  1164→  return {
+  1165→    id: template.id.length,
+  1166→    slug,
+  1167→    name: template.branding.storeName,
+  1168→    niche: template.niche,
+  1169→    template_id: template.id,
+  1170→    status: "READY",
+  1171→    custom_domain: null,
+  1172→    primary_color: template.colors.accent,
+  1173→    logo_mark: template.branding.logoMark,
+  1174→    tagline: template.branding.tagline,
+  1175→    description: template.branding.description,
+  1176→    created_at: new Date(0).toISOString(),
+  1177→    updated_at: new Date(0).toISOString(),
+  1178→    launched_at: new Date(0).toISOString()
+  1179→  };
+  1180→}
+  1181→
+  1182→function getEmbeddedSiteProducts(slug: string): Product[] {
+  1183→  const site = getEmbeddedSiteBySlug(slug);
+  1184→  const template = TEMPLATES.find((entry) => entry.id === site?.template_id);
+  1185→  if (!template) return [];
+  1186→
+  1187→  return template.products.map((product, index) =>
+  1188→    normalizeStorefrontProduct(
+  1189→      {
+  1190→        id: Number(product.id.replace(/\D/g, "")) || index + 1,
+  1191→        site_id: site?.id,
+  1192→        site_slug: slug,
+  1193→        site_name: site?.name,
+  1194→        category_id: undefined,
+  1195→        category_slug: product.category_id,
+  1196→        category_name_ru:
+  1197→          template.categories.find((entry) => entry.id === product.category_id)?.name ??
+  1198→          product.category_id,
+  1199→        slug: product.slug,
+  1200→        title_ru: product.title,
+  1201→        description_ru: product.description,
+  1202→        price_kopecks: product.price_kopecks,
+  1203→        sku: product.sku,
+  1204→        stock_quantity: product.stock_quantity,
+  1205→        images: product.images,
+  1206→        is_active: product.is_active,
+  1207→        created_at: new Date(0).toISOString(),
+  1208→        updated_at: new Date(0).toISOString()
+  1209→      },
+  1210→      slug
+  1211→    )
+  1212→  );
+  1213→}
+  1214→

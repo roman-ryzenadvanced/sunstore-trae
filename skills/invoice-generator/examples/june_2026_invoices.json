@@ -1,0 +1,35 @@
+{
+  "defaults": {
+    "seller": {
+      "name": "Roman Markuze",
+      "address": "Bezhan Kalandadze 3, Batumi, Georgia",
+      "contact": "+995 597 98 12 15"
+    },
+    "buyer": {
+      "company_name": "JINGSHENG HENGXING TECHNOLOGY PTE. LTD.",
+      "country": "Singapore"
+    },
+    "invoice_date": "30 June 2026",
+    "service_date": "30-06-2026",
+    "service_description": "Community Ambassador Services",
+    "currency": "USD",
+    "vat_status": "WAIVED",
+    "footer_note": "VAT WAIVED INVOICE",
+    "payment_info": [
+      ["Account Name",              "P/E ROMAN MARKUZE"],
+      ["Account Number (IBAN)",     "GE62TB7611636615100028"],
+      ["Bank Name",                 "JSC TBC Bank"],
+      ["Bank Address",              "Tbilisi, Georgia"],
+      ["SWIFT Code",                "TBCBGE22"],
+      ["Country",                   "Georgia"],
+      ["Telephone Number",          "+995 597 98 12 15"],
+      ["Intermediary Bank",         "Citibank N.A., New York, USA (SWIFT: CITIUS33)"]
+    ],
+    "notes": "Payment is due within 7 days of the invoice date. All bank charges and intermediary fees are to be borne by the payer. Please reference the invoice number {inv_no} in the payment description to ensure proper crediting. Services are rendered remotely from Batumi, Georgia. This invoice is issued in {currency} and is payable in {currency} only."
+  },
+  "invoices": [
+    { "invoice_number": "INV-CN-001", "amount": 1150.00 },
+    { "invoice_number": "INV-CN-002", "amount": 150.00 },
+    { "invoice_number": "INV-CN-003", "amount": 200.00 }
+  ]
+}
