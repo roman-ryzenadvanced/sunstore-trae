@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db, ensureSeeded } from '@/lib/db'
+import { db } from '@/lib/db'
 import { getAuthUser, verifyPassword, signToken } from '@/lib/auth'
 
 export async function POST(request: Request) {
   try {
-    await ensureSeeded()
     const body = await request.json()
     const { username, password } = body
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db, ensureSeeded } from '@/lib/db'
+import { db } from '@/lib/db'
 import { Prisma } from '@prisma/client'
 
 export async function GET(
@@ -7,7 +7,6 @@ export async function GET(
   { params }: { params: Promise<{ slug: string }> }
 ) {
   try {
-    await ensureSeeded()
     const { slug } = await params
     const { searchParams } = new URL(request.url)
 

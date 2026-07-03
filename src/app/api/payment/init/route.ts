@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db, ensureSeeded } from '@/lib/db'
+import { db } from '@/lib/db'
 import { initPayment, getDemoTBankConfig, mapTBankStatus } from '@/lib/tbank'
 
 function generateOrderNumber(): string {
@@ -13,7 +13,6 @@ function generateOrderNumber(): string {
 
 export async function POST(request: Request) {
   try {
-    await ensureSeeded()
     const body = await request.json()
     const { siteId, items, customerName, customerEmail, customerPhone } = body
 

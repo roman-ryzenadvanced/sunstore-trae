@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db, ensureSeeded } from '@/lib/db'
+import { db } from '@/lib/db'
 import { getAuthUser } from '@/lib/auth'
 import { Prisma } from '@prisma/client'
 
@@ -8,7 +8,6 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await ensureSeeded()
     const { id } = await params
     const { searchParams } = new URL(request.url)
 

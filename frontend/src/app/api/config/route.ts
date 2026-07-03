@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db, ensureSeeded } from '@/lib/db'
+import { db } from '@/lib/db'
 import { getAuthUser } from '@/lib/auth'
 
 export async function GET(request: Request) {
   try {
-    await ensureSeeded()
     const user = getAuthUser(request)
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
