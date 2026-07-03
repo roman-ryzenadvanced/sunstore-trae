@@ -11,7 +11,7 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:reset": "prisma migrate reset",
-    "seed": "bun -e 'import(\"./src/lib/seed.ts\").then(m => m.seedDatabase().then(() => m.seedDemoSite())).then(() => process.exit(0))'
+    "db:seed": "bun run src/lib/seed.ts"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
