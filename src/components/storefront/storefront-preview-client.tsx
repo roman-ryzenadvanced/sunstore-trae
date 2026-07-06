@@ -111,13 +111,9 @@ export function StorefrontPreviewClient({ slug, initialData, error }: Props) {
     const fetchData = async () => {
       setLoading(true)
       try {
-        // Use VERCEL_URL if available, otherwise relative URL
-        const vercelUrl = process.env.NEXT_PUBLIC_VERCEL_URL || process.env.VERCEL_URL
-        const apiUrl = vercelUrl
-          ? `https://${vercelUrl}/api/storefront/${slug}`
-          : `/api/storefront/${slug}`
-        
-        const res = await fetch(apiUrl, { cache: 'no-store' })
+        // On Vercel, relative URLs work from client-side
+        // The browser resolves /api/... to the correct origin
+        const res = await fetch(`/api/storefront/${slug}`, { cache: 'no-store' })
         if (!res.ok) {
           if (!cancelled) {
             setFetchError(`Store "${slug}" not found. Make sure the store exists and has status READY.`)
