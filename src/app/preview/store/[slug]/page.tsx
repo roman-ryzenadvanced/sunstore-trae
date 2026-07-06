@@ -24,36 +24,28 @@ export default async function PreviewStorePage({
   const { slug } = await params
 
   // Fetch storefront data on server
-  const VERCEL_URL = process.env.VERCEL_URL || ''
-  const apiUrl = VERCEL_URL
-    ? `https://${VERCEL_URL}/api/storefront/${slug}`
-    : null
+  // In Vercel, process.env.VERCEL_URL contains the full URL
+  const baseUrl = process.env.VERCEL_URL || 'sunstore.vercel.app'
+  const apiUrl = `https://${baseUrl}/api/storefront/${slug}`
 
   let data = null
   let error = null
 
   try {
-    if (apiUrl) {
-      const res = await fetch(apiUrl, { cache: 'no-store' })
-      if (res.ok) {
-        data = await res.json()
-      } else {
-        error = `Store "${slug}" not found.`
-      }
+    const res = await fetch(apiUrl, { 
+      cache: 'no-store',
+      headers: { 'Accept': 'application/json' }
+    })
+    if (res.ok) {
+      data = await res.json()
     } else {
-      const res = await fetch(`/api/storefront/${slug}`, { cache: 'no-store' })
-      if (res.ok) {
-        data = await res.json()
-      } else {
-        error = `Store "${slug}" not found.`
-      }
+      error = `Store "${slug}" not found.`
     }
-  } catch {
+  } catch (e) {
     error = `Store "${slug}" not found.`
   }
 
-  // Import and render the client component
-  // This works because the import happens at render time, not at module load time
+  // Import and render the client component with data
   const StorefrontPreviewClient = (await import(
     '@/components/storefront/storefront-preview-client'
   )).StorefrontPreviewClient

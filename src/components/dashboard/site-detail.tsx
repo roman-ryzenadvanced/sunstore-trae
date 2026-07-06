@@ -128,7 +128,32 @@ export function SiteDetail() {
       const res = await fetch(`/api/sites/${selectedSiteId}`)
       if (res.ok) {
         const data = await res.json()
-        setSite(data)
+        // Normalize raw Prisma site object into the SiteInfo shape.
+        // The API returns the raw Site row (templateId, _count, customDomain,
+        // categories as a JSON string, and no `revenue`/`domain` fields).
+        let categories: string[] = []
+        try {
+          const parsed = JSON.parse(data.categories || '[]')
+          if (Array.isArray(parsed)) categories = parsed.filter(Boolean)
+        } catch {
+          // categories is not JSON, ignore
+        }
+        const normalized: SiteInfo = {
+          id: data.id,
+          name: data.name,
+          slug: data.slug,
+          status: String(data.status || '').toLowerCase(),
+          template: data.templateId || data.template || '',
+          tagline: data.tagline || '',
+          primaryColor: data.primaryColor || '#0f172a',
+          categories,
+          domain: data.customDomain || data.domain || '',
+          createdAt: data.createdAt,
+          productCount: data._count?.products ?? data.productCount ?? 0,
+          orderCount: data._count?.orders ?? data.orderCount ?? 0,
+          revenue: typeof data.revenue === 'number' ? data.revenue : 0,
+        }
+        setSite(normalized)
       }
     } catch {
       // empty
@@ -258,7 +283,6 @@ function OverviewTab({
   }
 
   const isActive = site.status === 'active' || site.status === 'ready'
-
   return (
     <div className="flex flex-col gap-6">
       {/* Info Cards */}
