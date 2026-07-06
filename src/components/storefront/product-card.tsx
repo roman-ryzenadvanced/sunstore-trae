@@ -1,8 +1,9 @@
 import { useState } from 'react'
-import { ShoppingCart, Heart, Package } from 'lucide-react'
+import { ShoppingCart, Heart, Package, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { StarRating } from './star-rating'
+import { useCartStore } from '@/store/cart-store'
 import type { StorefrontProduct } from './types'
 
 interface Props {
@@ -45,10 +46,24 @@ function getFeaturedBadge(product: StorefrontProduct): string | null {
 
 export function ProductCard({ product, primaryColor }: Props) {
   const [liked, setLiked] = useState(false)
+  const [added, setAdded] = useState(false)
+  const add = useCartStore((s) => s.add)
   const imgUrl = getFirstImage(product.images)
   const discount = getDiscount(product.price, product.oldPrice)
   const featuredBadge = getFeaturedBadge(product)
   const stockInfo = getStockInfo(product.stock)
+
+  const handleAdd = () => {
+    add({
+      id: product.id,
+      title: product.title,
+      price: product.price,
+      image: imgUrl,
+      stock: product.stock,
+    })
+    setAdded(true)
+    setTimeout(() => setAdded(false), 1200)
+  }
 
   return (
     <div className="group bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-200 flex flex-col">
@@ -116,11 +131,21 @@ export function ProductCard({ product, primaryColor }: Props) {
         <p className={`text-xs mt-1.5 font-medium ${stockInfo.color}`}>{stockInfo.label}</p>
         <Button
           className="mt-3 w-full text-sm font-medium border-0 text-white transition-opacity hover:opacity-90"
-          style={{ backgroundColor: primaryColor }}
+          style={{ backgroundColor: added ? '#16a34a' : primaryColor }}
           disabled={product.stock <= 0}
+          onClick={handleAdd}
         >
-          <ShoppingCart className="size-4 mr-1.5" />
-          В корзину
+          {added ? (
+            <>
+              <Check className="size-4 mr-1.5" />
+              Added!
+            </>
+          ) : (
+            <>
+              <ShoppingCart className="size-4 mr-1.5" />
+              Add to cart
+            </>
+          )}
         </Button>
       </div>
     </div>

@@ -1,6 +1,8 @@
-import { ShoppingCart, Package } from 'lucide-react'
+import { useState } from 'react'
+import { ShoppingCart, Package, Check } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { useCartStore } from '@/store/cart-store'
 import type { StorefrontProduct } from './types'
 
 interface Props {
@@ -26,8 +28,22 @@ function getFirstImage(imagesStr: string): string | null {
 }
 
 export function DealCard({ product, primaryColor }: Props) {
+  const [added, setAdded] = useState(false)
+  const add = useCartStore((s) => s.add)
   const discount = getDiscount(product.price, product.oldPrice)
   const imgUrl = getFirstImage(product.images)
+
+  const handleAdd = () => {
+    add({
+      id: product.id,
+      title: product.title,
+      price: product.price,
+      image: imgUrl,
+      stock: product.stock,
+    })
+    setAdded(true)
+    setTimeout(() => setAdded(false), 1200)
+  }
 
   return (
     <div className="shrink-0 w-52 bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow duration-200">
@@ -56,10 +72,20 @@ export function DealCard({ product, primaryColor }: Props) {
         <Button
           size="sm"
           className="mt-2 w-full text-xs border-0 text-white h-8"
-          style={{ backgroundColor: primaryColor }}
+          style={{ backgroundColor: added ? '#16a34a' : primaryColor }}
+          onClick={handleAdd}
         >
-          <ShoppingCart className="size-3.5 mr-1" />
-          В корзину
+          {added ? (
+            <>
+              <Check className="size-3.5 mr-1" />
+              Added!
+            </>
+          ) : (
+            <>
+              <ShoppingCart className="size-3.5 mr-1" />
+              Add to cart
+            </>
+          )}
         </Button>
       </div>
     </div>

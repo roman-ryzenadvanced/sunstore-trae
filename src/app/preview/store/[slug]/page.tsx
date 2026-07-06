@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
-import { Search, ChevronRight, Mail, Store, Shield, Truck, Package, Loader2 } from 'lucide-react'
+import { Search, ChevronRight, Mail, Store, Shield, Truck, Package, Loader2, ShoppingCart } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -10,7 +10,9 @@ import { ProductCard } from '@/components/storefront/product-card'
 import { DealCard } from '@/components/storefront/deal-card'
 import { TrustBar } from '@/components/storefront/trust-bar'
 import { LoadingSkeleton } from '@/components/storefront/loading-skeleton'
+import { CartDrawer, CartFab } from '@/components/storefront/cart-drawer'
 import { StorefrontData } from '@/components/storefront/types'
+import { useCartStore } from '@/store/cart-store'
 
 // ---- helpers ----
 function darkenColor(hex: string, amount: number): string {
@@ -92,10 +94,19 @@ export default function StorefrontPreviewPage({
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
 
+  const initForStore = useCartStore((s) => s.initForStore)
+  const cartCount = useCartStore((s) => s.count())
+  const openCart = useCartStore((s) => s.openCart)
+
   // Resolve slug from params promise
   useEffect(() => {
     params.then((p) => setSlug(p.slug))
   }, [params])
+
+  // Each store gets its own cart — reset on store change
+  useEffect(() => {
+    if (slug) initForStore(slug)
+  }, [slug, initForStore])
 
   // Fetch storefront data from the browser (same-origin, reliable on Vercel)
   useEffect(() => {
@@ -183,6 +194,18 @@ export default function StorefrontPreviewPage({
             <Button className="h-10 rounded-l-none px-5 text-white border-0 font-medium" style={{ backgroundColor: color }}>
               Search
             </Button>
+            <button
+              onClick={openCart}
+              className="relative ml-2 flex h-10 w-10 items-center justify-center rounded-md bg-white/20 text-white transition-colors hover:bg-white/30"
+              aria-label="Open cart"
+            >
+              <ShoppingCart className="size-5" />
+              {cartCount > 0 && (
+                <span className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                  {cartCount}
+                </span>
+              )}
+            </button>
           </div>
           {data.categories.length > 0 && (
             <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-white/80 text-xs">
@@ -321,6 +344,10 @@ export default function StorefrontPreviewPage({
           </div>
         </div>
       </footer>
+
+      {/* Cart: floating button + slide-out drawer with checkout */}
+      <CartFab primaryColor={color} />
+      <CartDrawer storeSlug={data.site.slug} primaryColor={color} />
     </div>
   )
 }
