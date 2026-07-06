@@ -18,6 +18,8 @@ import {
   ExternalLink,
   Copy,
   Check,
+  ImagePlus,
+  X,
 } from 'lucide-react'
 import { useAppStore } from '@/store/app-store'
 import { Button } from '@/components/ui/button'
@@ -82,7 +84,8 @@ interface Product {
   price: number
   stock: number
   category: string
-  status: string
+  images: string
+  active: boolean
 }
 
 interface Order {
@@ -237,7 +240,7 @@ export function SiteDetail() {
           <OverviewTab site={site} onRefresh={fetchSite} />
         </TabsContent>
         <TabsContent value="products" className="mt-6">
-          <ProductsTab siteId={selectedSiteId} />
+          <ProductsTab siteId={selectedSiteId} categories={site?.categories || []} />
         </TabsContent>
         <TabsContent value="orders" className="mt-6">
           <OrdersTab siteId={selectedSiteId} />
@@ -458,7 +461,7 @@ function InfoCard({ label, value }: { label: string; value: React.ReactNode }) {
 }
 
 // ===================== PRODUCTS TAB =====================
-function ProductsTab({ siteId }: { siteId: string }) {
+function ProductsTab({ siteId, categories }: { siteId: string; categories: string[] }) {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -470,16 +473,17 @@ function ProductsTab({ siteId }: { siteId: string }) {
   const [formPrice, setFormPrice] = useState('')
   const [formStock, setFormStock] = useState('')
   const [formCategory, setFormCategory] = useState('')
+  const [formImages, setFormImages] = useState<string[]>([])
   const [saving, setSaving] = useState(false)
 
   const fetchProducts = useCallback(async () => {
     setLoading(true)
     try {
-      const params = new URLSearchParams({ siteId, search })
-      const res = await fetch(`/api/products?${params}`)
+      const params = new URLSearchParams({ search })
+      const res = await fetch(`/api/sites/${siteId}/products?${params}`)
       if (res.ok) {
         const data = await res.json()
-        setProducts(data.products || data || [])
+        setProducts(data.data || data.products || data || [])
       }
     } catch {
       // empty
@@ -497,7 +501,8 @@ function ProductsTab({ siteId }: { siteId: string }) {
     setFormTitle('')
     setFormPrice('')
     setFormStock('')
-    setFormCategory('')
+    setFormCategory(categories[0] || '')
+    setFormImages([])
     setDialogOpen(true)
   }
 
@@ -507,7 +512,53 @@ function ProductsTab({ siteId }: { siteId: string }) {
     setFormPrice(String(p.price))
     setFormStock(String(p.stock))
     setFormCategory(p.category)
+    let imgs: string[] = []
+    try {
+      const parsed = JSON.parse(p.images || '[]')
+      if (Array.isArray(parsed)) imgs = parsed.filter((x) => typeof x === 'string')
+    } catch {
+      // empty
+    }
+    setFormImages(imgs)
     setDialogOpen(true)
+  }
+
+  // Read a File as a data URL (base64). Avoids needing a separate upload
+  // endpoint / object storage while still persisting the image with the product.
+  const readFileAsDataURL = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(String(reader.result || ''))
+      reader.onerror = reject
+      reader.readAsDataURL(file)
+    })
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files
+    if (!files || files.length === 0) return
+    const newImages: string[] = []
+    for (let i = 0; i < files.length; i++) {
+      try {
+        const dataUrl = await readFileAsDataURL(files[i])
+        newImages.push(dataUrl)
+      } catch {
+        // skip invalid file
+      }
+    }
+    setFormImages((prev) => [...prev, ...newImages])
+    // reset input so the same file can be re-selected
+    e.target.value = ''
+  }
+
+  const handleAddImageUrl = () => {
+    const input = window.prompt('Paste image URL:')
+    if (input && input.trim()) {
+      setFormImages((prev) => [...prev, input.trim()])
+    }
+  }
+
+  const removeImage = (idx: number) => {
+    setFormImages((prev) => prev.filter((_, i) => i !== idx))
   }
 
   const handleSave = async () => {
@@ -518,16 +569,16 @@ function ProductsTab({ siteId }: { siteId: string }) {
         price: Number(formPrice),
         stock: Number(formStock),
         category: formCategory,
-        siteId,
+        images: formImages,
       }
       if (editProduct) {
-        await fetch(`/api/products/${editProduct.id}`, {
-          method: 'PUT',
+        await fetch(`/api/sites/${siteId}/products/${editProduct.id}`, {
+          method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
         })
       } else {
-        await fetch('/api/products', {
+        await fetch(`/api/sites/${siteId}/products`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
@@ -543,12 +594,26 @@ function ProductsTab({ siteId }: { siteId: string }) {
   }
 
   const handleDelete = async (id: string) => {
+    if (!confirm('Delete this product?')) return
     try {
-      await fetch(`/api/products/${id}`, { method: 'DELETE' })
+      await fetch(`/api/sites/${siteId}/products/${id}`, { method: 'DELETE' })
       fetchProducts()
     } catch {
       // empty
     }
+  }
+
+  // Parse the first image URL out of a product's JSON image string
+  const getThumb = (p: Product): string | null => {
+    try {
+      const arr = JSON.parse(p.images || '[]')
+      if (Array.isArray(arr) && arr.length > 0 && typeof arr[0] === 'string') {
+        return arr[0]
+      }
+    } catch {
+      // empty
+    }
+    return null
   }
 
   return (
@@ -585,6 +650,7 @@ function ProductsTab({ siteId }: { siteId: string }) {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-12">Image</TableHead>
                   <TableHead>Title</TableHead>
                   <TableHead>Price</TableHead>
                   <TableHead>Stock</TableHead>
@@ -594,45 +660,63 @@ function ProductsTab({ siteId }: { siteId: string }) {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {products.map((p) => (
-                  <TableRow key={p.id}>
-                    <TableCell className="font-medium">{p.title}</TableCell>
-                    <TableCell>₽{p.price.toLocaleString()}</TableCell>
-                    <TableCell>{p.stock}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{p.category}</Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          p.status === 'active' ? 'default' : 'secondary'
-                        }
-                      >
-                        {p.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="size-8"
-                          onClick={() => openEdit(p)}
+                {products.map((p) => {
+                  const thumb = getThumb(p)
+                  return (
+                    <TableRow key={p.id}>
+                      <TableCell>
+                        {thumb ? (
+                          <img
+                            src={thumb}
+                            alt={p.title}
+                            className="size-10 rounded object-cover border"
+                          />
+                        ) : (
+                          <div className="flex size-10 items-center justify-center rounded border bg-muted">
+                            <ImagePlus className="size-4 text-muted-foreground" />
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell className="font-medium">{p.title}</TableCell>
+                      <TableCell>₽{(p.price || 0).toLocaleString()}</TableCell>
+                      <TableCell>{p.stock}</TableCell>
+                      <TableCell>
+                        {p.category ? (
+                          <Badge variant="outline">{p.category}</Badge>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={p.active ? 'default' : 'secondary'}
                         >
-                          <Pencil className="size-3.5" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="size-8 text-destructive"
-                          onClick={() => handleDelete(p.id)}
-                        >
-                          <Trash2 className="size-3.5" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                          {p.active ? 'active' : 'inactive'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-8"
+                            onClick={() => openEdit(p)}
+                          >
+                            <Pencil className="size-3.5" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-8 text-destructive"
+                            onClick={() => handleDelete(p.id)}
+                          >
+                            <Trash2 className="size-3.5" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
               </TableBody>
             </Table>
           )}
@@ -641,7 +725,7 @@ function ProductsTab({ siteId }: { siteId: string }) {
 
       {/* Product Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle>
               {editProduct ? 'Edit Product' : 'Add Product'}
@@ -683,11 +767,73 @@ function ProductsTab({ siteId }: { siteId: string }) {
             </div>
             <div className="flex flex-col gap-2">
               <Label>Category</Label>
-              <Input
-                value={formCategory}
-                onChange={(e) => setFormCategory(e.target.value)}
-                placeholder="Category"
-              />
+              {categories.length > 0 ? (
+                <Select value={formCategory} onValueChange={setFormCategory}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat} value={cat}>
+                        {cat}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : (
+                <Input
+                  value={formCategory}
+                  onChange={(e) => setFormCategory(e.target.value)}
+                  placeholder="Category"
+                />
+              )}
+            </div>
+
+            {/* Image upload */}
+            <div className="flex flex-col gap-2">
+              <Label>Photos</Label>
+              <div className="flex flex-wrap gap-2">
+                {formImages.map((img, idx) => (
+                  <div
+                    key={idx}
+                    className="group relative size-20 overflow-hidden rounded-md border"
+                  >
+                    <img
+                      src={img}
+                      alt={`product-${idx}`}
+                      className="size-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeImage(idx)}
+                      className="absolute right-0.5 top-0.5 flex size-5 items-center justify-center rounded-full bg-black/60 text-white opacity-0 transition-opacity group-hover:opacity-100"
+                    >
+                      <X className="size-3" />
+                    </button>
+                  </div>
+                ))}
+                <label className="flex size-20 cursor-pointer flex-col items-center justify-center gap-1 rounded-md border border-dashed text-xs text-muted-foreground hover:bg-muted">
+                  <ImagePlus className="size-4" />
+                  <span>Upload</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={handleFileChange}
+                  />
+                </label>
+                <button
+                  type="button"
+                  onClick={handleAddImageUrl}
+                  className="flex size-20 items-center justify-center rounded-md border border-dashed text-xs text-muted-foreground hover:bg-muted"
+                >
+                  + URL
+                </button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Upload image files or paste an image URL. Multiple photos allowed.
+              </p>
             </div>
           </div>
           <DialogFooter>
