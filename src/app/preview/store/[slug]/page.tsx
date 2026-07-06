@@ -1,13 +1,4 @@
 import type { Metadata } from 'next'
-import dynamic from 'next/dynamic'
-
-// Dynamically import client component with ssr: false
-const StorefrontPreviewClient = dynamic(
-  () => import('@/components/storefront/storefront-preview-client').then(mod => ({
-    default: mod.StorefrontPreviewClient
-  })),
-  { ssr: false }
-)
 
 export const dynamic = 'force-dynamic'
 export const dynamicParams = true
@@ -52,6 +43,7 @@ export default async function PreviewStorePage({
     error = `Store "${slug}" not found. Make sure the store exists and has status READY.`
   }
 
-  // Pass data to client component via props
+  // Render client component with initial data
+  const { StorefrontPreviewClient } = await import('@/components/storefront/storefront-preview-client')
   return <StorefrontPreviewClient slug={slug} initialData={data} error={error} />
 }
