@@ -1,3 +1,5 @@
+'use client'
+
 const TRUST_ITEMS = [
   { icon: '✓', label: 'Гарантия качества' },
   { icon: '🚚', label: 'Быстрая доставка' },

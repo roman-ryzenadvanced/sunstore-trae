@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { StorefrontPreviewPage } from '@/components/storefront/storefront-preview-page'
+import { StorefrontPreviewClient } from '@/components/storefront/storefront-preview-client'
 
 export const dynamic = 'force-dynamic'
 export const dynamicParams = true
@@ -54,5 +54,5 @@ export default async function PreviewStorePage({
     error = `Store "${slug}" not found. Make sure the store exists and has status READY.`
   }
 
-  return <StorefrontPreviewPage slug={slug} initialData={data} error={error} />
+  return <StorefrontPreviewClient slug={slug} initialData={data} error={error} />
 }
