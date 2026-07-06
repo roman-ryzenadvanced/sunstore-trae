@@ -2,7 +2,9 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { StorefrontPreviewPage } from '@/components/storefront/storefront-preview-page'
 
+// Force dynamic rendering so this route works for any slug
 export const dynamic = 'force-dynamic'
+export const dynamicParams = true
 
 export async function generateMetadata({
   params,
@@ -12,13 +14,10 @@ export async function generateMetadata({
   const { slug } = await params
 
   return {
-    title: `${slug} — SunStore Preview`,
-    description: `Предпросмотр магазина ${slug}`,
+    title: `${slug} — SunStore Store Preview`,
+    description: `Preview of the store ${slug}`,
+    robots: 'noindex',
   }
-}
-
-export async function generateStaticParams() {
-  return []
 }
 
 export default async function PreviewStorePage({
@@ -28,15 +27,22 @@ export default async function PreviewStorePage({
 }) {
   const { slug } = await params
 
-  // Fetch storefront data server-side
-  const apiUrl = `${process.env.VERCEL_URL ? 'https://' + process.env.VERCEL_URL : 'http://localhost:3000'}/api/storefront/${slug}`
-  const res = await fetch(apiUrl, { next: { revalidate: 60 } })
+  // Build the API URL based on environment
+  const apiUrl = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}/api/storefront/${slug}`
+    : `http://localhost:3000/api/storefront/${slug}`
+
+  const res = await fetch(apiUrl)
 
   if (!res.ok) {
-    return <StorefrontPreviewPage initialData={null} error={`Не удалось загрузить магазин ${slug}.`}/>
+    return (
+      <StorefrontPreviewPage
+        initialData={null}
+        error={`Store "${slug}" not found. Make sure the store exists and has status READY.`}
+      />
+    )
   }
 
   const data = await res.json()
-
   return <StorefrontPreviewPage initialData={data} />
 }
