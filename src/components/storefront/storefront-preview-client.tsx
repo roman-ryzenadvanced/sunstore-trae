@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState, useRef, useMemo } from 'react'
+import { useEffect, useState, useMemo, useRef } from 'react'
 import { Search, ChevronRight, Mail, Store, Shield, Truck, Package, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -94,7 +94,7 @@ function NewsletterSection({ slug }: { slug: string }) {
   )
 }
 
-export function StorefrontPreviewPage({ slug, initialData, error }: Props) {
+export function StorefrontPreviewClient({ slug, initialData, error }: Props) {
   const hasFetchedRef = useRef(false)
   const [data, setData] = useState<StorefrontData | null>(initialData)
   const [fetchError, setFetchError] = useState<string | null>(error)
