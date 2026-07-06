@@ -18,16 +18,7 @@ export async function generateMetadata({
 }
 
 export async function generateStaticParams() {
-  try {
-    const res = await fetch(`${process.env.VERCEL_URL ? 'https://' + process.env.VERCEL_URL : 'http://localhost:3000'}/api/storefront`, {
-      next: { revalidate: 60 },
-    })
-    if (!res.ok) return []
-    const data = await res.json()
-    return (data.sites || []).map((s: { slug: string }) => ({ slug: s.slug }))
-  } catch {
-    return []
-  }
+  return []
 }
 
 export default async function PreviewStorePage({
