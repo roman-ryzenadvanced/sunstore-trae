@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
-import { Search, ChevronRight, Mail, Store, Shield, Truck, Package } from 'lucide-react'
+import { useMemo, useState, useEffect } from 'react'
+import { Search, ChevronRight, Mail, Store, Shield, Truck, Package, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -14,6 +14,8 @@ import { StorefrontData } from './types'
 
 interface Props {
   slug: string
+  initialData: StorefrontData | null
+  error: string | null
 }
 
 function darkenColor(hex: string, amount: number): string {
@@ -41,13 +43,13 @@ function NewsletterSection({ slug }: { slug: string }) {
         body: JSON.stringify({ email }),
       })
       if (res.ok) {
-        setMsg('Вы успешно подписались!')
+        setMsg('You have subscribed successfully!')
         setEmail('')
       } else {
-        setMsg('Ошибка подписки. Попробуйте снова.')
+        setMsg('Subscription error. Please try again.')
       }
     } catch {
-      setMsg('Ошибка подписки. Попробуйте снова.')
+      setMsg('Subscription error. Please try again.')
     } finally {
       setSending(false)
     }
@@ -57,14 +59,14 @@ function NewsletterSection({ slug }: { slug: string }) {
     <section className="bg-gray-100 border-t border-b">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 text-center">
         <Mail className="size-8 mx-auto text-gray-400 mb-3" />
-        <h2 className="text-lg font-bold text-gray-900">Подпишитесь на рассылку</h2>
+        <h2 className="text-lg font-bold text-gray-900">Subscribe to newsletter</h2>
         <p className="text-sm text-gray-500 mt-1 mb-5">
-          Получайте уведомления о новых товарах и специальных предложениях
+          Get notified about new products and special offers
         </p>
         <div className="flex items-center gap-2 max-w-md mx-auto">
           <Input
             type="email"
-            placeholder="Ваш email"
+            placeholder="Your email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="bg-white h-10"
@@ -76,7 +78,14 @@ function NewsletterSection({ slug }: { slug: string }) {
             className="h-10 px-5 text-white border-0 whitespace-nowrap"
             style={{ backgroundColor: '#0f172a' }}
           >
-            {sending ? 'Отправка...' : <><Mail className="size-4 mr-1.5" />Подписаться</>}
+            {sending ? (
+              <Loader2 className="size-4 animate-spin" />
+            ) : (
+              <>
+                <Mail className="size-4 mr-1.5" />
+                Subscribe
+              </>
+            )}
           </Button>
         </div>
         {msg && <p className="text-sm mt-3 text-green-600 font-medium">{msg}</p>}
@@ -85,36 +94,40 @@ function NewsletterSection({ slug }: { slug: string }) {
   )
 }
 
-export function StorefrontPreviewPage({ slug }: Props) {
-  const [data, setData] = useState<StorefrontData | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(true)
+export function StorefrontPreviewPage({ slug, initialData, error }: Props) {
+  const [data, setData] = useState<StorefrontData | null>(initialData)
+  const [fetchError, setFetchError] = useState<string | null>(error)
+  const [loading, setLoading] = useState(initialData === null && !error)
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
+    // Only fetch on mount if we don't have server data and no server error
+    if (initialData !== null || error) return
     let cancelled = false
+
     const fetchData = async () => {
+      setLoading(true)
       try {
         const res = await fetch(`/api/storefront/${slug}`)
         if (!res.ok) {
-          if (cancelled) return
-          setError(`Store "${slug}" not found. Make sure the store exists and has status READY.`)
+          if (!cancelled) {
+            setFetchError(`Store "${slug}" not found. Make sure the store exists and has status READY.`)
+          }
         } else {
           const json = await res.json()
-          if (cancelled) return
-          setData(json)
+          if (!cancelled) setData(json)
         }
       } catch {
-        if (cancelled) return
-        setError('Failed to load store data. Please try again later.')
+        if (!cancelled) setFetchError('Failed to load store data. Please try again later.')
       } finally {
         if (!cancelled) setLoading(false)
       }
     }
+
     fetchData()
     return () => { cancelled = true }
-  }, [slug])
+  }, [slug, initialData, error])
 
   const filteredProducts = useMemo(() => {
     if (!data?.products) return []
@@ -136,12 +149,16 @@ export function StorefrontPreviewPage({ slug }: Props) {
   const color = data?.site?.primaryColor || '#0f172a'
   const darkColor = darkenColor(color, 50)
 
-  if (error) {
+  const serverError = error
+  const clientError = fetchError
+  const hasError = serverError || clientError
+
+  if (hasError) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen py-20 bg-gray-50">
         <Package className="size-16 text-gray-300 mb-4" />
         <h1 className="text-xl font-bold text-gray-600 mb-2">Store Not Found</h1>
-        <p className="text-gray-400 text-sm mb-4">{error}</p>
+        <p className="text-gray-400 text-sm mb-4">{serverError || clientError}</p>
         <p className="text-xs text-gray-400">URL: /preview/store/{slug}</p>
       </div>
     )
@@ -161,8 +178,8 @@ export function StorefrontPreviewPage({ slug }: Props) {
       <div className="bg-gray-900 text-gray-300 text-xs px-4 sm:px-6 py-1.5 flex items-center justify-between">
         <span className="flex items-center gap-1.5 font-medium">🏪 SunStore Marketplace</span>
         <div className="flex items-center gap-4">
-          <span className="hover:text-white transition-colors cursor-default">Помощь</span>
-          <span className="hover:text-white transition-colors cursor-default">Продавайте на SunStore</span>
+          <span className="hover:text-white transition-colors cursor-default">Help</span>
+          <span className="hover:text-white transition-colors cursor-default">Sell on SunStore</span>
         </div>
       </div>
 
@@ -178,7 +195,7 @@ export function StorefrontPreviewPage({ slug }: Props) {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
               <Input
-                placeholder="Поиск товаров..."
+                placeholder="Search products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9 pr-3 h-10 rounded-r-none border-0 shadow-sm text-sm"
@@ -188,7 +205,7 @@ export function StorefrontPreviewPage({ slug }: Props) {
               className="h-10 rounded-l-none px-5 text-white border-0 font-medium"
               style={{ backgroundColor: color }}
             >
-              Найти
+              Search
             </Button>
           </div>
           {/* Category links */}
@@ -213,16 +230,16 @@ export function StorefrontPreviewPage({ slug }: Props) {
       <div className="relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${color}, ${darkColor})` }}>
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16 text-center">
           <h2 className="text-2xl sm:text-4xl font-bold text-white leading-tight">
-            Лучшие товары по выгодным ценам
+            Best products at great prices
           </h2>
           <p className="mt-3 text-white/80 text-sm sm:text-base max-w-lg mx-auto">
-            Откройте для себя широкий ассортимент качественных товаров с быстрой доставкой и гарантией возврата
+            Discover a wide range of quality products with fast delivery and guarantee
           </p>
           <Button
             className="mt-6 px-8 h-11 text-white border-0 text-sm font-semibold shadow-md hover:opacity-90 transition-opacity"
             style={{ backgroundColor: color }}
           >
-            Перейти к покупкам <ChevronRight className="size-4 ml-1" />
+            Start Shopping <ChevronRight className="size-4 ml-1" />
           </Button>
         </div>
       </div>
@@ -242,7 +259,7 @@ export function StorefrontPreviewPage({ slug }: Props) {
                 }`}
                 style={categoryFilter === 'all' ? { backgroundColor: color } : undefined}
               >
-                Все
+                All
               </button>
               {data.categories.map((cat) => (
                 <button
@@ -267,9 +284,9 @@ export function StorefrontPreviewPage({ slug }: Props) {
         <section className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-2">
           <div className="flex items-center gap-2 mb-4">
             <span className="text-xl">🔥</span>
-            <h2 className="text-lg font-bold text-gray-900">Горячие предложения</h2>
+            <h2 className="text-lg font-bold text-gray-900">Hot Deals</h2>
             <Badge className="bg-red-100 text-red-600 border-0 text-xs font-semibold">
-              {dealProducts.length} товаров
+              {dealProducts.length} items
             </Badge>
           </div>
           <ScrollArea className="w-full">
@@ -294,14 +311,14 @@ export function StorefrontPreviewPage({ slug }: Props) {
         ) : (
           <div className="flex flex-col items-center justify-center py-16 text-gray-400">
             <Package className="size-12 mb-3" />
-            <p className="text-sm">Товары не найдены</p>
+            <p className="text-sm">No products found</p>
             {categoryFilter !== 'all' && (
               <button
                 onClick={() => setCategoryFilter('all')}
                 className="mt-2 text-sm font-medium hover:underline"
                 style={{ color }}
               >
-                Показать все товары
+                Show all products
               </button>
             )}
           </div>
@@ -325,34 +342,34 @@ export function StorefrontPreviewPage({ slug }: Props) {
               )}
             </div>
             <div>
-              <h3 className="text-sm font-semibold mb-3 text-white/90">Магазин</h3>
+              <h3 className="text-sm font-semibold mb-3 text-white/90">Store</h3>
               <ul className="space-y-2 text-sm text-white/60">
-                <li><span className="hover:text-white transition-colors cursor-default">О магазине</span></li>
-                <li><span className="hover:text-white transition-colors cursor-default">Доставка и оплата</span></li>
-                <li><span className="hover:text-white transition-colors cursor-default">Возврат</span></li>
+                <li><span className="hover:text-white transition-colors cursor-default">About</span></li>
+                <li><span className="hover:text-white transition-colors cursor-default">Delivery &amp; Payment</span></li>
+                <li><span className="hover:text-white transition-colors cursor-default">Returns</span></li>
               </ul>
             </div>
             <div>
-              <h3 className="text-sm font-semibold mb-3 text-white/90">Помощь</h3>
+              <h3 className="text-sm font-semibold mb-3 text-white/90">Help</h3>
               <ul className="space-y-2 text-sm text-white/60">
-                <li><span className="hover:text-white transition-colors cursor-default">Связаться с нами</span></li>
-                <li><span className="hover:text-white transition-colors cursor-default">Частые вопросы</span></li>
-                <li><span className="hover:text-white transition-colors cursor-default">Условия использования</span></li>
+                <li><span className="hover:text-white transition-colors cursor-default">Contact Us</span></li>
+                <li><span className="hover:text-white transition-colors cursor-default">FAQ</span></li>
+                <li><span className="hover:text-white transition-colors cursor-default">Terms of Use</span></li>
               </ul>
             </div>
             <div>
-              <h3 className="text-sm font-semibold mb-3 text-white/90">Контакты</h3>
+              <h3 className="text-sm font-semibold mb-3 text-white/90">Contact</h3>
               <ul className="space-y-2 text-sm text-white/60">
                 <li className="flex items-center gap-1.5"><Mail className="size-3.5" />info@example.com</li>
-                <li className="flex items-center gap-1.5"><Truck className="size-3.5" />Доставка по всей России</li>
-                <li className="flex items-center gap-1.5"><Shield className="size-3.5" />Безопасные платежи</li>
+                <li className="flex items-center gap-1.5"><Truck className="size-3.5" />Worldwide Shipping</li>
+                <li className="flex items-center gap-1.5"><Shield className="size-3.5" />Secure Payments</li>
               </ul>
             </div>
           </div>
           <div className="border-t border-white/10 mt-8 pt-5 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-white/40">
-            <p>© {new Date().getFullYear()} {data.site.name}. Все права защищены.</p>
+            <p>© {new Date().getFullYear()} {data.site.name}. All rights reserved.</p>
             <p className="flex items-center gap-1">
-              Работает на <span className="font-medium text-white/60">SunStore</span>
+              Powered by <span className="font-medium text-white/60">SunStore</span>
             </p>
           </div>
         </div>
