@@ -15,6 +15,9 @@ import {
   Palette,
   Shield,
   Users,
+  ExternalLink,
+  Copy,
+  Check,
 } from 'lucide-react'
 import { useAppStore } from '@/store/app-store'
 import { Button } from '@/components/ui/button'
@@ -193,10 +196,14 @@ export function SiteDetail() {
         <div>
           <h1 className="text-2xl font-bold">{site?.name || 'Store'}</h1>
           <p className="text-sm text-muted-foreground">
-            /{selectedSiteSlug}
+            /{site?.slug || selectedSiteSlug}
           </p>
         </div>
       </div>
+
+      {/* Full preview URL bar */}
+      <PreviewUrlBar slug={site?.slug || selectedSiteSlug || ''} />
+
 
       <Tabs defaultValue="overview">
         <TabsList className="w-full flex-wrap h-auto gap-1 bg-transparent p-0 border-b rounded-none">
@@ -251,6 +258,73 @@ export function SiteDetail() {
           <ThemeTab siteId={selectedSiteId} site={site} onRefresh={fetchSite} />
         </TabsContent>
       </Tabs>
+    </div>
+  )
+}
+
+// ===================== PREVIEW URL BAR =====================
+function PreviewUrlBar({ slug }: { slug: string }) {
+  const [copied, setCopied] = useState(false)
+
+  // Compute the full preview URL on the client (browser-safe).
+  // Falls back gracefully during SSR (origin is undefined until hydrated).
+  const origin = typeof window !== 'undefined' ? window.location.origin : ''
+  const previewUrl = slug ? `${origin}/preview/store/${slug}` : ''
+
+  const handleCopy = async () => {
+    if (!previewUrl) return
+    try {
+      await navigator.clipboard.writeText(previewUrl)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 1500)
+    } catch {
+      // clipboard not available
+    }
+  }
+
+  if (!previewUrl) return null
+
+  return (
+    <div className="flex flex-col gap-2 rounded-lg border bg-muted/30 p-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex min-w-0 flex-col gap-0.5">
+        <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+          <ExternalLink className="size-3.5" />
+          Storefront preview URL
+        </span>
+        <code className="truncate text-sm font-medium text-foreground">
+          {previewUrl}
+        </code>
+      </div>
+      <div className="flex shrink-0 gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleCopy}
+          className="h-8"
+        >
+          {copied ? (
+            <>
+              <Check className="size-3.5 text-emerald-600" />
+              Copied
+            </>
+          ) : (
+            <>
+              <Copy className="size-3.5" />
+              Copy
+            </>
+          )}
+        </Button>
+        <Button asChild size="sm" className="h-8">
+          <a
+            href={previewUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <ExternalLink className="size-3.5" />
+            Open
+          </a>
+        </Button>
+      </div>
     </div>
   )
 }
