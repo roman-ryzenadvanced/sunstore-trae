@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Search, ChevronRight, Mail, Store, Shield, Truck, Package } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -13,8 +13,7 @@ import { LoadingSkeleton } from './loading-skeleton'
 import { StorefrontData } from './types'
 
 interface Props {
-  initialData: StorefrontData | null
-  error?: string
+  slug: string
 }
 
 function darkenColor(hex: string, amount: number): string {
@@ -86,13 +85,37 @@ function NewsletterSection({ slug }: { slug: string }) {
   )
 }
 
-export function StorefrontPreviewPage({ initialData, error }: Props) {
+export function StorefrontPreviewPage({ slug }: Props) {
+  const [data, setData] = useState<StorefrontData | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
-  const [data, setData] = useState<StorefrontData | null>(initialData)
-  const [loading, setLoading] = useState(!initialData)
 
-  // Client-side filtering (server already filters, but client ensures consistency)
+  useEffect(() => {
+    let cancelled = false
+    const fetchData = async () => {
+      try {
+        const res = await fetch(`/api/storefront/${slug}`)
+        if (!res.ok) {
+          if (cancelled) return
+          setError(`Store "${slug}" not found. Make sure the store exists and has status READY.`)
+        } else {
+          const json = await res.json()
+          if (cancelled) return
+          setData(json)
+        }
+      } catch {
+        if (cancelled) return
+        setError('Failed to load store data. Please try again later.')
+      } finally {
+        if (!cancelled) setLoading(false)
+      }
+    }
+    fetchData()
+    return () => { cancelled = true }
+  }, [slug])
+
   const filteredProducts = useMemo(() => {
     if (!data?.products) return []
     return data.products.filter((p) => {
@@ -113,17 +136,23 @@ export function StorefrontPreviewPage({ initialData, error }: Props) {
   const color = data?.site?.primaryColor || '#0f172a'
   const darkColor = darkenColor(color, 50)
 
-  if (error || !data) {
+  if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen py-20 bg-gray-50">
         <Package className="size-16 text-gray-300 mb-4" />
-        <h1 className="text-xl font-bold text-gray-600 mb-2">Магазин не найден</h1>
-        <p className="text-gray-400 text-sm mb-4">
-          {error || 'Выбранный магазин не существует или временно недоступен.'}
-        </p>
-        <p className="text-xs text-gray-400">Ссылка: /preview/store/[slug]</p>
+        <h1 className="text-xl font-bold text-gray-600 mb-2">Store Not Found</h1>
+        <p className="text-gray-400 text-sm mb-4">{error}</p>
+        <p className="text-xs text-gray-400">URL: /preview/store/{slug}</p>
       </div>
     )
+  }
+
+  if (loading) {
+    return <LoadingSkeleton />
+  }
+
+  if (!data) {
+    return null
   }
 
   return (
