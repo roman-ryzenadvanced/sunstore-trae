@@ -23,27 +23,9 @@ export default async function PreviewStorePage({
 }) {
   const { slug } = await params
 
-  // Fetch storefront data on server using VERCEL_URL
-  const VERCEL_URL = process.env.VERCEL_URL || ''
-  const apiUrl = VERCEL_URL
-    ? `https://${VERCEL_URL}/api/storefront/${slug}`
-    : `/api/storefront/${slug}`
-
-  let data = null
-  let error = null
-
-  try {
-    const res = await fetch(apiUrl, { cache: 'no-store' })
-    if (res.ok) {
-      data = await res.json()
-    } else {
-      error = `Store "${slug}" not found.`
-    }
-  } catch {
-    error = `Store "${slug}" not found.`
-  }
-
-  // Render client component with initial data
-  const { StorefrontPreviewClient } = await import('@/components/storefront/storefront-preview-client')
-  return <StorefrontPreviewClient slug={slug} initialData={data} error={error} />
+  // Render the client component - it will fetch data on the client
+  // Using dynamic import to ensure proper SSR/client boundary
+  const StorefrontPreviewPage = (await import('@/components/storefront/storefront-preview-client')).StorefrontPreviewClient
+  
+  return <StorefrontPreviewPage slug={slug} initialData={null} error={null} />
 }

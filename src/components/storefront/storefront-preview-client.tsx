@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useMemo, useRef } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { Search, ChevronRight, Mail, Store, Shield, Truck, Package, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -95,43 +95,40 @@ function NewsletterSection({ slug }: { slug: string }) {
 }
 
 export function StorefrontPreviewClient({ slug, initialData, error }: Props) {
-  const hasFetchedRef = useRef(false)
   const [data, setData] = useState<StorefrontData | null>(initialData)
+  const [loading, setLoading] = useState(false)
   const [fetchError, setFetchError] = useState<string | null>(error)
-  const [loading, setLoading] = useState(initialData === null && !error)
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
-    // Only fetch if we don't have server data and no server error
-    if (initialData !== null || error || hasFetchedRef.current) return
-    hasFetchedRef.current = true
-    let cancelled = false
+    // If we have initial data from server, use it
+    if (initialData) {
+      setData(initialData)
+      setLoading(false)
+      return
+    }
 
+    // Otherwise fetch on client
     const fetchData = async () => {
       setLoading(true)
       try {
-        // On Vercel, relative URLs work from client-side
-        // The browser resolves /api/... to the correct origin
         const res = await fetch(`/api/storefront/${slug}`, { cache: 'no-store' })
         if (!res.ok) {
-          if (!cancelled) {
-            setFetchError(`Store "${slug}" not found. Make sure the store exists and has status READY.`)
-          }
+          setFetchError(`Store "${slug}" not found. Make sure the store exists and has status READY.`)
         } else {
           const json = await res.json()
-          if (!cancelled) setData(json)
+          setData(json)
         }
       } catch {
-        if (!cancelled) setFetchError('Failed to load store data. Please try again later.')
+        setFetchError('Failed to load store data. Please try again later.')
       } finally {
-        if (!cancelled) setLoading(false)
+        setLoading(false)
       }
     }
 
     fetchData()
-    return () => { cancelled = true }
-  }, [slug, initialData, error])
+  }, [slug, initialData])
 
   const filteredProducts = useMemo(() => {
     if (!data?.products) return []
@@ -153,27 +150,21 @@ export function StorefrontPreviewClient({ slug, initialData, error }: Props) {
   const color = data?.site?.primaryColor || '#0f172a'
   const darkColor = darkenColor(color, 50)
 
-  const serverError = error
-  const clientError = fetchError
-  const hasError = serverError || clientError
+  const hasError = error || fetchError
 
   if (hasError) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen py-20 bg-gray-50">
         <Package className="size-16 text-gray-300 mb-4" />
         <h1 className="text-xl font-bold text-gray-600 mb-2">Store Not Found</h1>
-        <p className="text-gray-400 text-sm mb-4">{serverError || clientError}</p>
+        <p className="text-gray-400 text-sm mb-4">{hasError}</p>
         <p className="text-xs text-gray-400">URL: /preview/store/{slug}</p>
       </div>
     )
   }
 
-  if (loading) {
+  if (loading || !data) {
     return <LoadingSkeleton />
-  }
-
-  if (!data) {
-    return null
   }
 
   return (
