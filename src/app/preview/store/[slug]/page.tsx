@@ -24,23 +24,34 @@ export default async function PreviewStorePage({
 }) {
   const { slug } = await params
 
-  const VERCEL_URL = process.env.VERCEL_URL || ''
-  const apiUrl = VERCEL_URL
-    ? `https://${VERCEL_URL}/api/storefront/${slug}`
-    : `http://127.0.0.1:3000/api/storefront/${slug}`
-
   let data = null
   let error = null
 
+  // Fetch storefront data
+  const VERCEL_URL = process.env.VERCEL_URL || ''
+  let res: Response
+
   try {
-    const res = await fetch(apiUrl, { cache: 'no-store' })
-    if (res.ok) {
-      data = await res.json()
+    // Try full URL first (works in node runtime and edge with VERCEL_URL)
+    const apiUrl = VERCEL_URL
+      ? `https://${VERCEL_URL}/api/storefront/${slug}`
+      : null
+
+    if (apiUrl) {
+      res = await fetch(apiUrl, { cache: 'no-store' })
     } else {
-      error = `Store "${slug}" not found. Make sure the store exists and has status READY.`
+      // Fallback to relative URL (works in local dev)
+      res = await fetch(`/api/storefront/${slug}`, { cache: 'no-store' })
     }
-  } catch (e: any) {
-    error = `Failed to load store data: ${e?.message || 'unknown error'}`
+  } catch {
+    // If full URL fails, try relative
+    res = await fetch(`/api/storefront/${slug}`, { cache: 'no-store' })
+  }
+
+  if (res.ok) {
+    data = await res.json()
+  } else {
+    error = `Store "${slug}" not found. Make sure the store exists and has status READY.`
   }
 
   return <StorefrontPreviewPage slug={slug} initialData={data} error={error} />

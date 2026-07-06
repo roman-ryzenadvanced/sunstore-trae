@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect, useRef } from 'react'
 import { Search, ChevronRight, Mail, Store, Shield, Truck, Package, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
@@ -95,6 +95,7 @@ function NewsletterSection({ slug }: { slug: string }) {
 }
 
 export function StorefrontPreviewPage({ slug, initialData, error }: Props) {
+  const hasFetchedRef = useRef(false)
   const [data, setData] = useState<StorefrontData | null>(initialData)
   const [fetchError, setFetchError] = useState<string | null>(error)
   const [loading, setLoading] = useState(initialData === null && !error)
@@ -102,8 +103,9 @@ export function StorefrontPreviewPage({ slug, initialData, error }: Props) {
   const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
-    // Only fetch on mount if we don't have server data and no server error
-    if (initialData !== null || error) return
+    // Only fetch if we don't have server data and no server error
+    if (initialData !== null || error || hasFetchedRef.current) return
+    hasFetchedRef.current = true
     let cancelled = false
 
     const fetchData = async () => {
@@ -171,6 +173,212 @@ export function StorefrontPreviewPage({ slug, initialData, error }: Props) {
   if (!data) {
     return null
   }
+
+  return (
+    <div className="bg-white text-gray-900 font-sans">
+      {/* ─── 1. Top Bar ───────────────────────────────────────── */}
+      <div className="bg-gray-900 text-gray-300 text-xs px-4 sm:px-6 py-1.5 flex items-center justify-between">
+        <span className="flex items-center gap-1.5 font-medium">🏪 SunStore Marketplace</span>
+        <div className="flex items-center gap-4">
+          <span className="hover:text-white transition-colors cursor-default">Help</span>
+          <span className="hover:text-white transition-colors cursor-default">Sell on SunStore</span>
+        </div>
+      </div>
+
+      {/* ─── 2. Store Header ──────────────────────────────────── */}
+      <div style={{ backgroundColor: color }}>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-5">
+          <h2 className="text-2xl sm:text-3xl font-bold text-white text-center">{data.site.name}</h2>
+          {data.site.tagline && (
+            <p className="mt-1 text-white/70 text-sm text-center">{data.site.tagline}</p>
+          )}
+          {/* Search bar */}
+          <div className="mt-5 max-w-xl mx-auto flex">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
+              <Input
+                placeholder="Search products..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 pr-3 h-10 rounded-r-none border-0 shadow-sm text-sm"
+              />
+            </div>
+            <Button
+              className="h-10 rounded-l-none px-5 text-white border-0 font-medium"
+              style={{ backgroundColor: color }}
+            >
+              Search
+            </Button>
+          </div>
+          {/* Category links */}
+          {data.categories.length > 0 && (
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-white/80 text-xs">
+              {data.categories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setCategoryFilter(cat)}
+                  className="hover:text-white transition-colors"
+                >
+                  {cat}
+                  <ChevronRight className="inline size-3 ml-0.5 opacity-60" />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ─── 3. Hero Banner ───────────────────────────────────── */}
+      <div className="relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${color}, ${darkColor})` }}>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16 text-center">
+          <h2 className="text-2xl sm:text-4xl font-bold text-white leading-tight">
+            Best products at great prices
+          </h2>
+          <p className="mt-3 text-white/80 text-sm sm:text-base max-w-lg mx-auto">
+            Discover a wide range of quality products with fast delivery and guarantee
+          </p>
+          <Button
+            className="mt-6 px-8 h-11 text-white border-0 text-sm font-semibold shadow-md hover:opacity-90 transition-opacity"
+            style={{ backgroundColor: color }}
+          >
+            Start Shopping <ChevronRight className="size-4 ml-1" />
+          </Button>
+        </div>
+      </div>
+
+      {/* ─── 4. Trust Bar ─────────────────────────────────────── */}
+      <TrustBar />
+
+      {/* ─── 5. Category Navigation Tabs ──────────────────────── */}
+      <div className="border-b bg-white z-10 sticky top-0 shadow-sm">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <ScrollArea className="w-full whitespace-nowrap">
+            <div className="flex items-center gap-1 py-2">
+              <button
+                onClick={() => setCategoryFilter('all')}
+                className={`shrink-0 px-4 py-1.5 text-sm font-medium rounded-full transition-colors ${
+                  categoryFilter === 'all' ? 'text-white' : 'text-gray-600 hover:bg-gray-100'
+                }`}
+                style={categoryFilter === 'all' ? { backgroundColor: color } : undefined}
+              >
+                All
+              </button>
+              {data.categories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setCategoryFilter(cat)}
+                  className={`shrink-0 px-4 py-1.5 text-sm font-medium rounded-full transition-colors ${
+                    categoryFilter === cat ? 'text-white' : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                  style={categoryFilter === cat ? { backgroundColor: color } : undefined}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+        </div>
+      </div>
+
+      {/* ─── 6. Deals Section ─────────────────────────────────── */}
+      {dealProducts.length > 0 && categoryFilter === 'all' && !searchQuery && (
+        <section className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-2">
+          <div className="flex items-center gap-2 mb-4">
+            <span className="text-xl">🔥</span>
+            <h2 className="text-lg font-bold text-gray-900">Hot Deals</h2>
+            <Badge className="bg-red-100 text-red-600 border-0 text-xs font-semibold">
+              {dealProducts.length} items
+            </Badge>
+          </div>
+          <ScrollArea className="w-full">
+            <div className="flex gap-4 pb-3">
+              {dealProducts.map((p) => (
+                <DealCard key={p.id} product={p} primaryColor={color} />
+              ))}
+            </div>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
+        </section>
+      )}
+
+      {/* ─── 7. Product Grid ──────────────────────────────────── */}
+      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
+        {filteredProducts.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {filteredProducts.map((product) => (
+              <ProductCard key={product.id} product={product} primaryColor={color} />
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-16 text-gray-400">
+            <Package className="size-12 mb-3" />
+            <p className="text-sm">No products found</p>
+            {categoryFilter !== 'all' && (
+              <button
+                onClick={() => setCategoryFilter('all')}
+                className="mt-2 text-sm font-medium hover:underline"
+                style={{ color }}
+              >
+                Show all products
+              </button>
+            )}
+          </div>
+        )}
+      </section>
+
+      {/* ─── 8. Newsletter ────────────────────────────────────── */}
+      <NewsletterSection slug={data.site.slug} />
+
+      {/* ─── 9. Footer ────────────────────────────────────────── */}
+      <footer className="text-white" style={{ backgroundColor: darkColor }}>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+            <div className="sm:col-span-2 lg:col-span-1">
+              <div className="flex items-center gap-2 mb-2">
+                <Store className="size-5" />
+                <span className="font-bold text-lg">{data.site.name}</span>
+              </div>
+              {data.site.tagline && (
+                <p className="text-white/60 text-sm">{data.site.tagline}</p>
+              )}
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold mb-3 text-white/90">Store</h3>
+              <ul className="space-y-2 text-sm text-white/60">
+                <li><span className="hover:text-white transition-colors cursor-default">About</span></li>
+                <li><span className="hover:text-white transition-colors cursor-default">Delivery &amp; Payment</span></li>
+                <li><span className="hover:text-white transition-colors cursor-default">Returns</span></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold mb-3 text-white/90">Help</h3>
+              <ul className="space-y-2 text-sm text-white/60">
+                <li><span className="hover:text-white transition-colors cursor-default">Contact Us</span></li>
+                <li><span className="hover:text-white transition-colors cursor-default">FAQ</span></li>
+                <li><span className="hover:text-white transition-colors cursor-default">Terms of Use</span></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold mb-3 text-white/90">Contact</h3>
+              <ul className="space-y-2 text-sm text-white/60">
+                <li className="flex items-center gap-1.5"><Mail className="size-3.5" />info@example.com</li>
+                <li className="flex items-center gap-1.5"><Truck className="size-3.5" />Worldwide Shipping</li>
+                <li className="flex items-center gap-1.5"><Shield className="size-3.5" />Secure Payments</li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-white/10 mt-8 pt-5 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-white/40">
+            <p>© {new Date().getFullYear()} {data.site.name}. All rights reserved.</p>
+            <p className="flex items-center gap-1">
+              Powered by <span className="font-medium text-white/60">SunStore</span>
+            </p>
+          </div>
+        </div>
+      </footer>
+    </div>
+  )
+}
 
   return (
     <div className="bg-white text-gray-900 font-sans">
