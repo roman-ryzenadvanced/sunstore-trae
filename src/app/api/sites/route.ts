@@ -145,13 +145,21 @@ export async function POST(request: Request) {
       include: {
         owner: { select: { id: true, name: true, email: true, username: true } },
       },
+    }).catch((e) => {
+      throw new Error(`Database error: ${e.message}`)
     })
 
-    try { await commitDb() } catch (e) { console.error('DB commit failed:', e) }
+    // Commit DB to GitHub — never throw, log and continue
+    try {
+      await commitDb()
+    } catch (e: unknown) {
+      console.error('DB commit failed (site creation):', e instanceof Error ? e.message : e)
+    }
 
     return NextResponse.json(site, { status: 201 })
   } catch (error) {
     console.error('Create site error:', error)
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+    const msg = error instanceof Error ? error.message : 'Unknown error'
+    return NextResponse.json({ error: `Internal server error: ${msg}` }, { status: 500 })
   }
 }
