@@ -46,23 +46,23 @@ export function DealCard({ product, primaryColor }: Props) {
   }
 
   return (
-    <div className="shrink-0 w-52 bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow duration-200">
-      <div className="relative h-32 bg-gray-100 flex items-center justify-center">
+    <div className="shrink-0 w-56 bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-all duration-200 hover:-translate-y-0.5">
+      <div className="relative h-36 bg-gray-50 flex items-center justify-center">
         {imgUrl ? (
           <img src={imgUrl} alt={product.title} className="size-full object-cover" />
         ) : (
-          <Package className="size-10 text-gray-300" />
+          <Package className="size-12 text-gray-300" />
         )}
-        <Badge className="absolute top-2 left-2 bg-red-500 text-white border-0 text-[11px] px-1.5 py-0.5 font-bold">
-          Скидка {discount}%
+        <Badge className="absolute top-2 left-2 bg-red-500 text-white border-0 text-[11px] px-2 py-0.5 font-bold">
+          -{discount}%
         </Badge>
       </div>
-      <div className="p-2.5">
+      <div className="p-3">
         <p className="text-xs text-gray-900 font-medium line-clamp-2 leading-snug min-h-[2rem]">
           {product.title}
         </p>
-        <div className="mt-1.5 flex items-baseline gap-1.5">
-          <span className="text-sm font-bold text-orange-600">
+        <div className="mt-2 flex items-baseline gap-2">
+          <span className="text-base font-bold text-gray-900">
             {formatPrice(product.price)}
           </span>
           <span className="text-xs text-gray-400 line-through">
@@ -71,19 +71,19 @@ export function DealCard({ product, primaryColor }: Props) {
         </div>
         <Button
           size="sm"
-          className="mt-2 w-full text-xs border-0 text-white h-8"
+          className="mt-2 w-full text-xs border-0 text-white h-9 font-semibold"
           style={{ backgroundColor: added ? '#16a34a' : primaryColor }}
           onClick={handleAdd}
         >
           {added ? (
             <>
               <Check className="size-3.5 mr-1" />
-              Added!
+              В корзине
             </>
           ) : (
             <>
               <ShoppingCart className="size-3.5 mr-1" />
-              Add to cart
+              В корзину
             </>
           )}
         </Button>

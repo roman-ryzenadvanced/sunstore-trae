@@ -28,13 +28,13 @@ export interface StoreTemplate {
 export const templates: StoreTemplate[] = [
   // 1. SOLAR PANELS
   {
-    id: 'solar-panels', label: 'Solar Panels', emoji: '☀️', primaryColor: '#eab308',
-    heroTitle: 'Солнечная энергия для вашего дома',
-    heroSubtitle: 'Профессиональные панели, инверторы и аккумуляторы от ведущих производителей с гарантией до 25 лет',
-    suggestedName: 'СолнВольт', suggestedTagline: 'Профессиональные солнечные решения для дома и бизнеса',
-    suggestedCategories: ['Солнечные панели', 'Инверторы', 'Аккумуляторы', 'Монтажные системы', 'Аксессуары'],
-    dealBadge: 'Скидки до 20%',
-    trustBadges: ['Гарантия 25 лет', 'Бесплатный монтаж', 'Возврат 30 дней', 'Сертифицировано'],
+    id: 'solar-panels', label: 'Solar Panels', emoji: '☀️', primaryColor: '#1e3a5f',
+    heroTitle: 'Энергия солнца для вашего дома',
+    heroSubtitle: 'Профессиональные решения с нуля: от проектирования до установки и обслуживания. Экономия до 70% на электричестве.',
+    suggestedName: 'SunVolt Energy', suggestedTagline: 'Инновационные солнечные решения для вашего дома и бизнеса',
+    suggestedCategories: ['Панели', 'Инверторы', 'Аккумуляторы', 'Монтаж', 'Аксессуары', 'Рассчитайте стоимость'],
+    dealBadge: 'Экономия до 70%',
+    trustBadges: ['Гарантия 25 лет', 'Монтаж под ключ', 'Возврат 30 дней', 'Сертификаты', 'Техподдержка 24/7'],
     sampleProducts: [
       { title: 'Монокристаллическая панель 400Вт', slug: 'mono-panel-400w', description: 'Высокоэффективная монокристаллическая панель с КПД 22.3%. Идеальна для жилых и коммерческих объектов.', price: 45000, oldPrice: 52000, stock: 25, category: 'Солнечные панели', featured: true, specs: { 'Мощность': '400 Вт', 'Тип': 'Монокристалл', 'КПД': '22.3%', 'Гарантия': '25 лет', 'Размер': '2100×1050 мм' } },
       { title: 'Поликристаллическая панель 300Вт', slug: 'poly-panel-300w', description: 'Бюджетная поликристаллическая панель для небольших установок.', price: 28000, oldPrice: 33000, stock: 40, category: 'Солнечные панели', featured: true, specs: { 'Мощность': '300 Вт', 'Тип': 'Поликристалл', 'КПД': '18.5%', 'Гарантия': '20 лет' } },
@@ -45,7 +45,7 @@ export const templates: StoreTemplate[] = [
   },
   // 2. JEWELRY
   {
-    id: 'jewelry', label: 'Jewelry', emoji: '💎', primaryColor: '#9333ea',
+    id: 'jewelry', label: 'Jewelry', emoji: '💎', primaryColor: '#7c3aed',
     heroTitle: 'Ювелирные украшения', heroSubtitle: 'Эксклюзивные кольца, подвески и серьги из золота и серебра с натуральными камнями',
     suggestedName: 'Золотая Нить', suggestedTagline: 'Ювелирные изделия ручной работы с доставкой по всей России',
     suggestedCategories: ['Кольца', 'Подвески', 'Серьги', 'Браслеты', 'Часы'],
@@ -61,12 +61,12 @@ export const templates: StoreTemplate[] = [
   },
   // 3. FASHION
   {
-    id: 'fashion', label: 'Fashion', emoji: '👗', primaryColor: '#e11d48',
+    id: 'fashion', label: 'Fashion', emoji: '👗', primaryColor: '#be123c',
     heroTitle: 'Стильная одежда онлайн', heroSubtitle: 'Новая коллекция весна-лето 2026. Бесплатная доставка от 3000₽',
     suggestedName: 'ТрендМаркет', suggestedTagline: 'Мода и стиль с доставкой за 1-3 дня',
     suggestedCategories: ['Платья', 'Куртки', 'Обувь', 'Сумки', 'Аксессуары'],
     dealBadge: 'Новинка',
-    trustBadges: ['Бесплатная доставка от 3000₽', 'Примерка 14 дней', 'Сезонные распродажи', 'Quick response'],
+    trustBadges: ['Бесплатная доставка от 3000₽', 'Примерка 14 дней', 'Сезонные распродажи', 'Быстрая доставка'],
     sampleProducts: [
       { title: 'Шёлковое платье-макси «Вечер»', slug: 'silk-maxi-dress', description: 'Элегантное шёлковое платье макси-длины. Идеально для особых случаев.', price: 12800, oldPrice: 16500, stock: 15, category: 'Платья', featured: true, specs: { 'Материал': 'Шёлк', 'Размеры': 'S-XL', 'Цвет': 'Бордо', 'Длина': '140 см' } },
       { title: 'Кожаная куртка- косуха', slug: 'leather-biker-jacket', description: 'Классическая косуха из натуральной кожи. Утеплённая подкладка.', price: 24500, oldPrice: 29000, stock: 8, category: 'Куртки', featured: true, specs: { 'Материал': 'Натуральная кожа', 'Подкладка': 'Полиэстер', 'Размеры': 'M-3XL', 'Утеплитель': 'Тинсулейт' } },
@@ -77,7 +77,7 @@ export const templates: StoreTemplate[] = [
   },
   // 4. ELECTRONICS
   {
-    id: 'electronics', label: 'Electronics', emoji: '📱', primaryColor: '#0891b2',
+    id: 'electronics', label: 'Electronics', emoji: '📱', primaryColor: '#0369a1',
     heroTitle: 'Электроника по лучшим ценам', heroSubtitle: 'Смартфоны, ноутбуки и аксессуары от официальных дилеров',
     suggestedName: 'ГаджетМастер', suggestedTagline: 'Техника и гаджеты с гарантией производителя',
     suggestedCategories: ['Смартфоны', 'Ноутбуки', 'Планшеты', 'Наушники', 'Аксессуары'],

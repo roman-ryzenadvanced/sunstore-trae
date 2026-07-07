@@ -1,8 +1,9 @@
+'use client'
+
 import { useState } from 'react'
-import { ShoppingCart, Heart, Package, Check } from 'lucide-react'
+import { ShoppingCart, Heart, Package, Check, Star } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { StarRating } from './star-rating'
 import { useCartStore } from '@/store/cart-store'
 import type { StorefrontProduct } from './types'
 
@@ -21,8 +22,8 @@ function getDiscount(price: number, oldPrice: number): number {
 }
 
 function getStockInfo(stock: number) {
-  if (stock <= 0) return { label: 'Нет в наличии', color: 'text-red-600' }
-  if (stock <= 5) return { label: `Мало: ${stock} шт.`, color: 'text-amber-600' }
+  if (stock <= 0) return { label: 'Нет в наличии', color: 'text-red-500' }
+  if (stock <= 5) return { label: `В наличии мало: ${stock} шт.`, color: 'text-amber-600' }
   return { label: `В наличии: ${stock} шт.`, color: 'text-green-600' }
 }
 
@@ -66,9 +67,9 @@ export function ProductCard({ product, primaryColor }: Props) {
   }
 
   return (
-    <div className="group bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow duration-200 flex flex-col">
+    <div className="group bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg transition-all duration-200 flex flex-col hover:-translate-y-0.5">
       {/* Image area */}
-      <div className="relative h-44 bg-gray-100 flex items-center justify-center shrink-0">
+      <div className="relative h-48 bg-gray-50 flex items-center justify-center shrink-0">
         {imgUrl ? (
           <img
             src={imgUrl}
@@ -76,12 +77,12 @@ export function ProductCard({ product, primaryColor }: Props) {
             className="size-full object-cover"
           />
         ) : (
-          <Package className="size-12 text-gray-300" />
+          <Package className="size-14 text-gray-300" />
         )}
 
         {featuredBadge && (
           <Badge
-            className="absolute top-2 left-2 z-10 text-[11px] px-1.5 py-0.5 border-0 font-semibold"
+            className="absolute top-2.5 left-2.5 z-10 text-[11px] px-2 py-0.5 border-0 font-semibold"
             style={{ backgroundColor: primaryColor, color: '#fff' }}
           >
             {featuredBadge}
@@ -89,7 +90,7 @@ export function ProductCard({ product, primaryColor }: Props) {
         )}
 
         {discount > 0 && (
-          <Badge className="absolute top-2 right-2 z-10 bg-red-500 text-white border-0 text-[11px] px-1.5 py-0.5 font-bold">
+          <Badge className="absolute top-2.5 right-2.5 z-10 bg-red-500 text-white border-0 text-[11px] px-2 py-0.5 font-bold">
             -{discount}%
           </Badge>
         )}
@@ -99,22 +100,27 @@ export function ProductCard({ product, primaryColor }: Props) {
             e.stopPropagation()
             setLiked(!liked)
           }}
-          className="absolute bottom-2 right-2 z-10 size-8 rounded-full bg-white/90 border border-gray-200 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 hover:bg-white"
+          className="absolute bottom-2.5 right-2.5 z-10 size-8 rounded-full bg-white/90 border border-gray-200 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-white shadow-sm"
         >
-          <Heart
-            className={`size-4 ${liked ? 'fill-red-500 text-red-500' : 'text-gray-400'}`}
-          />
+          <Heart className={`size-4 ${liked ? 'fill-red-500 text-red-500' : 'text-gray-400'}`} />
         </button>
       </div>
 
       {/* Content */}
-      <div className="p-3 flex flex-col flex-1">
+      <div className="p-4 flex flex-col flex-1">
         <h3 className="text-sm font-medium text-gray-900 line-clamp-2 min-h-[2.5rem] leading-snug">
           {product.title}
         </h3>
-        <div className="mt-1.5"><StarRating /></div>
+        <div className="mt-1.5 flex items-center gap-1">
+          <div className="flex items-center">
+            {[1,2,3,4,5].map(i => (
+              <Star key={i} className="size-3 fill-amber-400 text-amber-400" />
+            ))}
+          </div>
+          <span className="text-xs text-gray-400">(12)</span>
+        </div>
         <div className="mt-2 flex items-baseline gap-2 flex-wrap">
-          <span className="text-lg font-bold text-orange-600">
+          <span className="text-xl font-bold text-gray-900">
             {formatPrice(product.price)}
           </span>
           {discount > 0 && (
@@ -122,7 +128,7 @@ export function ProductCard({ product, primaryColor }: Props) {
               <span className="text-sm text-gray-400 line-through">
                 {formatPrice(product.oldPrice)}
               </span>
-              <Badge className="bg-red-50 text-red-600 border-0 text-[10px] px-1.5 py-0">
+              <Badge className="bg-red-50 text-red-600 border-0 text-[10px] px-1.5 py-0 font-medium">
                 -{discount}%
               </Badge>
             </>
@@ -130,7 +136,7 @@ export function ProductCard({ product, primaryColor }: Props) {
         </div>
         <p className={`text-xs mt-1.5 font-medium ${stockInfo.color}`}>{stockInfo.label}</p>
         <Button
-          className="mt-3 w-full text-sm font-medium border-0 text-white transition-opacity hover:opacity-90"
+          className="mt-3 w-full text-sm font-semibold border-0 text-white transition-all hover:opacity-90"
           style={{ backgroundColor: added ? '#16a34a' : primaryColor }}
           disabled={product.stock <= 0}
           onClick={handleAdd}
@@ -138,12 +144,12 @@ export function ProductCard({ product, primaryColor }: Props) {
           {added ? (
             <>
               <Check className="size-4 mr-1.5" />
-              Added!
+              В корзине
             </>
           ) : (
             <>
               <ShoppingCart className="size-4 mr-1.5" />
-              Add to cart
+              В корзину
             </>
           )}
         </Button>

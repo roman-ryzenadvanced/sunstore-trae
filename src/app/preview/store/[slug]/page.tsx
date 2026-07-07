@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
-import { Search, ChevronRight, Mail, Store, Shield, Truck, Package, Loader2, ShoppingCart } from 'lucide-react'
+import { Search, ChevronRight, Mail, Store, Shield, Truck, Package, Loader2, ShoppingCart, Star, ArrowRight, Heart, Headphones, RefreshCw } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -24,6 +24,15 @@ function darkenColor(hex: string, amount: number): string {
   return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`
 }
 
+function formatPrice(price: number): string {
+  return '₽' + Math.round(price).toLocaleString('ru-RU', { useGrouping: true })
+}
+
+function getDiscount(price: number, oldPrice: number): number {
+  if (!oldPrice || oldPrice <= price) return 0
+  return Math.round((1 - price / oldPrice) * 100)
+}
+
 function NewsletterSection({ slug }: { slug: string }) {
   const [email, setEmail] = useState('')
   const [sending, setSending] = useState(false)
@@ -39,42 +48,43 @@ function NewsletterSection({ slug }: { slug: string }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       })
-      setMsg(res.ok ? 'You have subscribed successfully!' : 'Subscription error. Please try again.')
+      setMsg(res.ok ? 'Вы успешно подписались!' : 'Ошибка подписки. Попробуйте снова.')
       if (res.ok) setEmail('')
     } catch {
-      setMsg('Subscription error. Please try again.')
+      setMsg('Ошибка подписки. Попробуйте снова.')
     } finally {
       setSending(false)
     }
   }
 
   return (
-    <section className="bg-gray-100 border-t border-b">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10 text-center">
-        <Mail className="size-8 mx-auto text-gray-400 mb-3" />
-        <h2 className="text-lg font-bold text-gray-900">Subscribe to newsletter</h2>
-        <p className="text-sm text-gray-500 mt-1 mb-5">
-          Get notified about new products and special offers
-        </p>
-        <div className="flex items-center gap-2 max-w-md mx-auto">
-          <Input
-            type="email"
-            placeholder="Your email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="bg-white h-10"
-            onKeyDown={(e) => e.key === 'Enter' && handleSubscribe()}
-          />
-          <Button
-            onClick={handleSubscribe}
-            disabled={sending || !email.trim()}
-            className="h-10 px-5 text-white border-0 whitespace-nowrap"
-            style={{ backgroundColor: '#0f172a' }}
-          >
-            {sending ? <Loader2 className="size-4 animate-spin" /> : (<><Mail className="size-4 mr-1.5" />Subscribe</>)}
-          </Button>
+    <section className="bg-gradient-to-r from-gray-50 to-gray-100 border-t">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-10">
+        <div className="text-center max-w-md mx-auto">
+          <Mail className="size-8 mx-auto text-gray-400 mb-3" />
+          <h2 className="text-xl font-bold text-gray-900">Подпишитесь на новости</h2>
+          <p className="text-sm text-gray-500 mt-2 mb-5">
+            Получайте уведомления о новых товарах и специальных предложениях
+          </p>
+          <div className="flex items-center gap-2">
+            <Input
+              type="email"
+              placeholder="Ваш email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="bg-white h-10 border-gray-300"
+              onKeyDown={(e) => e.key === 'Enter' && handleSubscribe()}
+            />
+            <Button
+              onClick={handleSubscribe}
+              disabled={sending || !email.trim()}
+              className="h-10 px-5 text-white border-0 whitespace-nowrap font-medium"
+            >
+              {sending ? <Loader2 className="size-4 animate-spin" /> : (<><Mail className="size-4 mr-1.5" />Подписаться</>)}
+            </Button>
+          </div>
+          {msg && <p className="text-sm mt-3 text-green-600 font-medium">{msg}</p>}
         </div>
-        {msg && <p className="text-sm mt-3 text-green-600 font-medium">{msg}</p>}
       </div>
     </section>
   )
@@ -86,7 +96,6 @@ export default function StorefrontPreviewPage({
 }: {
   params: Promise<{ slug: string }>
 }) {
-  // Unwrap the params promise on the client
   const [slug, setSlug] = useState<string>('')
   const [data, setData] = useState<StorefrontData | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -98,17 +107,14 @@ export default function StorefrontPreviewPage({
   const cartCount = useCartStore((s) => s.count())
   const openCart = useCartStore((s) => s.openCart)
 
-  // Resolve slug from params promise
   useEffect(() => {
     params.then((p) => setSlug(p.slug))
   }, [params])
 
-  // Each store gets its own cart — reset on store change
   useEffect(() => {
     if (slug) initForStore(slug)
   }, [slug, initForStore])
 
-  // Fetch storefront data from the browser (same-origin, reliable on Vercel)
   useEffect(() => {
     if (!slug) return
     let cancelled = false
@@ -117,13 +123,13 @@ export default function StorefrontPreviewPage({
       try {
         const res = await fetch(`/api/storefront/${slug}`, { cache: 'no-store' })
         if (!res.ok) {
-          if (!cancelled) setError(`Store "${slug}" not found. Make sure the store exists and has status READY.`)
+          if (!cancelled) setError(`Магазин "${slug}" не найден.`)
         } else {
           const json = await res.json()
           if (!cancelled) setData(json)
         }
       } catch {
-        if (!cancelled) setError('Failed to load store data. Please try again later.')
+        if (!cancelled) setError('Не удалось загрузить данные. Попробуйте позже.')
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -151,6 +157,7 @@ export default function StorefrontPreviewPage({
 
   const color = data?.site?.primaryColor || '#0f172a'
   const darkColor = darkenColor(color, 50)
+  const lightColor = darkenColor(color, 120)
 
   if (loading) return <LoadingSkeleton />
 
@@ -158,60 +165,104 @@ export default function StorefrontPreviewPage({
     return (
       <div className="flex flex-col items-center justify-center min-h-screen py-20 bg-gray-50">
         <Package className="size-16 text-gray-300 mb-4" />
-        <h1 className="text-xl font-bold text-gray-600 mb-2">Store Not Found</h1>
-        <p className="text-gray-400 text-sm mb-4">{error || `Store "${slug}" not found.`}</p>
+        <h1 className="text-xl font-bold text-gray-600 mb-2">Магазин не найден</h1>
+        <p className="text-gray-400 text-sm mb-4">{error || `Магазин "${slug}" не найден.`}</p>
         <p className="text-xs text-gray-400">URL: /preview/store/{slug}</p>
       </div>
     )
   }
 
   return (
-    <div className="bg-white text-gray-900 font-sans">
-      {/* 1. Top Bar */}
-      <div className="bg-gray-900 text-gray-300 text-xs px-4 sm:px-6 py-1.5 flex items-center justify-between">
-        <span className="flex items-center gap-1.5 font-medium">🏪 SunStore Marketplace</span>
-        <div className="flex items-center gap-4">
-          <span className="hover:text-white transition-colors cursor-default">Help</span>
-          <span className="hover:text-white transition-colors cursor-default">Sell on SunStore</span>
+    <div className="bg-gray-50 text-gray-900 font-sans">
+      {/* 1. Top Utility Bar */}
+      <div className="bg-[#232f3e] text-gray-300 text-xs sm:text-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-2 flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <a href="/" className="hover:text-white transition-colors font-medium flex items-center gap-1">
+              <Store className="size-3.5" /> SunStore
+            </a>
+            <span className="hidden sm:inline text-gray-500">|</span>
+            <a href="#" className="hover:text-white transition-colors hidden sm:inline">Доставка</a>
+            <a href="#" className="hover:text-white transition-colors hidden sm:inline">Помощь</a>
+          </div>
+          <div className="flex items-center gap-4">
+            <a href="/customer/login" className="hover:text-white transition-colors">Войти</a>
+            <a href="/quote" className="hover:text-white transition-colors">Калькулятор солнечных панелей</a>
+          </div>
         </div>
       </div>
 
-      {/* 2. Store Header */}
+      {/* 2. Store Header - Yandex/ebay style with store branding */}
       <div style={{ backgroundColor: color }}>
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-5">
-          <h2 className="text-2xl sm:text-3xl font-bold text-white text-center">{data.site.name}</h2>
-          {data.site.tagline && <p className="mt-1 text-white/70 text-sm text-center">{data.site.tagline}</p>}
-          <div className="mt-5 max-w-xl mx-auto flex">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-gray-400" />
-              <Input
-                placeholder="Search products..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 pr-3 h-10 rounded-r-none border-0 shadow-sm text-sm"
-              />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          {/* Store identity row */}
+          <div className="pt-5 pb-4 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-lg bg-white/20 flex items-center justify-center text-2xl">
+                {data.templateId === 'solar-panels' ? '⚡' : '🏪'}
+              </div>
+              <div>
+                <h1 className="text-xl sm:text-2xl font-bold text-white">{data.site.name}</h1>
+                <div className="flex items-center gap-2 text-white/70 text-xs sm:text-sm">
+                  <div className="flex items-center">
+                    {[1,2,3,4,5].map(i => (
+                      <Star key={i} className="size-3 fill-yellow-400 text-yellow-400" />
+                    ))}
+                    <span className="ml-1 font-medium">4.8</span>
+                  </div>
+                  <span>·</span>
+                  <span>{data.products?.length || 0} товаров</span>
+                </div>
+              </div>
             </div>
-            <Button className="h-10 rounded-l-none px-5 text-white border-0 font-medium" style={{ backgroundColor: color }}>
-              Search
-            </Button>
-            <button
-              onClick={openCart}
-              className="relative ml-2 flex h-10 w-10 items-center justify-center rounded-md bg-white/20 text-white transition-colors hover:bg-white/30"
-              aria-label="Open cart"
-            >
-              <ShoppingCart className="size-5" />
-              {cartCount > 0 && (
-                <span className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
-                  {cartCount}
-                </span>
-              )}
-            </button>
+            <div className="flex-1" />
+            {/* Store badges */}
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="bg-white/10 text-white border-white/20 text-xs">
+                <Shield className="size-3 mr-1" /> Проверенный продавец
+              </Badge>
+              <Badge variant="outline" className="bg-white/10 text-white border-white/20 text-xs hidden sm:flex">
+                <Truck className="size-3 mr-1" /> Доставка 1-3 дня
+              </Badge>
+            </div>
           </div>
+
+          {/* Search bar - prominent like eBay/Yandex */}
+          <div className="pb-4">
+            <div className="flex">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-5 text-gray-400" />
+                <Input
+                  placeholder="Искать товары..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10 pr-4 h-11 rounded-l-none border-0 shadow-sm text-sm"
+                />
+              </div>
+              <Button className="h-11 rounded-r-none px-6 font-semibold text-white border-0">
+                Найти
+              </Button>
+              <button
+                onClick={openCart}
+                className="relative ml-2 flex h-11 w-12 items-center justify-center rounded-r-md bg-white/20 text-white transition-colors hover:bg-white/30"
+                aria-label="Open cart"
+              >
+                <ShoppingCart className="size-5" />
+                {cartCount > 0 && (
+                  <span className="absolute -right-1 -top-1 flex size-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+                    {cartCount}
+                  </span>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Category quick links */}
           {data.categories.length > 0 && (
-            <div className="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 text-white/80 text-xs">
+            <div className="flex flex-wrap gap-x-3 gap-y-1 pb-3 text-white/90 text-sm">
               {data.categories.map((cat) => (
-                <button key={cat} onClick={() => setCategoryFilter(cat)} className="hover:text-white transition-colors">
-                  {cat}<ChevronRight className="inline size-3 ml-0.5 opacity-60" />
+                <button key={cat} onClick={() => setCategoryFilter(cat)} className="hover:text-white transition-colors font-medium">
+                  {cat}
                 </button>
               ))}
             </div>
@@ -219,39 +270,56 @@ export default function StorefrontPreviewPage({
         </div>
       </div>
 
-      {/* 3. Hero Banner */}
+      {/* 3. Hero Banner - professional with gradient */}
       <div className="relative overflow-hidden" style={{ background: `linear-gradient(135deg, ${color}, ${darkColor})` }}>
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16 text-center">
-          <h2 className="text-2xl sm:text-4xl font-bold text-white leading-tight">Best products at great prices</h2>
-          <p className="mt-3 text-white/80 text-sm sm:text-base max-w-lg mx-auto">
-            Discover a wide range of quality products with fast delivery and guarantee
-          </p>
-          <Button className="mt-6 px-8 h-11 text-white border-0 text-sm font-semibold shadow-md hover:opacity-90 transition-opacity" style={{ backgroundColor: color }}>
-            Start Shopping <ChevronRight className="size-4 ml-1" />
-          </Button>
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 right-0 w-96 h-96 rounded-full bg-white/20 -translate-y-1/2 translate-x-1/4" />
+          <div className="absolute bottom-0 left-0 w-64 h-64 rounded-full bg-white/10 translate-y-1/2 -translate-x-1/4" />
+        </div>
+        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-14">
+          <div className="text-center max-w-2xl mx-auto">
+            <h2 className="text-2xl sm:text-4xl font-bold text-white leading-tight">
+              {data.site.heroTitle || 'Лучшие товары по выгодным ценам'}
+            </h2>
+            {data.site.heroSubtitle && (
+              <p className="mt-3 text-white/80 text-sm sm:text-base">
+                {data.site.heroSubtitle}
+              </p>
+            )}
+            <div className="mt-6 flex items-center justify-center gap-3 flex-wrap">
+              <Button className="px-7 h-11 text-white border-0 text-sm font-semibold shadow-lg hover:opacity-90 transition-opacity" style={{ backgroundColor: '#f59e0b' }}>
+                Смотреть каталог <ArrowRight className="size-4 ml-1" />
+              </Button>
+              {dealProducts.length > 0 && (
+                <Button variant="outline" className="px-7 h-11 text-white border-white/30 hover:bg-white/10 text-sm font-semibold">
+                  🔥 Акции ({dealProducts.length})
+                </Button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* 4. Trust Bar */}
+      {/* 4. Trust Bar - prominent, clean */}
       <TrustBar />
 
-      {/* 5. Category Tabs */}
-      <div className="border-b bg-white z-10 sticky top-0 shadow-sm">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+      {/* 5. Category Pills - sticky navigation */}
+      <div className="border-b bg-white sticky top-0 z-20 shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <ScrollArea className="w-full whitespace-nowrap">
-            <div className="flex items-center gap-1 py-2">
+            <div className="flex items-center gap-2 py-3">
               <button
                 onClick={() => setCategoryFilter('all')}
-                className={`shrink-0 px-4 py-1.5 text-sm font-medium rounded-full transition-colors ${categoryFilter === 'all' ? 'text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+                className={`shrink-0 px-5 py-2 text-sm font-semibold rounded-full transition-all ${categoryFilter === 'all' ? 'text-white shadow-md' : 'text-gray-600 hover:bg-gray-100'}`}
                 style={categoryFilter === 'all' ? { backgroundColor: color } : undefined}
               >
-                All
+                Все товары
               </button>
               {data.categories.map((cat) => (
                 <button
                   key={cat}
                   onClick={() => setCategoryFilter(cat)}
-                  className={`shrink-0 px-4 py-1.5 text-sm font-medium rounded-full transition-colors ${categoryFilter === cat ? 'text-white' : 'text-gray-600 hover:bg-gray-100'}`}
+                  className={`shrink-0 px-5 py-2 text-sm font-semibold rounded-full transition-all ${categoryFilter === cat ? 'text-white shadow-md' : 'text-gray-600 hover:bg-gray-100'}`}
                   style={categoryFilter === cat ? { backgroundColor: color } : undefined}
                 >
                   {cat}
@@ -263,84 +331,147 @@ export default function StorefrontPreviewPage({
         </div>
       </div>
 
-      {/* 6. Deals */}
+      {/* 6. Deals Carousel - if applicable */}
       {dealProducts.length > 0 && categoryFilter === 'all' && !searchQuery && (
-        <section className="max-w-6xl mx-auto px-4 sm:px-6 pt-6 pb-2">
-          <div className="flex items-center gap-2 mb-4">
-            <span className="text-xl">🔥</span>
-            <h2 className="text-lg font-bold text-gray-900">Hot Deals</h2>
-            <Badge className="bg-red-100 text-red-600 border-0 text-xs font-semibold">{dealProducts.length} items</Badge>
+        <section className="max-w-7xl mx-auto px-4 sm:px-6 pt-6 pb-2">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <div className="bg-red-50 text-red-600 px-3 py-1.5 rounded-full text-sm font-bold flex items-center gap-1.5">
+                <span>🔥</span> Акции
+              </div>
+              <Badge className="bg-red-50 text-red-600 border-0 text-xs font-semibold px-2.5 py-0.5">
+                {dealProducts.length} товаров
+              </Badge>
+            </div>
+            <Button variant="ghost" size="sm" className="text-sm text-gray-500 hover:text-gray-900">
+              Смотреть все <ArrowRight className="size-4 ml-1" />
+            </Button>
           </div>
           <ScrollArea className="w-full">
             <div className="flex gap-4 pb-3">
-              {dealProducts.map((p) => <DealCard key={p.id} product={p} primaryColor={color} />)}
+              {dealProducts.slice(0, 8).map((p) => <DealCard key={p.id} product={p} primaryColor={color} />)}
             </div>
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
         </section>
       )}
 
-      {/* 7. Product Grid */}
-      <section className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
+      {/* 7. Section Header + Product Grid */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-bold text-gray-900">
+            {categoryFilter === 'all' ? (searchQuery ? `Результаты поиска: "${searchQuery}"` : 'Все товары') : categoryFilter}
+          </h2>
+          <span className="text-sm text-gray-500">{filteredProducts.length} товаров</span>
+        </div>
+
         {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {filteredProducts.map((product) => <ProductCard key={product.id} product={product} primaryColor={color} />)}
           </div>
         ) : (
-          <div className="flex flex-col items-center justify-center py-16 text-gray-400">
-            <Package className="size-12 mb-3" />
-            <p className="text-sm">No products found</p>
+          <div className="flex flex-col items-center justify-center py-20 text-gray-400 bg-white rounded-lg border">
+            <Package className="size-16 mb-4" />
+            <p className="text-lg font-medium text-gray-500">Товары не найдены</p>
+            <p className="text-sm mt-1 text-gray-400">Попробуйте изменить параметры поиска</p>
             {categoryFilter !== 'all' && (
-              <button onClick={() => setCategoryFilter('all')} className="mt-2 text-sm font-medium hover:underline" style={{ color }}>
-                Show all products
+              <button onClick={() => setCategoryFilter('all')} className="mt-4 text-sm font-medium hover:underline" style={{ color }}>
+                Показать все товары
               </button>
             )}
           </div>
         )}
       </section>
 
-      {/* 8. Newsletter */}
+      {/* 8. Features Banner - Yandex-style trust section */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-white rounded-lg border p-4 flex items-center gap-3 hover:shadow-md transition-shadow">
+            <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center flex-shrink-0">
+              <Truck className="size-5 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-gray-900">Быстрая доставка</p>
+              <p className="text-xs text-gray-500">1-3 рабочих дня</p>
+            </div>
+          </div>
+          <div className="bg-white rounded-lg border p-4 flex items-center gap-3 hover:shadow-md transition-shadow">
+            <div className="w-10 h-10 rounded-full bg-green-50 flex items-center justify-center flex-shrink-0">
+              <Shield className="size-5 text-green-600" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-gray-900">Гарантия качества</p>
+              <p className="text-xs text-gray-500">Официальная гарантия</p>
+            </div>
+          </div>
+          <div className="bg-white rounded-lg border p-4 flex items-center gap-3 hover:shadow-md transition-shadow">
+            <div className="w-10 h-10 rounded-full bg-amber-50 flex items-center justify-center flex-shrink-0">
+              <RefreshCw className="size-5 text-amber-600" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-gray-900">Возврат 30 дней</p>
+              <p className="text-xs text-gray-500">Без вопросов</p>
+            </div>
+          </div>
+          <div className="bg-white rounded-lg border p-4 flex items-center gap-3 hover:shadow-md transition-shadow">
+            <div className="w-10 h-10 rounded-full bg-purple-50 flex items-center justify-center flex-shrink-0">
+              <Headphones className="size-5 text-purple-600" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-gray-900">Поддержка 24/7</p>
+              <p className="text-xs text-gray-500">Всегда на связи</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 9. Newsletter */}
       <NewsletterSection slug={data.site.slug} />
 
-      {/* 9. Footer */}
+      {/* 10. Footer - professional dark */}
       <footer className="text-white" style={{ backgroundColor: darkColor }}>
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-            <div className="sm:col-span-2 lg:col-span-1">
-              <div className="flex items-center gap-2 mb-2">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-8">
+            <div className="col-span-2 sm:col-span-3 lg:col-span-2">
+              <div className="flex items-center gap-2 mb-3">
                 <Store className="size-5" />
                 <span className="font-bold text-lg">{data.site.name}</span>
               </div>
-              {data.site.tagline && <p className="text-white/60 text-sm">{data.site.tagline}</p>}
+              {data.site.tagline && <p className="text-white/60 text-sm mb-4 max-w-sm">{data.site.tagline}</p>}
+              <div className="flex items-center gap-3">
+                <a href="/quote" className="text-sm text-white/70 hover:text-white transition-colors flex items-center gap-1">
+                  ⚡ Калькулятор энергии
+                </a>
+              </div>
             </div>
             <div>
-              <h3 className="text-sm font-semibold mb-3 text-white/90">Store</h3>
+              <h3 className="text-sm font-semibold mb-3 text-white/90">Магазин</h3>
               <ul className="space-y-2 text-sm text-white/60">
-                <li><span className="hover:text-white transition-colors cursor-default">About</span></li>
-                <li><span className="hover:text-white transition-colors cursor-default">Delivery &amp; Payment</span></li>
-                <li><span className="hover:text-white transition-colors cursor-default">Returns</span></li>
+                <li><span className="hover:text-white transition-colors cursor-pointer">О нас</span></li>
+                <li><span className="hover:text-white transition-colors cursor-pointer">Доставка и оплата</span></li>
+                <li><span className="hover:text-white transition-colors cursor-pointer">Возврат</span></li>
               </ul>
             </div>
             <div>
-              <h3 className="text-sm font-semibold mb-3 text-white/90">Help</h3>
+              <h3 className="text-sm font-semibold mb-3 text-white/90">Помощь</h3>
               <ul className="space-y-2 text-sm text-white/60">
-                <li><span className="hover:text-white transition-colors cursor-default">Contact Us</span></li>
-                <li><span className="hover:text-white transition-colors cursor-default">FAQ</span></li>
-                <li><span className="hover:text-white transition-colors cursor-default">Terms of Use</span></li>
+                <li><span className="hover:text-white transition-colors cursor-pointer">Контакты</span></li>
+                <li><span className="hover:text-white transition-colors cursor-pointer">FAQ</span></li>
+                <li><span className="hover:text-white transition-colors cursor-pointer">Политика конфиденциальности</span></li>
               </ul>
             </div>
             <div>
-              <h3 className="text-sm font-semibold mb-3 text-white/90">Contact</h3>
+              <h3 className="text-sm font-semibold mb-3 text-white/90">Контакты</h3>
               <ul className="space-y-2 text-sm text-white/60">
-                <li className="flex items-center gap-1.5"><Mail className="size-3.5" />info@example.com</li>
-                <li className="flex items-center gap-1.5"><Truck className="size-3.5" />Worldwide Shipping</li>
-                <li className="flex items-center gap-1.5"><Shield className="size-3.5" />Secure Payments</li>
+                <li className="flex items-center gap-1.5"><Mail className="size-3.5" />info@sunvolt.energy</li>
+                <li className="flex items-center gap-1.5"><Truck className="size-3.5" />Доставка по России</li>
+                <li className="flex items-center gap-1.5"><Shield className="size-3.5" />Безопасная оплата</li>
               </ul>
             </div>
           </div>
-          <div className="border-t border-white/10 mt-8 pt-5 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-white/40">
-            <p>© {new Date().getFullYear()} {data.site.name}. All rights reserved.</p>
-            <p className="flex items-center gap-1">Powered by <span className="font-medium text-white/60">SunStore</span></p>
+          <div className="border-t border-white/10 mt-8 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-white/40">
+            <p>© {new Date().getFullYear()} {data.site.name}. Все права защищены.</p>
+            <p className="flex items-center gap-1">Работает на <span className="font-medium text-white/60">SunStore</span></p>
           </div>
         </div>
       </footer>
