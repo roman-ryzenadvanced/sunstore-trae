@@ -58,3 +58,4 @@ tool-results/
 # Local dev / derived DB copies (not source of truth)
 db/development.db
 prisma/db/
+db/old11.db
