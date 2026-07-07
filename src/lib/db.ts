@@ -227,9 +227,9 @@ async function remoteSha(): Promise<string | null> {
 // remote SHA differs from the SHA we pulled/pushed. Skips if we've checked
 // recently (within a short window) to avoid hammering the API on every request.
 let __lastFreshnessCheck = 0
-const FRESHNESS_TTL = 1500 // ms — tolerate up to ~1.5s of staleness for reads
+const FRESHNESS_TTL = 1500 // ms — avoid hammering the GitHub API every request
 let __inCommit = false // reentrancy guard: avoid commitDb -> ensureFresh -> commitDb
-async function ensureFresh(force = false): Promise<void> {
+async function ensureFresh(): Promise<void> {
   // Always make sure the DB file is pulled/seeded at least once. On first
   // call this runs pullDb (which also runs the schema self-heal). In local
   // dev there is no GitHub token, so pullDb just seeds from the bundled DB.
@@ -240,9 +240,12 @@ async function ensureFresh(force = false): Promise<void> {
   if (!isServerless() || !GH_TOKEN) return
   if (__inCommit) return // a commit is in flight; don't re-pull mid-write
   const now = Date.now()
-  if (!force && now - __lastFreshnessCheck < FRESHNESS_TTL) return
+  if (now - __lastFreshnessCheck < FRESHNESS_TTL) return
   __lastFreshnessCheck = now
 
+  // Only re-pull when the remote blob SHA actually differs from the copy we
+  // already have. After our own commitDb the SHA matches, so consecutive
+  // writes in the same flow never re-pull and wipe their own in-flight data.
   const remote = await remoteSha()
   if (remote && remote !== globalForPrisma.__dbSha) {
     // Remote changed — close any open SQLite handle to the stale file, then
@@ -334,10 +337,10 @@ function buildClient(): PrismaClient {
         args: unknown
         query: (args: unknown) => Promise<unknown>
       }) {
-        // Writes must always start from the latest remote state so uniqueness
-        // checks (slug/username) see concurrent creates; reads use a short TTL.
-        const isWrite = /^(create|update|delete|upsert)/i.test(operation)
-        await ensureFresh(isWrite)
+        // Ensure we're working against a DB that matches the latest remote copy.
+        // Uses a SHA-based freshness check (never force-repulls mid-operation,
+        // which would wipe in-flight writes within a multi-step transaction).
+        await ensureFresh()
         return query(args)
       },
     },
