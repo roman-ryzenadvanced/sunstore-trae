@@ -1,7 +1,19 @@
 'use client'
 
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { persist, createJSONStorage } from 'zustand/middleware'
+
+// SSR-safe storage (see app-store.ts for rationale)
+const safeStorage = createJSONStorage(() => {
+  if (typeof window === 'undefined') {
+    return {
+      getItem: () => null,
+      setItem: () => {},
+      removeItem: () => {},
+    }
+  }
+  return window.localStorage
+})
 
 export interface CartItem {
   id: string
@@ -89,6 +101,7 @@ export const useCartStore = create<CartState>()(
     }),
     {
       name: 'sunstore-cart',
+      storage: safeStorage,
       // Persist cart contents per browser
       partialize: (state) => ({
         items: state.items,

@@ -1,7 +1,20 @@
 'use client'
 
 import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
+import { persist, createJSONStorage } from 'zustand/middleware'
+
+// SSR-safe storage: during server render localStorage doesn't exist,
+// so fall back to an in-memory noop store to avoid "localStorage is not defined".
+const safeStorage = createJSONStorage(() => {
+  if (typeof window === 'undefined') {
+    return {
+      getItem: () => null,
+      setItem: () => {},
+      removeItem: () => {},
+    }
+  }
+  return window.localStorage
+})
 
 interface AppState {
   // Auth
@@ -55,6 +68,7 @@ export const useAppStore = create<AppState>()(
     }),
     {
       name: 'sunstore-auth',
+      storage: safeStorage,
       partialize: (state) => ({
         isAuthenticated: state.isAuthenticated,
         token: state.token,
