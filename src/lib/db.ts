@@ -65,54 +65,39 @@ function seedFromBundled(target: string): void {
 }
 
 // Self-healing schema sync. Older DB files (e.g. the bundled production.db
-// that predates the Customer / SiteQuote models) are missing some tables,
-// which makes every query against them throw "table does not exist". Rather
-// than require a manual `prisma db push`, we ensure the missing tables exist
-// with Prisma-exact DDL. This runs once after each pull/seed.
+// or the GitHub-synced sunstore.db) may be missing tables or columns that
+// the current Prisma schema expects, which makes queries throw
+// "table does not exist" / "column does not exist". Rather than require a
+// manual `prisma db push`, we run `prisma db push` against the local DB file
+// on first pull — it adds missing tables/columns without dropping data.
+import { spawn } from 'child_process'
+import { fileURLToPath } from 'url'
 let __schemaHealed = false
 async function ensureSchema(): Promise<void> {
   if (__schemaHealed) return
   __schemaHealed = true
-  console.log('[ensureSchema] running self-heal...')
+  console.log('[ensureSchema] running self-heal (prisma db push)...')
   try {
-    const client = globalForPrisma.prisma ?? db
-    await client.$executeRawUnsafe(`
-      CREATE TABLE IF NOT EXISTS "Customer" (
-        "id" TEXT NOT NULL PRIMARY KEY,
-        "email" TEXT NOT NULL,
-        "password" TEXT NOT NULL,
-        "name" TEXT,
-        "phone" TEXT,
-        "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        "updatedAt" DATETIME NOT NULL
-      );
-    `)
-    console.log('[ensureSchema] Customer table ensured')
-    await client.$executeRawUnsafe(`
-      CREATE TABLE IF NOT EXISTS "SiteQuote" (
-        "id" TEXT NOT NULL PRIMARY KEY,
-        "email" TEXT NOT NULL,
-        "name" TEXT NOT NULL DEFAULT '',
-        "phone" TEXT NOT NULL DEFAULT '',
-        "panels" INTEGER NOT NULL DEFAULT 0,
-        "inverter" INTEGER NOT NULL DEFAULT 0,
-        "battery" INTEGER NOT NULL DEFAULT 0,
-        "total" REAL NOT NULL DEFAULT 0,
-        "monthly" REAL NOT NULL DEFAULT 0,
-        "siteId" TEXT NOT NULL DEFAULT '',
-        "consumption" INTEGER NOT NULL DEFAULT 0,
-        "installationType" TEXT NOT NULL DEFAULT 'roof',
-        "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        "updatedAt" DATETIME NOT NULL
-      );
-    `)
-    console.log('[ensureSchema] SiteQuote table ensured')
-    // Create indexes only if the table was freshly created (ignore errors).
-    await client.$executeRawUnsafe(`CREATE UNIQUE INDEX IF NOT EXISTS "Customer.email_unique" ON "Customer"("email");`).catch(() => {})
-    await client.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "Customer.email_e4aa1c2c" ON "Customer"("email");`).catch(() => {})
-    await client.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "Customer.createdAt_22b3a900" ON "Customer"("createdAt");`).catch(() => {})
-    await client.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "SiteQuote.email_2c7dae3f" ON "SiteQuote"("email");`).catch(() => {})
-    await client.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "SiteQuote.createdAt_45f0b6a6" ON "SiteQuote"("createdAt");`).catch(() => {})
+    const tmp = localDbPath()
+    if (!fs.existsSync(tmp)) return
+    const url = `file:${tmp}`
+    // Locate the prisma CLI (node_modules/.bin/prisma, or npx-resolvable).
+    const prismaBin = path.join(process.cwd(), 'node_modules', '.bin', 'prisma')
+    const args = ['db', 'push', '--skip-generate', '--accept-data-loss', '--schema', path.join(process.cwd(), 'prisma', 'schema.prisma')]
+    await new Promise<void>((resolve) => {
+      const child = spawn(prismaBin, args, {
+        env: { ...process.env, DATABASE_URL: url },
+        stdio: 'ignore',
+      })
+      child.on('exit', (code) => {
+        console.log(`[ensureSchema] prisma db push exited ${code}`)
+        resolve()
+      })
+      child.on('error', (e) => {
+        console.error('[ensureSchema] failed to spawn prisma:', e.message)
+        resolve()
+      })
+    })
 
     // Propagate the healed DB back to GitHub so every instance benefits.
     try { await commitDb() } catch { /* best-effort */ }

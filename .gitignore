@@ -59,3 +59,5 @@ tool-results/
 db/development.db
 prisma/db/
 db/old11.db
+db/development.db*
+/tmp/
