@@ -68,36 +68,74 @@ function seedFromBundled(target: string): void {
 // or the GitHub-synced sunstore.db) may be missing tables or columns that
 // the current Prisma schema expects, which makes queries throw
 // "table does not exist" / "column does not exist". Rather than require a
-// manual `prisma db push`, we run `prisma db push` against the local DB file
-// on first pull — it adds missing tables/columns without dropping data.
+// manual `prisma db push`, we heal the local DB on first pull:
+//   1. Run `prisma db push` (adds missing tables AND columns, no data loss).
+//   2. Fall back to a raw ALTER TABLE for the known-missing customerId column
+//      in case the prisma CLI cannot be spawned in this environment.
 import { spawn } from 'child_process'
-import { fileURLToPath } from 'url'
+import { existsSync } from 'fs'
 let __schemaHealed = false
+
+function resolvePrismaBin(): string | null {
+  const candidates = [
+    path.join(process.cwd(), 'node_modules', '.bin', 'prisma'),
+    path.join(process.cwd(), 'node_modules', '.bin', 'prisma.cmd'),
+    path.join(process.cwd(), 'node_modules', '@prisma', 'cli', 'build', 'index.js'),
+    'prisma',
+  ]
+  for (const c of candidates) {
+    if (c === 'prisma') return c
+    if (existsSync(c)) return c
+  }
+  return null
+}
+
 async function ensureSchema(): Promise<void> {
   if (__schemaHealed) return
   __schemaHealed = true
-  console.log('[ensureSchema] running self-heal (prisma db push)...')
+  console.log('[ensureSchema] running self-heal...')
   try {
     const tmp = localDbPath()
     if (!fs.existsSync(tmp)) return
     const url = `file:${tmp}`
-    // Locate the prisma CLI (node_modules/.bin/prisma, or npx-resolvable).
-    const prismaBin = path.join(process.cwd(), 'node_modules', '.bin', 'prisma')
-    const args = ['db', 'push', '--skip-generate', '--accept-data-loss', '--schema', path.join(process.cwd(), 'prisma', 'schema.prisma')]
-    await new Promise<void>((resolve) => {
-      const child = spawn(prismaBin, args, {
-        env: { ...process.env, DATABASE_URL: url },
-        stdio: 'ignore',
+
+    const bin = resolvePrismaBin()
+    if (bin) {
+      const args = ['db', 'push', '--skip-generate', '--accept-data-loss', '--schema', path.join(process.cwd(), 'prisma', 'schema.prisma')]
+      await new Promise<void>((resolve) => {
+        const child = spawn(bin, args, {
+          env: { ...process.env, DATABASE_URL: url },
+          stdio: 'ignore',
+          shell: process.platform === 'win32',
+        })
+        child.on('exit', (code) => {
+          console.log(`[ensureSchema] prisma db push exited ${code}`)
+          resolve()
+        })
+        child.on('error', (e) => {
+          console.error('[ensureSchema] spawn error:', e.message)
+          resolve()
+        })
       })
-      child.on('exit', (code) => {
-        console.log(`[ensureSchema] prisma db push exited ${code}`)
-        resolve()
-      })
-      child.on('error', (e) => {
-        console.error('[ensureSchema] failed to spawn prisma:', e.message)
-        resolve()
-      })
-    })
+    } else {
+      console.log('[ensureSchema] prisma CLI not found, using raw SQL fallback')
+    }
+
+    // Raw-SQL fallback: ensure the Customer/SiteQuote tables and the
+    // SiteOrder.customerId column exist even if `prisma db push` didn't run.
+    try {
+      const client = globalForPrisma.prisma ?? db
+      await client.$executeRawUnsafe(`CREATE TABLE IF NOT EXISTS "Customer" ("id" TEXT NOT NULL PRIMARY KEY, "email" TEXT NOT NULL, "password" TEXT NOT NULL, "name" TEXT, "phone" TEXT, "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, "updatedAt" DATETIME NOT NULL);`).catch(() => {})
+      await client.$executeRawUnsafe(`CREATE TABLE IF NOT EXISTS "SiteQuote" ("id" TEXT NOT NULL PRIMARY KEY, "email" TEXT NOT NULL, "name" TEXT NOT NULL DEFAULT '', "phone" TEXT NOT NULL DEFAULT '', "panels" INTEGER NOT NULL DEFAULT 0, "inverter" INTEGER NOT NULL DEFAULT 0, "battery" INTEGER NOT NULL DEFAULT 0, "total" REAL NOT NULL DEFAULT 0, "monthly" REAL NOT NULL DEFAULT 0, "siteId" TEXT NOT NULL DEFAULT '', "consumption" INTEGER NOT NULL DEFAULT 0, "installationType" TEXT NOT NULL DEFAULT 'roof', "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, "updatedAt" DATETIME NOT NULL);`).catch(() => {})
+      // Add the missing customerId column if absent (SQLite supports ADD COLUMN).
+      const cols = await client.$queryRawUnsafe(`PRAGMA table_info("SiteOrder");`) as Array<{ name: string }>
+      if (!cols.some((c) => c.name === 'customerId')) {
+        await client.$executeRawUnsafe(`ALTER TABLE "SiteOrder" ADD COLUMN "customerId" TEXT;`).catch(() => {})
+        console.log('[ensureSchema] added SiteOrder.customerId')
+      }
+    } catch (e) {
+      console.error('[ensureSchema] raw fallback error:', e)
+    }
 
     // Propagate the healed DB back to GitHub so every instance benefits.
     try { await commitDb() } catch { /* best-effort */ }
