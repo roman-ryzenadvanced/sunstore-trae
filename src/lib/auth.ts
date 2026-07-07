@@ -33,12 +33,18 @@ export function getAuthUser(request: Request): JwtPayload | null {
   const authHeader = request.headers.get('authorization')
   if (!authHeader) return null
 
-  // Accept both 'Bearer <token>' and 'token <token>' formats
   let token = authHeader.trim()
+
+  // Strip common prefixes
   if (token.startsWith('Bearer ') || token.startsWith('bearer ')) {
     token = token.slice(7).trim()
   } else if (token.startsWith('token ') || token.startsWith('Token ')) {
     token = token.slice(6).trim()
+  }
+
+  // If after stripping prefix it's empty, try the raw header as token
+  if (!token) {
+    token = authHeader.trim()
   }
 
   if (!token) return null
