@@ -116,6 +116,56 @@ async function ensurePulled(): Promise<void> {
   await globalForPrisma.__pullPromise
 }
 
+// Fetch the current remote DB blob SHA. GitHub's Contents API supports the
+// `application/vnd.github.sha` Accept header, which returns ONLY the blob's
+// SHA (a few bytes) instead of the full base64 file — so a freshness check
+// costs almost nothing and works from the very first read.
+async function remoteSha(): Promise<string | null> {
+  if (!GH_TOKEN) return null
+  try {
+    const res = await fetch(
+      `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PATH}?ref=${GH_BRANCH}`,
+      { headers: { ...GH_HEADERS, Accept: 'application/vnd.github.sha' }, cache: 'no-store' }
+    )
+    if (!res.ok) return null
+    return (await res.text()).trim().replace(/"/g, '')
+  } catch {
+    return null
+  }
+}
+
+// Before any read/write, make sure we're not serving a stale cached copy.
+// Cheap: only fetches a tiny SHA file, and only re-downloads the DB when the
+// remote SHA differs from the SHA we pulled/pushed. Skips if we've checked
+// recently (within a short window) to avoid hammering the API on every request.
+let __lastFreshnessCheck = 0
+const FRESHNESS_TTL = 1500 // ms — tolerate up to ~1.5s of staleness for reads
+async function ensureFresh(force = false): Promise<void> {
+  if (!isServerless() || !GH_TOKEN) return
+  if (!globalForPrisma.__dbPulled) {
+    await ensurePulled()
+    return
+  }
+  const now = Date.now()
+  if (!force && now - __lastFreshnessCheck < FRESHNESS_TTL) return
+  __lastFreshnessCheck = now
+
+  const remote = await remoteSha()
+  if (remote && remote !== globalForPrisma.__dbSha) {
+    // Remote changed — close any open SQLite handle to the stale file, then
+    // re-pull the latest DB. Prisma re-opens the fresh file on the next query.
+    try {
+      await globalForPrisma.prisma?.$disconnect()
+    } catch {
+      // ignore
+    }
+    globalForPrisma.__dbSha = undefined
+    globalForPrisma.__dbPulled = false
+    globalForPrisma.__pullPromise = undefined
+    await ensurePulled()
+  }
+}
+
 // Upload the local DB file back to GitHub. Call after every successful write.
 // On 409 conflict (another instance pushed since our pull), retry once with
 // the latest SHA — last-write-wins.
@@ -148,17 +198,17 @@ export async function commitDb(): Promise<void> {
     return true
   }
 
-  const ok = await put(globalForPrisma.__dbSha)
-  if (ok) return
-
-  // Likely 409 — re-fetch the latest SHA and retry (overwrites remote).
-  const head = await fetch(
-    `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PATH}?ref=${GH_BRANCH}`,
-    { headers: GH_HEADERS }
-  )
-  if (head.ok) {
-    const hj = (await head.json()) as { sha?: string }
-    await put(hj.sha)
+  let ok = await put(globalForPrisma.__dbSha)
+  if (!ok) {
+    // Likely 409 — re-fetch the latest SHA and retry (overwrites remote).
+    const head = await fetch(
+      `https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/contents/${GH_PATH}?ref=${GH_BRANCH}`,
+      { headers: GH_HEADERS }
+    )
+    if (head.ok) {
+      const hj = (await head.json()) as { sha?: string }
+      ok = await put(hj.sha)
+    }
   }
 }
 
@@ -179,13 +229,17 @@ function buildClient(): PrismaClient {
       async $allOperations({
         args,
         query,
+        operation,
       }: {
         model?: string
         operation: string
         args: unknown
         query: (args: unknown) => Promise<unknown>
       }) {
-        await ensurePulled()
+        // Writes must always start from the latest remote state so uniqueness
+        // checks (slug/username) see concurrent creates; reads use a short TTL.
+        const isWrite = /^(create|update|delete|upsert)/i.test(operation)
+        await ensureFresh(isWrite)
         return query(args)
       },
     },
