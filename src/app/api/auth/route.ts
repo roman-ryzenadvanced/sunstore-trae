@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     }
 
     // Try super_admin first
-    const superAdmin = await db.superAdmin.findUnique({ where: { username } })
+    const superAdmin = await db.superAdmin.findFirst({ where: { username } })
     if (superAdmin) {
       const valid = await verifyPassword(password, superAdmin.password)
       if (!valid) {
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     }
 
     // Try site_admin
-    const siteAdmin = await db.siteAdmin.findUnique({
+    const siteAdmin = await db.siteAdmin.findFirst({
       where: { username },
       include: { site: true },
     })
