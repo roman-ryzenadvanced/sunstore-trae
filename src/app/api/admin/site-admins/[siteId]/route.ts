@@ -66,7 +66,7 @@ export async function POST(request: Request) {
     }
 
     // Check username uniqueness
-    const existingUsername = await db.siteAdmin.findUnique({ where: { username } })
+    const existingUsername = await db.siteAdmin.findFirst({ where: { username } })
     if (existingUsername) {
       return NextResponse.json({ error: 'Username already taken' }, { status: 409 })
     }
