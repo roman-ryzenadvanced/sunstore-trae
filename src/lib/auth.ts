@@ -31,6 +31,16 @@ export function verifyToken(token: string): JwtPayload | null {
 
 export function getAuthUser(request: Request): JwtPayload | null {
   const authHeader = request.headers.get('authorization')
-  if (!authHeader?.startsWith('Bearer ')) return null
-  return verifyToken(authHeader.slice(7))
+  if (!authHeader) return null
+
+  // Accept both 'Bearer <token>' and 'token <token>' formats
+  let token = authHeader.trim()
+  if (token.startsWith('Bearer ') || token.startsWith('bearer ')) {
+    token = token.slice(7).trim()
+  } else if (token.startsWith('token ') || token.startsWith('Token ')) {
+    token = token.slice(6).trim()
+  }
+
+  if (!token) return null
+  return verifyToken(token)
 }
