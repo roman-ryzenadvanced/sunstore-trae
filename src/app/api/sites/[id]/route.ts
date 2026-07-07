@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { db, commitDb } from '@/lib/db'
 import { getAuthUser } from '@/lib/auth'
 
 export async function GET(
@@ -62,6 +62,8 @@ export async function PATCH(
       },
     })
 
+    try { await commitDb() } catch (e) { console.error('DB commit failed:', e) }
+
     return NextResponse.json(updated)
   } catch (error) {
     console.error('Update site error:', error)
@@ -98,6 +100,8 @@ export async function DELETE(
     await db.siteEmailConfig.deleteMany({ where: { siteId: id } })
     await db.siteAdmin.deleteMany({ where: { siteId: id } })
     await db.site.delete({ where: { id } })
+
+    try { await commitDb() } catch (e) { console.error('DB commit failed:', e) }
 
     return NextResponse.json({ message: 'Site deleted successfully' })
   } catch (error) {

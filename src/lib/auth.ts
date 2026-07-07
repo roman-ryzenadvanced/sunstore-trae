@@ -5,7 +5,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'sunstore-super-secret-key-2024'
 
 export interface JwtPayload {
   sub: string
-  role: 'super_admin' | 'site_admin'
+  role: 'super_admin' | 'site_admin' | 'customer'
   siteId?: string
 }
 

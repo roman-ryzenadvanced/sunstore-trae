@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { db, commitDb } from '@/lib/db'
 import { initPayment, getDemoTBankConfig, mapTBankStatus } from '@/lib/tbank'
 
 function generateOrderNumber(): string {
@@ -177,6 +177,8 @@ export async function POST(request: Request) {
         paymentMode: tbankConfig.mode,
       },
     })
+
+    try { await commitDb() } catch (e) { console.error('DB commit failed:', e) }
 
     return NextResponse.json({
       orderId: order.id,

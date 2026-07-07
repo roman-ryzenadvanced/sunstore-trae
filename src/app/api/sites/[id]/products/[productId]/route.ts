@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { db, commitDb } from '@/lib/db'
 
 export async function GET(
   request: NextRequest,
@@ -64,6 +64,8 @@ export async function PATCH(
       data,
     })
 
+    try { await commitDb() } catch (e) { console.error('DB commit failed:', e) }
+
     return NextResponse.json(updated)
   } catch (error) {
     console.error('Update product error:', error)
@@ -88,6 +90,8 @@ export async function DELETE(
 
     await db.orderItem.deleteMany({ where: { productId } })
     await db.siteProduct.delete({ where: { id: productId } })
+
+    try { await commitDb() } catch (e) { console.error('DB commit failed:', e) }
 
     return NextResponse.json({ message: 'Product deleted successfully' })
   } catch (error) {

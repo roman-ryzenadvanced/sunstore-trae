@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { db, commitDb } from '@/lib/db'
 import { getAuthUser, verifyPassword, hashPassword } from '@/lib/auth'
 
 export async function POST(request: Request) {
@@ -55,6 +55,8 @@ export async function POST(request: Request) {
     } else {
       return NextResponse.json({ error: 'Unknown role' }, { status: 401 })
     }
+
+    try { await commitDb() } catch (e) { console.error('DB commit failed:', e) }
 
     return NextResponse.json({ message: 'Password updated successfully' })
   } catch (error) {

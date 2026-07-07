@@ -89,7 +89,8 @@ model SiteOrder {
   id            String   @id @default(cuid())
   siteId        String
   orderNumber   String   @unique
-  status        String   @default("NEW") // NEW, PENDING, AUTHORIZED, CONFIRMED, REJECTED, CANCELLED, REFUNDED
+  status        String   @default("NEW")
+  customerId    String?  @unique // NEW, PENDING, AUTHORIZED, CONFIRMED, REJECTED, CANCELLED, REFUNDED
   customerName  String
   customerEmail String
   customerPhone String
@@ -103,6 +104,7 @@ model SiteOrder {
   updatedAt     DateTime @updatedAt
 
   site          Site       @relation(fields: [siteId], references: [id])
+  customer      Customer?  @relation(fields: [customerId], references: [id])
   items         OrderItem[]
 
   @@index([siteId])
@@ -203,4 +205,42 @@ model PaymentTransaction {
 
   @@index([siteId])
   @@index([status])
+}
+// ============ SOLAR QUOTES ============
+
+model SiteQuote {
+  id              String   @id @default(cuid())
+  email           String
+  name            String   @default("")
+  phone           String   @default("")
+  panels          Int
+  inverter        Int
+  battery         Int
+  total           Float
+  monthly         Float
+  siteId          String   @default("")
+  consumption     Int
+  installationType String   @default("roof") // roof, fence, balcony
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([email])
+  @@index([createdAt])
+}
+
+// ============ CUSTOMERS (Visitor Accounts) ============
+
+model Customer {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  password    String   // bcrypt hash
+  name        String?
+  phone       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orders      SiteOrder[]
+  
+  @@index([email])
+  @@index([createdAt])
 }

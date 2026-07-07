@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { db, commitDb } from '@/lib/db'
 import { getAuthUser } from '@/lib/auth'
 
 export async function GET(request: Request) {
@@ -45,6 +45,8 @@ export async function PATCH(request: Request) {
       update: { value: value !== undefined ? String(value) : '' },
       create: { key, value: value !== undefined ? String(value) : '' },
     })
+
+    try { await commitDb() } catch (e) { console.error('DB commit failed:', e) }
 
     return NextResponse.json(config)
   } catch (error) {

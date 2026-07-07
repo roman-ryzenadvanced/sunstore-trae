@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { db, commitDb } from '@/lib/db'
 import { getAuthUser } from '@/lib/auth'
 import { Prisma } from '@prisma/client'
 
@@ -74,6 +74,8 @@ export async function POST(request: Request) {
         email: email.toLowerCase(),
       },
     })
+
+    try { await commitDb() } catch (e) { console.error('DB commit failed:', e) }
 
     return NextResponse.json(subscriber, { status: 201 })
   } catch (error) {

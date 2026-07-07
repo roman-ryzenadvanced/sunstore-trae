@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { ShoppingCart, X, Plus, Minus, Trash2, Loader2, CheckCircle2, Package } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { ShoppingCart, X, Plus, Minus, Trash2, Loader2, CheckCircle2, Package, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -28,7 +29,9 @@ export function CartDrawer({ storeSlug, primaryColor }: Props) {
   const [confirmation, setConfirmation] = useState<{
     orderNumber: string
     total: number
+    paymentUrl?: string
   } | null>(null)
+  const router = useRouter()
 
   // Reset to cart view whenever the drawer is reopened
   useEffect(() => {
@@ -56,27 +59,46 @@ export function CartDrawer({ storeSlug, primaryColor }: Props) {
     if (!/^\S+@\S+\.\S+$/.test(email)) return setErrorMsg('Please enter a valid email')
     setStage('processing')
     try {
-      const res = await fetch(`/api/storefront/${storeSlug}/order`, {
+      // First, get the site ID from the storefront API
+      const storeRes = await fetch(`/api/storefront/${storeSlug}`)
+      if (!storeRes.ok) throw new Error('Failed to fetch store info')
+      const storeData = await storeRes.json()
+      const siteId = storeData.site.id
+
+      // Now call the payment init endpoint (T-Bank integration)
+      const res = await fetch('/api/payment/init', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          siteId,
+          items: items.map((i) => ({ productId: i.id, quantity: i.quantity })),
           customerName: name,
           customerEmail: email,
           customerPhone: phone,
-          items: items.map((i) => ({ productId: i.id, quantity: i.quantity })),
         }),
       })
       const data = await res.json()
+
       if (!res.ok) {
         setStage('checkout')
-        return setErrorMsg(data.error || 'Failed to place order')
+        return setErrorMsg(data.error || 'Failed to initiate payment')
       }
-      setConfirmation({ orderNumber: data.orderNumber, total: data.totalAmount })
-      clear()
-      setStage('success')
-    } catch {
+
+      // On success, redirect to T-Bank payment page (or local demo redirect)
+      if (data.paymentUrl) {
+        // Clear cart before redirect (order created in DB)
+        clear()
+        // Redirect to payment URL (T-Bank or local demo redirect)
+        window.location.href = data.paymentUrl
+      } else {
+        // Fallback: show success screen if no payment URL
+        setConfirmation({ orderNumber: data.orderNumber, total: data.totalAmount })
+        clear()
+        setStage('success')
+      }
+    } catch (err) {
       setStage('checkout')
-      setErrorMsg('Network error. Please try again.')
+      setErrorMsg(err instanceof Error ? err.message : 'Network error. Please try again.')
     }
   }
 
@@ -228,7 +250,7 @@ export function CartDrawer({ storeSlug, primaryColor }: Props) {
                   <p className="text-sm text-red-600">{errorMsg}</p>
                 )}
                 <p className="text-xs text-gray-400">
-                  This is a demo store — no real payment is processed.
+                  You will be redirected to our payment page to complete your purchase.
                 </p>
               </div>
             </div>
@@ -238,7 +260,7 @@ export function CartDrawer({ storeSlug, primaryColor }: Props) {
           {stage === 'processing' && (
             <div className="flex h-full flex-col items-center justify-center gap-3 p-8 text-gray-500">
               <Loader2 className="size-10 animate-spin" style={{ color: primaryColor }} />
-              <p className="text-sm">Placing your order…</p>
+              <p className="text-sm">Processing your order…</p>
             </div>
           )}
 
@@ -248,7 +270,7 @@ export function CartDrawer({ storeSlug, primaryColor }: Props) {
               <CheckCircle2 className="size-16" style={{ color: '#16a34a' }} />
               <h3 className="text-lg font-bold text-gray-900">Thank you for your order!</h3>
               <p className="text-sm text-gray-500">
-                Your order has been placed successfully. A confirmation will be sent to your email.
+                Your order has been placed successfully.
               </p>
               <div className="mt-2 rounded-lg border bg-gray-50 px-6 py-4">
                 <p className="text-xs uppercase tracking-wide text-gray-400">Order number</p>
@@ -298,7 +320,7 @@ export function CartDrawer({ storeSlug, primaryColor }: Props) {
                   style={{ backgroundColor: primaryColor }}
                   onClick={placeOrder}
                 >
-                  Place Order
+                  Pay Now
                 </Button>
               </div>
             )}

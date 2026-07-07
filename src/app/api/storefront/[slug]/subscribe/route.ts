@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { db, commitDb } from '@/lib/db'
 
 export async function POST(request: Request, { params }: { params: Promise<{ slug: string }> }) {
   try {
@@ -31,6 +31,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ slu
         email,
       },
     })
+
+    try { await commitDb() } catch (e) { console.error('DB commit failed:', e) }
 
     return NextResponse.json({ success: true })
   } catch (error) {

@@ -20,10 +20,11 @@ export interface StorefrontProduct {
 
 export interface StorefrontData {
   site: {
+    id: string
     name: string
+    slug: string
     tagline: string
     primaryColor: string
-    slug: string
   }
   categories: string[]
   products: StorefrontProduct[]

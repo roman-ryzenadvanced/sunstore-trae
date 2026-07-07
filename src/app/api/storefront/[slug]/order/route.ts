@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { db, commitDb } from '@/lib/db'
 
 function generateOrderNumber(): string {
   const now = new Date()
@@ -144,6 +144,14 @@ export async function POST(
       where: { id: order.id },
       include: { items: true },
     })
+
+    // Push the mutated DB file back to GitHub so other instances can see it.
+    // Best-effort: a commit failure must NOT fail the customer's order.
+    try {
+      await commitDb()
+    } catch (commitErr) {
+      console.error('DB commit (non-fatal) failed:', commitErr)
+    }
 
     return NextResponse.json(
       {

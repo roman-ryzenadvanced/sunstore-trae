@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { db } from '@/lib/db'
+import { db, commitDb } from '@/lib/db'
 import { verifyNotificationToken, getDemoTBankConfig, mapTBankStatus } from '@/lib/tbank'
 import type { TBankNotification } from '@/lib/tbank'
 
@@ -81,6 +81,8 @@ export async function POST(request: Request) {
         })
       }
     }
+
+    try { await commitDb() } catch (e) { console.error('DB commit failed:', e) }
 
     return NextResponse.json({ OK: true })
   } catch (error) {
