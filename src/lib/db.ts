@@ -64,14 +64,76 @@ function seedFromBundled(target: string): void {
   if (fs.existsSync(bundled)) fs.copyFileSync(bundled, target)
 }
 
+// Self-healing schema sync. Older DB files (e.g. the bundled production.db
+// that predates the Customer / SiteQuote models) are missing some tables,
+// which makes every query against them throw "table does not exist". Rather
+// than require a manual `prisma db push`, we ensure the missing tables exist
+// with Prisma-exact DDL. This runs once after each pull/seed.
+let __schemaHealed = false
+async function ensureSchema(): Promise<void> {
+  if (__schemaHealed) return
+  __schemaHealed = true
+  console.log('[ensureSchema] running self-heal...')
+  try {
+    const client = globalForPrisma.prisma ?? db
+    await client.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "Customer" (
+        "id" TEXT NOT NULL PRIMARY KEY,
+        "email" TEXT NOT NULL,
+        "password" TEXT NOT NULL,
+        "name" TEXT,
+        "phone" TEXT,
+        "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" DATETIME NOT NULL
+      );
+    `)
+    console.log('[ensureSchema] Customer table ensured')
+    await client.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "SiteQuote" (
+        "id" TEXT NOT NULL PRIMARY KEY,
+        "email" TEXT NOT NULL,
+        "name" TEXT NOT NULL DEFAULT '',
+        "phone" TEXT NOT NULL DEFAULT '',
+        "panels" INTEGER NOT NULL DEFAULT 0,
+        "inverter" INTEGER NOT NULL DEFAULT 0,
+        "battery" INTEGER NOT NULL DEFAULT 0,
+        "total" REAL NOT NULL DEFAULT 0,
+        "monthly" REAL NOT NULL DEFAULT 0,
+        "siteId" TEXT NOT NULL DEFAULT '',
+        "consumption" INTEGER NOT NULL DEFAULT 0,
+        "installationType" TEXT NOT NULL DEFAULT 'roof',
+        "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" DATETIME NOT NULL
+      );
+    `)
+    console.log('[ensureSchema] SiteQuote table ensured')
+    // Create indexes only if the table was freshly created (ignore errors).
+    await client.$executeRawUnsafe(`CREATE UNIQUE INDEX IF NOT EXISTS "Customer.email_unique" ON "Customer"("email");`).catch(() => {})
+    await client.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "Customer.email_e4aa1c2c" ON "Customer"("email");`).catch(() => {})
+    await client.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "Customer.createdAt_22b3a900" ON "Customer"("createdAt");`).catch(() => {})
+    await client.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "SiteQuote.email_2c7dae3f" ON "SiteQuote"("email");`).catch(() => {})
+    await client.$executeRawUnsafe(`CREATE INDEX IF NOT EXISTS "SiteQuote.createdAt_45f0b6a6" ON "SiteQuote"("createdAt");`).catch(() => {})
+
+    // Propagate the healed DB back to GitHub so every instance benefits.
+    try { await commitDb() } catch { /* best-effort */ }
+    console.log('[ensureSchema] self-heal complete')
+  } catch (e) {
+    console.error('[ensureSchema] heal failed:', e)
+  }
+}
+
 // Download the latest DB file from GitHub. Cached per-instance via __dbPulled.
 async function pullDb(): Promise<void> {
   const tmp = localDbPath()
 
   if (!isServerless()) {
-    // Local dev: persistent filesystem, just ensure a file exists.
-    if (!fs.existsSync(tmp)) seedFromBundled(tmp)
+    // Local dev: persistent filesystem. Ensure a valid DB file exists.
+    // If the file is missing OR empty (e.g. a stale 0-byte leftover), seed it
+    // from the bundled production.db which has the full schema.
+    const valid = fs.existsSync(tmp) && fs.statSync(tmp).size > 0
+    if (!valid) seedFromBundled(tmp)
     globalForPrisma.__dbPulled = true
+    await ensureSchema()
     return
   }
 
@@ -79,6 +141,7 @@ async function pullDb(): Promise<void> {
     // No token configured — degrade to read-only bundled file.
     if (!fs.existsSync(tmp)) seedFromBundled(tmp)
     globalForPrisma.__dbPulled = true
+    await ensureSchema()
     return
   }
 
@@ -90,6 +153,7 @@ async function pullDb(): Promise<void> {
     seedFromBundled(tmp)
     globalForPrisma.__dbSha = undefined
     globalForPrisma.__dbPulled = true
+    await ensureSchema()
     return
   }
   if (!res.ok) {
@@ -101,6 +165,7 @@ async function pullDb(): Promise<void> {
   fs.writeFileSync(tmp, Buffer.from(data.content, 'base64'))
   globalForPrisma.__dbSha = data.sha
   globalForPrisma.__dbPulled = true
+  await ensureSchema()
 }
 
 // Idempotent: only the first call per instance actually downloads.
@@ -140,12 +205,17 @@ async function remoteSha(): Promise<string | null> {
 // recently (within a short window) to avoid hammering the API on every request.
 let __lastFreshnessCheck = 0
 const FRESHNESS_TTL = 1500 // ms — tolerate up to ~1.5s of staleness for reads
+let __inCommit = false // reentrancy guard: avoid commitDb -> ensureFresh -> commitDb
 async function ensureFresh(force = false): Promise<void> {
-  if (!isServerless() || !GH_TOKEN) return
+  // Always make sure the DB file is pulled/seeded at least once. On first
+  // call this runs pullDb (which also runs the schema self-heal). In local
+  // dev there is no GitHub token, so pullDb just seeds from the bundled DB.
   if (!globalForPrisma.__dbPulled) {
     await ensurePulled()
     return
   }
+  if (!isServerless() || !GH_TOKEN) return
+  if (__inCommit) return // a commit is in flight; don't re-pull mid-write
   const now = Date.now()
   if (!force && now - __lastFreshnessCheck < FRESHNESS_TTL) return
   __lastFreshnessCheck = now
@@ -175,7 +245,9 @@ export async function commitDb(): Promise<void> {
   const tmp = localDbPath()
   if (!fs.existsSync(tmp)) return
 
-  const b64 = fs.readFileSync(tmp).toString('base64')
+  __inCommit = true
+  try {
+    const b64 = fs.readFileSync(tmp).toString('base64')
 
   const put = async (sha: string | undefined): Promise<boolean> => {
     const body: Record<string, unknown> = {
@@ -209,6 +281,9 @@ export async function commitDb(): Promise<void> {
       const hj = (await head.json()) as { sha?: string }
       ok = await put(hj.sha)
     }
+  }
+  } finally {
+    __inCommit = false
   }
 }
 
