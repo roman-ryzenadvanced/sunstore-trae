@@ -54,3 +54,7 @@ server.log
 /skills/db/custom.db
 skills/
 tool-results/
+
+# Local dev / derived DB copies (not source of truth)
+db/development.db
+prisma/db/
