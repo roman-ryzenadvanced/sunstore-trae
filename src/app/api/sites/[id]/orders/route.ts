@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db, commitDb } from '@/lib/db'
 import { getAuthUser } from '@/lib/auth'
+import { checkSiteAccess } from '@/lib/rbac'
 import { Prisma } from '@prisma/client'
 
 export async function GET(
@@ -8,7 +9,23 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const user = getAuthUser(request)
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const { id } = await params
+
+    const site = await db.site.findUnique({ where: { id } })
+    if (!site) {
+      return NextResponse.json({ error: 'Site not found' }, { status: 404 })
+    }
+
+    // Site admin can only see orders for their own site
+    if (user.role === 'site_admin' && user.siteId !== id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     const { searchParams } = new URL(request.url)
 
     const search = searchParams.get('search') || ''
@@ -16,11 +33,6 @@ export async function GET(
     const page = parseInt(searchParams.get('page') || '1')
     const limit = Math.min(parseInt(searchParams.get('limit') || '20'), 100)
     const skip = (page - 1) * limit
-
-    const site = await db.site.findUnique({ where: { id } })
-    if (!site) {
-      return NextResponse.json({ error: 'Site not found' }, { status: 404 })
-    }
 
     const where: Prisma.SiteOrderWhereInput = { siteId: id }
     if (search) {
@@ -71,6 +83,11 @@ export async function PATCH(
     }
 
     const { id: siteId } = await params
+
+    // Site admin can only update orders for their own site
+    if (user.role === 'site_admin' && user.siteId !== siteId) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
     const body = await request.json()
     const { orderId, status } = body
 

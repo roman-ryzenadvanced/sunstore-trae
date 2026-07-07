@@ -76,6 +76,11 @@ export async function POST(
       return NextResponse.json({ error: 'Site not found' }, { status: 404 })
     }
 
+    // Site admin can only create products for their own site
+    if (user.role === 'site_admin' && user.siteId !== id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
     if (!body.title || body.price === undefined) {
       return NextResponse.json({ error: 'Title and price are required' }, { status: 400 })
     }

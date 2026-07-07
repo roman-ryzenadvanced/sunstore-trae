@@ -2,10 +2,16 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db, commitDb } from '@/lib/db'
 import { getAuthUser, hashPassword, signToken } from '@/lib/auth'
 import { getTemplateProducts } from '@/lib/templates'
+import { checkSiteAccess } from '@/lib/rbac'
 import { Prisma } from '@prisma/client'
 
 export async function GET(request: NextRequest) {
   try {
+    const user = getAuthUser(request)
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const { searchParams } = new URL(request.url)
     const search = searchParams.get('search') || ''
 
@@ -28,6 +34,20 @@ export async function GET(request: NextRequest) {
       orderBy: { createdAt: 'desc' },
     })
 
+    // Site admins can only see their own site
+    if (user.role === 'site_admin' && user.siteId) {
+      const filtered = sites.filter(s => s.id === user.siteId)
+      const total = filtered.length
+      const ready = filtered.filter(s => s.status === 'READY').length
+      const suspended = filtered.filter(s => s.status === 'SUSPENDED').length
+      const provisioning = filtered.filter(s => s.status === 'PROVISIONING').length
+
+      return NextResponse.json({
+        sites: filtered,
+        stats: { total, ready, suspended, provisioning },
+      })
+    }
+
     const total = sites.length
     const ready = sites.filter(s => s.status === 'READY').length
     const suspended = sites.filter(s => s.status === 'SUSPENDED').length
@@ -48,6 +68,11 @@ export async function POST(request: Request) {
     const user = getAuthUser(request)
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Only super_admin can create sites
+    if (user.role !== 'super_admin') {
+      return NextResponse.json({ error: 'Forbidden: only super admin can create sites' }, { status: 403 })
     }
 
     const body = await request.json()

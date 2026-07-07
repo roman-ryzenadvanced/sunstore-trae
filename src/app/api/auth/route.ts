@@ -11,23 +11,52 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Username and password are required' }, { status: 400 })
     }
 
-    const admin = await db.superAdmin.findUnique({ where: { username } })
-    if (!admin) {
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
+    // Try super_admin first
+    const superAdmin = await db.superAdmin.findUnique({ where: { username } })
+    if (superAdmin) {
+      const valid = await verifyPassword(password, superAdmin.password)
+      if (!valid) {
+        return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
+      }
+
+      const token = signToken({ sub: superAdmin.id, role: 'super_admin' })
+
+      return NextResponse.json({
+        token,
+        username: superAdmin.username,
+        name: superAdmin.name,
+        role: 'super_admin',
+      })
     }
 
-    const valid = await verifyPassword(password, admin.password)
-    if (!valid) {
-      return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
-    }
-
-    const token = signToken({ sub: admin.id, role: 'super_admin' })
-
-    return NextResponse.json({
-      token,
-      username: admin.username,
-      name: admin.name,
+    // Try site_admin
+    const siteAdmin = await db.siteAdmin.findUnique({
+      where: { username },
+      include: { site: true },
     })
+    if (siteAdmin) {
+      const valid = await verifyPassword(password, siteAdmin.password)
+      if (!valid) {
+        return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
+      }
+
+      const token = signToken({
+        sub: siteAdmin.id,
+        role: 'site_admin',
+        siteId: siteAdmin.siteId,
+      })
+
+      return NextResponse.json({
+        token,
+        username: siteAdmin.username,
+        name: siteAdmin.name,
+        role: 'site_admin',
+        siteId: siteAdmin.siteId,
+        siteName: siteAdmin.site.name,
+      })
+    }
+
+    return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 })
   } catch (error) {
     console.error('Login error:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

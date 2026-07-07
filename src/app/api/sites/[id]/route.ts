@@ -1,12 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db, commitDb } from '@/lib/db'
 import { getAuthUser } from '@/lib/auth'
+import { checkSiteAccess } from '@/lib/rbac'
 
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const user = getAuthUser(request)
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const { id } = await params
 
     const site = await db.site.findUnique({
@@ -19,6 +25,11 @@ export async function GET(
 
     if (!site) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 })
+    }
+
+    // Site admins can only see their own site
+    if (user.role === 'site_admin' && user.siteId && user.siteId !== id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     return NextResponse.json(site)
@@ -39,8 +50,13 @@ export async function PATCH(
     }
 
     const { id } = await params
-    const body = await request.json()
 
+    // Only super_admin can update sites
+    if (user.role !== 'super_admin') {
+      return NextResponse.json({ error: 'Forbidden: only super admin can update sites' }, { status: 403 })
+    }
+
+    const body = await request.json()
     const site = await db.site.findUnique({ where: { id } })
     if (!site) {
       return NextResponse.json({ error: 'Site not found' }, { status: 404 })
@@ -79,6 +95,11 @@ export async function DELETE(
     const user = getAuthUser(request)
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Only super_admin can delete sites
+    if (user.role !== 'super_admin') {
+      return NextResponse.json({ error: 'Forbidden: only super admin can delete sites' }, { status: 403 })
     }
 
     const { id } = await params

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db, commitDb } from '@/lib/db'
+import { getAuthUser } from '@/lib/auth'
 
 export async function GET(
   request: NextRequest,
@@ -28,8 +29,12 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string; productId: string }> }
 ) {
   try {
+    const user = getAuthUser(request)
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const { id, productId } = await params
-    const body = await request.json()
 
     const product = await db.siteProduct.findFirst({
       where: { id: productId, siteId: id },
@@ -39,6 +44,12 @@ export async function PATCH(
       return NextResponse.json({ error: 'Product not found' }, { status: 404 })
     }
 
+    // Site admin can only update products for their own site
+    if (user.role === 'site_admin' && user.siteId !== id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    const body = await request.json()
     const data: Record<string, unknown> = {}
     const allowedFields = [
       'title', 'description', 'price', 'oldPrice', 'stock',
@@ -78,7 +89,17 @@ export async function DELETE(
   { params }: { params: Promise<{ id: string; productId: string }> }
 ) {
   try {
+    const user = getAuthUser(request)
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const { id, productId } = await params
+
+    // Site admin can only delete products for their own site
+    if (user.role === 'site_admin' && user.siteId !== id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
 
     const product = await db.siteProduct.findFirst({
       where: { id: productId, siteId: id },
