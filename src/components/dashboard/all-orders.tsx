@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
+import { apiFetch } from '@/lib/api'
 
 interface Order {
   id: string
@@ -74,7 +75,7 @@ export function AllOrders() {
       })
       if (statusFilter !== 'all') params.set('status', statusFilter)
       if (siteFilter !== 'all') params.set('siteId', siteFilter)
-      const res = await fetch(`/api/orders?${params}`)
+      const res = await apiFetch(`/api/orders?${params}`)
       if (res.ok) {
         const data = await res.json()
         setOrders(data.orders || data || [])
@@ -89,7 +90,7 @@ export function AllOrders() {
 
   const fetchSites = useCallback(async () => {
     try {
-      const res = await fetch('/api/sites')
+      const res = await apiFetch('/api/sites')
       if (res.ok) {
         const data = await res.json()
         setSites(data.sites || data || [])

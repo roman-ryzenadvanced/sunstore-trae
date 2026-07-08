@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { apiFetch } from '@/lib/api'
 
 interface DashboardStats {
   totalSites: number
@@ -47,7 +48,7 @@ export function StatsCards() {
   useEffect(() => {
     async function fetchStats() {
       try {
-        const res = await fetch('/api/stats')
+        const res = await apiFetch('/api/stats')
         if (res.ok) {
           const data = await res.json()
           setStats(data)
@@ -56,7 +57,7 @@ export function StatsCards() {
         // fallback mock
       }
       try {
-        const res = await fetch('/api/orders?limit=5')
+        const res = await apiFetch('/api/orders?limit=5')
         if (res.ok) {
           const data = await res.json()
           setRecentOrders(data.orders || data || [])

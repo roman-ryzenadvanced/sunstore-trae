@@ -32,6 +32,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
+import { apiFetch } from '@/lib/api'
 
 interface Subscriber {
   id: string
@@ -66,7 +67,7 @@ export function CrmSubscribers() {
     try {
       const params = new URLSearchParams()
       if (siteFilter !== 'all') params.set('siteId', siteFilter)
-      const res = await fetch(`/api/subscribers?${params}`)
+      const res = await apiFetch(`/api/subscribers?${params}`)
       if (res.ok) {
         const data = await res.json()
         setSubscribers(data.subscribers || data || [])
@@ -80,7 +81,7 @@ export function CrmSubscribers() {
 
   const fetchSites = useCallback(async () => {
     try {
-      const res = await fetch('/api/sites')
+      const res = await apiFetch('/api/sites')
       if (res.ok) {
         const data = await res.json()
         setSites(data.sites || data || [])
@@ -105,7 +106,7 @@ export function CrmSubscribers() {
         body: broadcastBody,
       }
       if (broadcastSite !== 'all') body.siteId = broadcastSite
-      const res = await fetch('/api/subscribers/broadcast', {
+      const res = await apiFetch('/api/subscribers/broadcast', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),

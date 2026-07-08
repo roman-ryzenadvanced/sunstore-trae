@@ -21,6 +21,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area'
+import { apiFetch } from '@/lib/api'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -363,7 +364,7 @@ export function StorefrontPreview() {
 
   const fetchSites = useCallback(async () => {
     try {
-      const res = await fetch('/api/sites')
+      const res = await apiFetch('/api/sites')
       if (res.ok) {
         const d = await res.json()
         const list = d.sites || d || []
@@ -385,7 +386,7 @@ export function StorefrontPreview() {
       if (categoryFilter !== 'all') params.set('category', categoryFilter)
       if (searchQuery.trim()) params.set('search', searchQuery.trim())
       const qs = params.toString() ? `?${params.toString()}` : ''
-      const res = await fetch(`/api/storefront/${currentSlug}${qs}`)
+      const res = await apiFetch(`/api/storefront/${currentSlug}${qs}`)
       if (res.ok) {
         const d = await res.json()
         setData(d)
@@ -454,7 +455,7 @@ export function StorefrontPreview() {
     setNlSending(true)
     setNlMsg('')
     try {
-      const res = await fetch(`/api/storefront/${currentSlug}/subscribe`, {
+      const res = await apiFetch(`/api/storefront/${currentSlug}/subscribe`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: nlEmail }),

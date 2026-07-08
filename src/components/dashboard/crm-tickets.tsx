@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
+import { apiFetch } from '@/lib/api'
 
 interface Ticket {
   id: string
@@ -63,7 +64,7 @@ export function CrmTickets() {
       const params = new URLSearchParams()
       if (siteFilter !== 'all') params.set('siteId', siteFilter)
       if (statusFilter !== 'all') params.set('status', statusFilter)
-      const res = await fetch(`/api/tickets?${params}`)
+      const res = await apiFetch(`/api/tickets?${params}`)
       if (res.ok) {
         const data = await res.json()
         setTickets(data.tickets || data || [])
@@ -77,7 +78,7 @@ export function CrmTickets() {
 
   const fetchSites = useCallback(async () => {
     try {
-      const res = await fetch('/api/sites')
+      const res = await apiFetch('/api/sites')
       if (res.ok) {
         const data = await res.json()
         setSites(data.sites || data || [])
@@ -96,7 +97,7 @@ export function CrmTickets() {
     if (!selectedTicket || !reply.trim()) return
     setSending(true)
     try {
-      await fetch(`/api/tickets/${selectedTicket.id}/replies`, {
+      await apiFetch(`/api/tickets/${selectedTicket.id}/replies`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ body: reply }),

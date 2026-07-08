@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Separator } from '@/components/ui/separator'
+import { apiFetch } from '@/lib/api'
 
 interface PaymentConfig {
   terminalKey: string
@@ -47,7 +48,7 @@ export function PaymentSettings() {
   useEffect(() => {
     async function fetchConfig() {
       try {
-        const res = await fetch('/api/config')
+        const res = await apiFetch('/api/config')
         if (res.ok) {
           const data = await res.json()
           setConfig((prev) => ({ ...prev, ...data }))
@@ -64,7 +65,7 @@ export function PaymentSettings() {
   const handleSave = async () => {
     setSaving(true)
     try {
-      const res = await fetch('/api/config', {
+      const res = await apiFetch('/api/config', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(config),
@@ -86,7 +87,7 @@ export function PaymentSettings() {
     setTesting(true)
     setTestResult(null)
     try {
-      const res = await fetch('/api/payments/test', {
+      const res = await apiFetch('/api/payments/test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ amount: 1 }),

@@ -31,6 +31,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
+import { apiFetch } from '@/lib/api'
 
 interface Product {
   id: string
@@ -75,7 +76,7 @@ export function AllProducts() {
         limit: '20',
       })
       if (siteFilter !== 'all') params.set('siteId', siteFilter)
-      const res = await fetch(`/api/products?${params}`)
+      const res = await apiFetch(`/api/products?${params}`)
       if (res.ok) {
         const data = await res.json()
         setProducts(data.products || data || [])
@@ -90,7 +91,7 @@ export function AllProducts() {
 
   const fetchSites = useCallback(async () => {
     try {
-      const res = await fetch('/api/sites')
+      const res = await apiFetch('/api/sites')
       if (res.ok) {
         const data = await res.json()
         setSites(data.sites || data || [])
@@ -118,7 +119,7 @@ export function AllProducts() {
     if (!editProduct) return
     setSaving(true)
     try {
-      await fetch(`/api/products/${editProduct.id}`, {
+      await apiFetch(`/api/products/${editProduct.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

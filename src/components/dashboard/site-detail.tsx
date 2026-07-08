@@ -60,6 +60,7 @@ import {
 } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
+import { apiFetch } from '@/lib/api'
 
 // ---- Types ----
 interface SiteInfo {
@@ -131,7 +132,7 @@ export function SiteDetail() {
     if (!selectedSiteId) return
     setLoading(true)
     try {
-      const res = await fetch(`/api/sites/${selectedSiteId}`)
+      const res = await apiFetch(`/api/sites/${selectedSiteId}`)
       if (res.ok) {
         const data = await res.json()
         // Normalize raw Prisma site object into the SiteInfo shape.
@@ -346,7 +347,7 @@ function OverviewTab({
     setToggling(true)
     try {
       const newStatus = site.status === 'active' || site.status === 'ready' ? 'suspended' : 'ready'
-      await fetch(`/api/sites/${site.id}`, {
+      await apiFetch(`/api/sites/${site.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),
@@ -480,7 +481,7 @@ function ProductsTab({ siteId, categories }: { siteId: string; categories: strin
     setLoading(true)
     try {
       const params = new URLSearchParams({ search })
-      const res = await fetch(`/api/sites/${siteId}/products?${params}`)
+      const res = await apiFetch(`/api/sites/${siteId}/products?${params}`)
       if (res.ok) {
         const data = await res.json()
         setProducts(data.data || data.products || data || [])
@@ -572,13 +573,13 @@ function ProductsTab({ siteId, categories }: { siteId: string; categories: strin
         images: formImages,
       }
       if (editProduct) {
-        await fetch(`/api/sites/${siteId}/products/${editProduct.id}`, {
+        await apiFetch(`/api/sites/${siteId}/products/${editProduct.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
         })
       } else {
-        await fetch(`/api/sites/${siteId}/products`, {
+        await apiFetch(`/api/sites/${siteId}/products`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
@@ -596,7 +597,7 @@ function ProductsTab({ siteId, categories }: { siteId: string; categories: strin
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this product?')) return
     try {
-      await fetch(`/api/sites/${siteId}/products/${id}`, { method: 'DELETE' })
+      await apiFetch(`/api/sites/${siteId}/products/${id}`, { method: 'DELETE' })
       fetchProducts()
     } catch {
       // empty
@@ -864,7 +865,7 @@ function OrdersTab({ siteId }: { siteId: string }) {
     try {
       const params = new URLSearchParams({ siteId, search })
       if (statusFilter !== 'all') params.set('status', statusFilter)
-      const res = await fetch(`/api/orders?${params}`)
+      const res = await apiFetch(`/api/orders?${params}`)
       if (res.ok) {
         const data = await res.json()
         setOrders(data.orders || data || [])
@@ -1028,7 +1029,7 @@ function EmailTab({ siteId }: { siteId: string }) {
     setSaving(true)
     setMsg('')
     try {
-      const res = await fetch(`/api/sites/${siteId}/email`, {
+      const res = await apiFetch(`/api/sites/${siteId}/email`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1054,7 +1055,7 @@ function EmailTab({ siteId }: { siteId: string }) {
     setTesting(true)
     setMsg('')
     try {
-      const res = await fetch(`/api/sites/${siteId}/email/test`, {
+      const res = await apiFetch(`/api/sites/${siteId}/email/test`, {
         method: 'POST',
       })
       if (res.ok) setMsg('Test email sent successfully')
@@ -1183,7 +1184,7 @@ function DomainTab({
     setSaving(true)
     setMsg('')
     try {
-      const res = await fetch(`/api/sites/${siteId}`, {
+      const res = await apiFetch(`/api/sites/${siteId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ domain }),
@@ -1205,7 +1206,7 @@ function DomainTab({
     setVerifying(true)
     setMsg('')
     try {
-      const res = await fetch(`/api/sites/${siteId}/domain/verify`, {
+      const res = await apiFetch(`/api/sites/${siteId}/domain/verify`, {
         method: 'POST',
       })
       if (res.ok) {
@@ -1281,7 +1282,7 @@ function SupportTab({ siteId }: { siteId: string }) {
   const fetchTickets = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch(`/api/tickets?siteId=${siteId}`)
+      const res = await apiFetch(`/api/tickets?siteId=${siteId}`)
       if (res.ok) {
         const data = await res.json()
         setTickets(data.tickets || data || [])
@@ -1301,7 +1302,7 @@ function SupportTab({ siteId }: { siteId: string }) {
     if (!selectedTicket || !reply.trim()) return
     setSending(true)
     try {
-      await fetch(`/api/tickets/${selectedTicket.id}/replies`, {
+      await apiFetch(`/api/tickets/${selectedTicket.id}/replies`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ body: reply }),
@@ -1429,7 +1430,7 @@ function SubscribersTab({ siteId }: { siteId: string }) {
   const fetchSubscribers = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch(`/api/subscribers?siteId=${siteId}`)
+      const res = await apiFetch(`/api/subscribers?siteId=${siteId}`)
       if (res.ok) {
         const data = await res.json()
         setSubscribers(data.subscribers || data || [])
@@ -1447,7 +1448,7 @@ function SubscribersTab({ siteId }: { siteId: string }) {
 
   const handleExport = async () => {
     try {
-      const res = await fetch(`/api/subscribers/export?siteId=${siteId}`)
+      const res = await apiFetch(`/api/subscribers/export?siteId=${siteId}`)
       if (res.ok) {
         const blob = await res.blob()
         const url = URL.createObjectURL(blob)
@@ -1539,7 +1540,7 @@ function ThemeTab({
   const handleSave = async () => {
     setSaving(true)
     try {
-      await fetch(`/api/sites/${siteId}`, {
+      await apiFetch(`/api/sites/${siteId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ primaryColor, logoUrl, tagline }),

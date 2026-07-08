@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Search, Plus, Eye, ExternalLink } from 'lucide-react'
 import { useAppStore } from '@/store/app-store'
+import { apiFetch } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -35,7 +36,7 @@ export function SitesList() {
       const params = new URLSearchParams()
       if (search) params.set('search', search)
       if (statusFilter !== 'all') params.set('status', statusFilter)
-      const res = await fetch(`/api/sites?${params}`)
+      const res = await apiFetch(`/api/sites?${params}`)
       if (res.ok) {
         const data = await res.json()
         setSites(data.sites || data || [])

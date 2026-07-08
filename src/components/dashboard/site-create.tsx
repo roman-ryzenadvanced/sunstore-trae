@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent } from '@/components/ui/card'
+import { apiFetch } from '@/lib/api'
 
 const templateList = [
   { id: 'solar-panels', label: 'Solar Panels', emoji: '☀️' },
@@ -117,7 +118,7 @@ export function SiteCreate() {
     setLoading(true)
     setError('')
     try {
-      const res = await fetch('/api/sites', {
+      const res = await apiFetch('/api/sites', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
