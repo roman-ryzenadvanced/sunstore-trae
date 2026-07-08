@@ -93,12 +93,14 @@ export function AppSidebar() {
           <div className="flex items-center gap-3 px-2 py-1.5">
             <Avatar className="size-8">
               <AvatarFallback className="text-xs">
-                {user?.name
-                  ?.split(' ')
-                  .map((n) => n[0])
-                  .join('')
-                  .toUpperCase()
-                  .slice(0, 2) || 'SA'}
+                {typeof user?.name === 'string'
+                  ? user.name
+                      .split(' ')
+                      .map((n: string) => n[0])
+                      .join('')
+                      .toUpperCase()
+                      .slice(0, 2) || 'SA'
+                  : 'SA'}
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-1 flex-col group-data-[collapsible=icon]:hidden">

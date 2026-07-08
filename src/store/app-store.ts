@@ -69,6 +69,21 @@ export const useAppStore = create<AppState>()(
     {
       name: 'sunstore-auth',
       storage: safeStorage,
+      // Bump version when the persisted shape changes so old localStorage
+      // blobs from previous app versions are migrated/normalized instead of
+      // crashing the UI (e.g. older builds stored `user` as a plain string).
+      version: 2,
+      migrate: (persisted: any, version: number) => {
+        if (!persisted) return persisted
+        const next = { ...persisted }
+        // Normalize `user` into the expected { username, name } object.
+        if (typeof next.user === 'string') {
+          next.user = { username: next.user, name: next.user }
+        } else if (next.user && typeof next.user !== 'object') {
+          next.user = null
+        }
+        return next
+      },
       partialize: (state) => ({
         isAuthenticated: state.isAuthenticated,
         token: state.token,
