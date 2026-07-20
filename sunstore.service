@@ -1,0 +1,48 @@
+# ============================================================================
+# SunStore v2 — Systemd Service Unit
+# ============================================================================
+# Install: cp sunstore.service /etc/systemd/system/
+# Enable: systemctl daemon-reload && systemctl enable sunstore
+# Start:  systemctl start sunstore
+# Logs:   journalctl -u sunstore -f
+# ============================================================================
+
+[Unit]
+Description=SunStore v2 — Multi-Store E-Commerce Platform
+Documentation=https://github.com/roman-ryzenadvanced/sunstore
+After=network.target network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=root
+Group=root
+
+# ── Working Directory ────────────────────────────────────────────────────
+# Points to the standalone build output (contains server.js + .next + public)
+WorkingDirectory=/app/sunstore/.next/standalone
+
+# ── Environment Variables ────────────────────────────────────────────────
+Environment="NODE_ENV=production"
+Environment="PORT=3000"
+Environment="HOSTNAME=0.0.0.0"
+Environment="DATABASE_URL=file:/app/sunstore/.next/standalone/production.db"
+Environment="JWT_SECRET=CHANGE-ME-TO-A-SECURE-RANDOM-STRING"
+Environment="NEXT_TELEMETRY_DISABLED=1"
+
+# ── Process ──────────────────────────────────────────────────────────────
+ExecStart=/root/.bun/bin/bun /app/sunstore/.next/standalone/server.js
+
+# ── Restart Policy ──────────────────────────────────────────────────────
+Restart=always
+RestartSec=5
+StartLimitIntervalSec=60
+StartLimitBurst=3
+
+# ── Logging ──────────────────────────────────────────────────────────────
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=sunstore
+
+[Install]
+WantedBy=multi-user.target

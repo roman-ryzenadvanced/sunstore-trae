@@ -1,0 +1,246 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============ AUTH ============
+
+model SuperAdmin {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  name      String   @default("Super Admin")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// ============ SITES / STORES ============
+
+model Site {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  tagline     String   @default("")
+  templateId  String   @default("general")
+  status      String   @default("PROVISIONING") // READY, SUSPENDED, PROVISIONING
+  primaryColor String  @default("#0f172a")
+  logoUrl     String   @default("")
+  categories  String   @default("[]") // JSON array
+  customDomain String  @default("")
+  domainVerified Boolean @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner       SiteAdmin?
+  products    SiteProduct[]
+  orders      SiteOrder[]
+  tickets     SupportTicket[]
+  subscribers Subscriber[]
+  emailConfig SiteEmailConfig?
+}
+
+model SiteAdmin {
+  id        String   @id @default(cuid())
+  siteId    String   @unique
+  username  String
+  email     String
+  password  String
+  name      String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  site      Site     @relation(fields: [siteId], references: [id])
+}
+
+// ============ PRODUCTS ============
+
+model SiteProduct {
+  id          String   @id @default(cuid())
+  siteId      String
+  title       String
+  slug        String   @default("")
+  description String   @default("")
+  price       Float    @default(0)
+  oldPrice    Float    @default(0)
+  currency    String   @default("RUB")
+  stock       Int      @default(0)
+  images      String   @default("[]") // JSON array of URLs
+  specs       String   @default("{}") // JSON object
+  category    String   @default("")
+  featured    Boolean  @default(false)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  site        Site     @relation(fields: [siteId], references: [id])
+  orderItems  OrderItem[]
+
+  @@index([siteId])
+  @@index([category])
+}
+
+// ============ ORDERS ============
+
+model SiteOrder {
+  id            String   @id @default(cuid())
+  siteId        String
+  orderNumber   String   @unique
+  status        String   @default("NEW")
+  customerId    String?  @unique // NEW, PENDING, AUTHORIZED, CONFIRMED, REJECTED, CANCELLED, REFUNDED
+  customerName  String
+  customerEmail String
+  customerPhone String
+  totalAmount   Float
+  currency      String   @default("RUB")
+  paymentId     String   @default("")
+  paymentUrl    String   @default("")
+  paymentMode   String   @default("demo") // demo, sandbox, live
+  note          String   @default("")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  site          Site       @relation(fields: [siteId], references: [id])
+  customer      Customer?  @relation(fields: [customerId], references: [id])
+  items         OrderItem[]
+
+  @@index([siteId])
+  @@index([status])
+}
+
+model OrderItem {
+  id          String   @id @default(cuid())
+  orderId     String
+  productId   String
+  title       String
+  price       Float
+  quantity    Int
+  createdAt   DateTime @default(now())
+
+  order       SiteOrder   @relation(fields: [orderId], references: [id])
+  product     SiteProduct @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+}
+
+// ============ CRM ============
+
+model SupportTicket {
+  id        String   @id @default(cuid())
+  siteId    String
+  name      String
+  email     String
+  subject   String
+  message   String
+  status    String   @default("open") // open, replied, closed
+  reply     String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  site      Site     @relation(fields: [siteId], references: [id])
+
+  @@index([siteId])
+  @@index([status])
+}
+
+model Subscriber {
+  id        String   @id @default(cuid())
+  siteId    String
+  email     String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  site      Site     @relation(fields: [siteId], references: [id])
+
+  @@unique([siteId, email])
+  @@index([siteId])
+}
+
+// ============ EMAIL CONFIG ============
+
+model SiteEmailConfig {
+  id           String   @id @default(cuid())
+  siteId       String   @unique
+  provider     String   @default("gmail") // gmail, smtp
+  smtpHost     String   @default("")
+  smtpPort     Int      @default(587)
+  smtpUser     String   @default("")
+  smtpPass     String   @default("")
+  fromName     String   @default("")
+  fromEmail    String   @default("")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  site         Site     @relation(fields: [siteId], references: [id])
+}
+
+// ============ PLATFORM CONFIG ============
+
+model PlatformConfig {
+  id    String @id @default(cuid())
+  key   String @unique
+  value String @default("")
+  updatedAt DateTime @updatedAt
+
+  @@index([key])
+}
+
+// ============ PAYMENT TRANSACTIONS ============
+
+model PaymentTransaction {
+  id            String   @id @default(cuid())
+  orderId       String   @unique
+  siteId        String
+  tbankPaymentId String  @default("")
+  amount        Float
+  currency      String   @default("RUB")
+  status        String   @default("pending") // pending, authorized, confirmed, rejected
+  rawRequest    String   @default("")  // JSON
+  rawResponse   String   @default("") // JSON
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([siteId])
+  @@index([status])
+}
+// ============ SOLAR QUOTES ============
+
+model SiteQuote {
+  id              String   @id @default(cuid())
+  email           String
+  name            String   @default("")
+  phone           String   @default("")
+  panels          Int
+  inverter        Int
+  battery         Int
+  total           Float
+  monthly         Float
+  siteId          String   @default("")
+  consumption     Int
+  installationType String   @default("roof") // roof, fence, balcony
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([email])
+  @@index([createdAt])
+}
+
+// ============ CUSTOMERS (Visitor Accounts) ============
+
+model Customer {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  password    String   // bcrypt hash
+  name        String?
+  phone       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  orders      SiteOrder[]
+  
+  @@index([email])
+  @@index([createdAt])
+}
