@@ -1,0 +1,2575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Playground | AI Concept Showcase</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+    * { font-family: 'Inter', sans-serif; }
+    body { background: #000; }
+    .gradient-text { background: linear-gradient(135deg, #8b5cf6, #d946ef, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); }
+    .card-glow:hover { box-shadow: 0 0 60px rgba(139, 92, 246, 0.3); transform: translateY(-4px); }
+    @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-20px); } }
+    @keyframes pulse-glow { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.6; } }
+    .float { animation: float 6s ease-in-out infinite; }
+    .pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeIn 0.8s ease-out forwards; }
+    .project-card { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+  
+    /* Mobile Responsive */
+    @media screen and (max-width: 1024px) {
+        .nav { 
+            padding: 10px 15px; 
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .nav-links { 
+            order: 3;
+            width: 100%;
+            justify-content: center;
+            gap: 10px;
+        }
+        .nav-links a { 
+            padding: 8px 12px; 
+            font-size: 12px; 
+        }
+        
+        .hero {
+            padding: 60px 20px 40px;
+            min-height: auto;
+        }
+        .hero h1 { font-size: 2rem; }
+        .hero p { font-size: 14px; }
+        .hero-buttons { flex-wrap: wrap; gap: 10px; }
+        
+        .demos-grid {
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            padding: 0 15px;
+        }
+        
+        .demo-card { padding: 15px; }
+        .demo-card h3 { font-size: 1rem; }
+        .demo-card p { font-size: 12px; }
+        
+        .categories {
+            padding: 15px;
+            flex-wrap: wrap;
+        }
+        .category-btn {
+            padding: 8px 14px;
+            font-size: 11px;
+        }
+        
+        .section { padding: 40px 15px; }
+        .section h2 { font-size: 1.5rem; }
+    }
+    
+    @media screen and (max-width: 768px) {
+        .nav { padding: 8px 10px; }
+        .nav-logo h1 { font-size: 1.2rem; }
+        .nav-links a { padding: 6px 10px; font-size: 11px; }
+        
+        .hero { padding: 40px 15px 30px; }
+        .hero h1 { font-size: 1.6rem; }
+        .hero p { font-size: 13px; }
+        
+        .demos-grid {
+            grid-template-columns: 1fr;
+            padding: 0 10px;
+        }
+        
+        .demo-card { padding: 12px; }
+        .demo-card h3 { font-size: 0.95rem; }
+        
+        .footer { padding: 30px 15px; }
+        .footer-grid { grid-template-columns: 1fr; gap: 20px; }
+    }
+    
+    @media screen and (max-width: 480px) {
+        .nav-links { gap: 5px; }
+        .nav-links a { padding: 5px 8px; font-size: 10px; }
+        
+        .hero h1 { font-size: 1.3rem; }
+        .hero-buttons a { padding: 10px 16px; font-size: 12px; }
+        
+        .category-btn { padding: 6px 10px; font-size: 10px; }
+        
+        .demo-card { padding: 10px; }
+        .demo-card h3 { font-size: 0.85rem; }
+        .demo-card p { font-size: 11px; }
+    }
+
+    /* Section Filter Buttons */
+    html { scroll-behavior: smooth; scroll-padding-top: 20px; }
+    .filter-btn {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 16px;
+        border-radius: 9999px;
+        font-size: 13px;
+        font-weight: 500;
+        color: rgba(255,255,255,0.5);
+        background: rgba(255,255,255,0.04);
+        border: 1px solid rgba(255,255,255,0.08);
+        text-decoration: none;
+        transition: all 0.25s ease;
+        backdrop-filter: blur(8px);
+    }
+    .filter-btn:hover {
+        color: rgba(255,255,255,0.85);
+        background: rgba(255,255,255,0.1);
+        border-color: rgba(255,255,255,0.2);
+        transform: translateY(-1px);
+    }
+    .filter-btn.active {
+        color: #fff;
+        background: rgba(255,255,255,0.12);
+        border-color: rgba(255,255,255,0.25);
+        box-shadow: 0 0 20px rgba(139,92,246,0.15);
+    }
+    @media screen and (max-width: 768px) {
+        .filter-btn { padding: 6px 12px; font-size: 11px; }
+        #sectionFilters { gap: 6px; }
+    }
+</style>
+</head>
+<body class="min-h-screen text-white overflow-x-hidden">
+  <!-- Animated Background -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden">
+    <div class="absolute -top-40 -left-40 w-96 h-96 bg-violet-600/30 rounded-full blur-3xl pulse-glow"></div>
+    <div class="absolute top-1/3 -right-20 w-80 h-80 bg-fuchsia-600/20 rounded-full blur-3xl pulse-glow" style="animation-delay: 1s;"></div>
+    <div class="absolute bottom-20 left-1/4 w-72 h-72 bg-pink-600/20 rounded-full blur-3xl pulse-glow" style="animation-delay: 2s;"></div>
+  </div>
+
+  <div class="relative max-w-7xl mx-auto px-4 sm:px-6 py-12">
+    <!-- Navigation -->
+    <nav class="flex justify-between items-center mb-16">
+      <a href="https://rommark.dev" class="flex items-center gap-2 px-4 py-2 glass rounded-full text-sm font-medium hover:bg-white/10 transition-colors">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        rommark.dev
+      </a>
+      <div class="flex items-center gap-2 px-3 py-1.5 glass rounded-full text-xs">
+        <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+        Experimental Zone
+      </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="text-center mb-16 fade-in">
+      <div class="inline-flex items-center gap-2 px-4 py-2 glass rounded-full text-xs font-semibold uppercase tracking-widest text-white/60 mb-6">
+        <span class="text-lg">◆</span> AI Concept Showcase
+      </div>
+      <h1 class="text-6xl md:text-8xl font-black tracking-tighter mb-6 gradient-text">
+        Playground
+      </h1>
+      <p class="text-white/50 text-lg max-w-xl mx-auto mb-8">
+        Unique concept ideas generated with different AI models. Where creativity meets code.
+      </p>
+      <!-- Section Filter Buttons -->
+      <div class="flex flex-wrap justify-center gap-2 mb-8 max-w-3xl mx-auto" id="sectionFilters">
+        <a href="#section-concepts" class="filter-btn active" data-section="section-concepts">
+          <span class="w-2 h-2 rounded-full bg-violet-400 inline-block mr-1.5"></span>AI Concepts
+        </a>
+        <a href="#section-games" class="filter-btn" data-section="section-games">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block mr-1.5"></span>Games
+        </a>
+        <a href="#section-tools" class="filter-btn" data-section="section-tools">
+          <span class="w-2 h-2 rounded-full bg-blue-400 inline-block mr-1.5"></span>Apps & Tools
+        </a>
+        <a href="#section-experiments" class="filter-btn" data-section="section-experiments">
+          <span class="w-2 h-2 rounded-full bg-purple-400 inline-block mr-1.5"></span>Experiments
+        </a>
+        <a href="#section-pony" class="filter-btn" data-section="section-pony">
+          <span class="w-2 h-2 rounded-full bg-rose-400 inline-block mr-1.5"></span>GLM-5-Turbo
+        </a>
+      </div>
+      <!-- Demo Samples Notice -->
+      <div class="inline-flex items-center gap-3 px-5 py-3 bg-amber-500/10 border border-amber-500/20 rounded-2xl max-w-2xl mx-auto">
+        <svg class="w-5 h-5 text-amber-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        <p class="text-amber-200/90 text-sm text-left">
+          <strong class="text-amber-300">Demo Samples Only</strong> — These are demonstration concepts created in single prompts to showcase the design capabilities of various AI models. Not production code.
+        </p>
+      </div>
+    </header>
+
+    <!-- AI Concepts Section -->
+    <section id="section-concepts" class="mb-12 fade-in" style="animation-delay: 0.1s;">
+      <h2 class="text-xl font-bold text-white/80 mb-6 flex items-center gap-3">
+        <span class="w-8 h-px bg-gradient-to-r from-violet-500 to-transparent"></span>
+        AI Concepts
+        <span class="px-2 py-0.5 bg-violet-500/20 rounded-full text-xs text-violet-300">Z.AI GLM 5</span>
+      <a href="https://z.ai/subscribe?ic=R0K78RJKNW" target="_blank" class="ml-2 text-xs text-cyan-400 hover:text-cyan-300 underline">Learn more about Z.AI Most Advanced GLM 5 Model here →</a>
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- TYPE//CORE - Typing Speed Test by Perplexity AI -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-cyan-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-violet-900/50 via-cyan-900/50 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">⌨️</div>
+              <div class="absolute w-32 h-32 rounded-full bg-gradient-to-r from-violet-500/30 via-cyan-500/20 to-fuchsia-500/30 animate-pulse blur-xl"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-cyan-400">NEW • Tool</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">TYPE//CORE</h3>
+            <p class="text-sm text-gray-400 mb-3">Real-time typing speed test with live WPM, accuracy meter, consistency score and grade system. Three modes: 30s / 60s / 120s.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-cyan-500/20 rounded text-xs text-cyan-300">WPM Tracker</span>
+                <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Perplexity AI</span>
+              </div>
+              <a href="./typecore.html" class="flex items-center gap-1 text-sm text-cyan-400 hover:text-cyan-300 transition-colors">
+                <span>Try it</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- ZEN GARDEN -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-emerald-400/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-stone-900/60 via-emerald-950/40 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center"><div class="text-6xl">⛩️</div><div class="absolute w-32 h-32 rounded-full bg-emerald-500/10 blur-2xl animate-pulse"></div></div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-emerald-400">NEW • ASMR</div>
+          </div>
+          <div class="p-4"><h3 class="text-lg font-semibold text-white mb-1">Zen Garden</h3><p class="text-sm text-gray-400 mb-3">Rake sand, place stones, draw water ripples and cherry blossoms. Meditative ASMR canvas experience.</p>
+          <div class="flex items-center justify-between"><div class="flex gap-2"><span class="px-2 py-0.5 bg-emerald-500/20 rounded text-xs text-emerald-300">ASMR</span><span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Perplexity AI</span></div>
+          <a href="./zen-garden.html" class="flex items-center gap-1 text-sm text-emerald-400 hover:text-emerald-300 transition-colors"><span>Play</span><svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a></div></div>
+        </div>
+
+        <!-- RAIN ROOM -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-blue-400/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-blue-950/60 via-slate-900/50 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center"><div class="text-6xl">🌧️</div><div class="absolute w-32 h-32 rounded-full bg-blue-500/15 blur-2xl animate-pulse"></div></div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-blue-400">NEW • ASMR</div>
+          </div>
+          <div class="p-4"><h3 class="text-lg font-semibold text-white mb-1">Rain Room</h3><p class="text-sm text-gray-400 mb-3">Falling rain simulation with ripples, streaks and intensity control. Pure ASMR rainstorm.</p>
+          <div class="flex items-center justify-between"><div class="flex gap-2"><span class="px-2 py-0.5 bg-blue-500/20 rounded text-xs text-blue-300">ASMR</span><span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Perplexity AI</span></div>
+          <a href="./rain-room.html" class="flex items-center gap-1 text-sm text-blue-400 hover:text-blue-300 transition-colors"><span>Play</span><svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a></div></div>
+        </div>
+
+        <!-- SAND ART -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-yellow-400/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-yellow-950/50 via-orange-950/40 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center"><div class="text-6xl">🎨</div><div class="absolute w-32 h-32 rounded-full bg-yellow-500/10 blur-2xl animate-pulse"></div></div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-yellow-400">NEW • ASMR</div>
+          </div>
+          <div class="p-4"><h3 class="text-lg font-semibold text-white mb-1">Sand Art</h3><p class="text-sm text-gray-400 mb-3">Pour colored sand with real falling physics. Toggle gravity, mix colors, create art.</p>
+          <div class="flex items-center justify-between"><div class="flex gap-2"><span class="px-2 py-0.5 bg-yellow-500/20 rounded text-xs text-yellow-300">Physics</span><span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Perplexity AI</span></div>
+          <a href="./sand-art.html" class="flex items-center gap-1 text-sm text-yellow-400 hover:text-yellow-300 transition-colors"><span>Play</span><svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a></div></div>
+        </div>
+
+        <!-- NOVA STRIKE -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-cyan-400/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-cyan-950/50 via-blue-950/40 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center"><div class="text-6xl">🚀</div><div class="absolute w-32 h-32 rounded-full bg-cyan-500/15 blur-2xl animate-pulse"></div></div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-cyan-400">NEW • Shooter</div>
+          </div>
+          <div class="p-4"><h3 class="text-lg font-semibold text-white mb-1">Nova Strike</h3><p class="text-sm text-gray-400 mb-3">Classic space shooter. Arrow keys move, Space shoots. Survive endless waves of alien ships.</p>
+          <div class="flex items-center justify-between"><div class="flex gap-2"><span class="px-2 py-0.5 bg-cyan-500/20 rounded text-xs text-cyan-300">Space</span><span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Perplexity AI</span></div>
+          <a href="./nova-strike.html" class="flex items-center gap-1 text-sm text-cyan-400 hover:text-cyan-300 transition-colors"><span>Play</span><svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a></div></div>
+        </div>
+
+        <!-- BULLET STORM -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-red-400/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-red-950/50 via-rose-950/40 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center"><div class="text-6xl">💥</div><div class="absolute w-32 h-32 rounded-full bg-red-500/15 blur-2xl animate-pulse"></div></div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-red-400">NEW • Action</div>
+          </div>
+          <div class="p-4"><h3 class="text-lg font-semibold text-white mb-1">Bullet Storm</h3><p class="text-sm text-gray-400 mb-3">Bullet-hell dodge game. Move your mouse to survive wave after wave of insane bullet patterns.</p>
+          <div class="flex items-center justify-between"><div class="flex gap-2"><span class="px-2 py-0.5 bg-red-500/20 rounded text-xs text-red-300">Bullet Hell</span><span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Perplexity AI</span></div>
+          <a href="./bullet-storm.html" class="flex items-center gap-1 text-sm text-red-400 hover:text-red-300 transition-colors"><span>Play</span><svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a></div></div>
+        </div>
+
+        <!-- VOID WALKER -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-indigo-400/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-indigo-950/50 via-purple-950/40 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center"><div class="text-6xl">🌌</div><div class="absolute w-32 h-32 rounded-full bg-indigo-500/15 blur-2xl animate-pulse"></div></div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-indigo-400">NEW • Galaxy</div>
+          </div>
+          <div class="p-4"><h3 class="text-lg font-semibold text-white mb-1">Void Walker</h3><p class="text-sm text-gray-400 mb-3">3D warp-speed star field. Move mouse to steer through nebulae and galaxies. Click to boost.</p>
+          <div class="flex items-center justify-between"><div class="flex gap-2"><span class="px-2 py-0.5 bg-indigo-500/20 rounded text-xs text-indigo-300">Galaxy</span><span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Perplexity AI</span></div>
+          <a href="./void-walker.html" class="flex items-center gap-1 text-sm text-indigo-400 hover:text-indigo-300 transition-colors"><span>Explore</span><svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a></div></div>
+        </div>
+
+        <!-- PLANET FORGE -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-orange-400/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-orange-950/50 via-amber-950/40 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center"><div class="text-6xl">🪐</div><div class="absolute w-32 h-32 rounded-full bg-orange-500/15 blur-2xl animate-pulse"></div></div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-orange-400">NEW • Galaxy</div>
+          </div>
+          <div class="p-4"><h3 class="text-lg font-semibold text-white mb-1">Planet Forge</h3><p class="text-sm text-gray-400 mb-3">Build your own solar system. Place rocky, gas, ice and lava planets. Watch them orbit the sun.</p>
+          <div class="flex items-center justify-between"><div class="flex gap-2"><span class="px-2 py-0.5 bg-orange-500/20 rounded text-xs text-orange-300">Sandbox</span><span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Perplexity AI</span></div>
+          <a href="./planet-forge.html" class="flex items-center gap-1 text-sm text-orange-400 hover:text-orange-300 transition-colors"><span>Build</span><svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a></div></div>
+        </div>
+
+        <!-- BLOCK OBBY -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-pink-400/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-pink-950/50 via-fuchsia-950/40 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center"><div class="text-6xl">🟦</div><div class="absolute w-32 h-32 rounded-full bg-pink-500/15 blur-2xl animate-pulse"></div></div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-pink-400">NEW • Roblox</div>
+          </div>
+          <div class="p-4"><h3 class="text-lg font-semibold text-white mb-1">Block Obby</h3><p class="text-sm text-gray-400 mb-3">Roblox-style obstacle course! Jump across colorful platforms, avoid falling. 3 levels with moving platforms.</p>
+          <div class="flex items-center justify-between"><div class="flex gap-2"><span class="px-2 py-0.5 bg-pink-500/20 rounded text-xs text-pink-300">Platformer</span><span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Perplexity AI</span></div>
+          <a href="./block-obby.html" class="flex items-center gap-1 text-sm text-pink-400 hover:text-pink-300 transition-colors"><span>Play</span><svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a></div></div>
+        </div>
+
+        <!-- GUNFIRE ARENA -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-rose-400/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-rose-950/50 via-red-950/40 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center"><div class="text-6xl">🔫</div><div class="absolute w-32 h-32 rounded-full bg-rose-500/15 blur-2xl animate-pulse"></div></div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-rose-400">NEW • Shooter</div>
+          </div>
+          <div class="p-4"><h3 class="text-lg font-semibold text-white mb-1">Gunfire Arena</h3><p class="text-sm text-gray-400 mb-3">Top-down shooter with walls for cover. WASD move, mouse aim, click shoot. Take out enemy waves.</p>
+          <div class="flex items-center justify-between"><div class="flex gap-2"><span class="px-2 py-0.5 bg-rose-500/20 rounded text-xs text-rose-300">Top-down</span><span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Perplexity AI</span></div>
+          <a href="./gunfire-arena.html" class="flex items-center gap-1 text-sm text-rose-400 hover:text-rose-300 transition-colors"><span>Play</span><svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a></div></div>
+        </div>
+
+        <!-- NEON ROGUE -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-violet-400/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-violet-950/50 via-purple-950/40 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center"><div class="text-6xl">🧙</div><div class="absolute w-32 h-32 rounded-full bg-violet-500/15 blur-2xl animate-pulse"></div></div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-violet-400">NEW • Roguelike</div>
+          </div>
+          <div class="p-4"><h3 class="text-lg font-semibold text-white mb-1">Neon Rogue</h3><p class="text-sm text-gray-400 mb-3">Dungeon crawler roguelike. Fight enemies, level up, collect loot. Descend deeper into neon darkness.</p>
+          <div class="flex items-center justify-between"><div class="flex gap-2"><span class="px-2 py-0.5 bg-violet-500/20 rounded text-xs text-violet-300">RPG</span><span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Perplexity AI</span></div>
+          <a href="./neon-rogue.html" class="flex items-center gap-1 text-sm text-violet-400 hover:text-violet-300 transition-colors"><span>Play</span><svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a></div></div>
+        </div>
+
+        
+        <!-- Stellar Drift - AI Generated Game -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-cyan-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-cyan-900/30 via-blue-900/30 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-content:center justify-center">
+              <div class="text-6xl">✦</div>
+              <div class="absolute w-24 h-24 rounded-full bg-cyan-500/20 blur-2xl animate-pulse"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-cyan-400">NEW • Game</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Stellar Drift</h3>
+            <p class="text-sm text-gray-400 mb-3">Guide your ship through asteroid fields using only your mouse. Collect glowing orbs, dodge rock formations, and survive escalating waves.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-cyan-500/20 rounded text-xs text-cyan-300">Arcade</span>
+                <span class="px-2 py-0.5 bg-rose-500/20 rounded text-xs text-rose-300">Perplexity AI</span>
+              </div>
+              <a href="./games/stellar-drift.html" class="flex items-center gap-1 text-sm text-cyan-400 hover:text-cyan-300 transition-colors">
+                <span>Play</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Neon Breakout - AI Generated Game -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-purple-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-purple-900/30 via-fuchsia-900/30 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">⬡</div>
+              <div class="absolute w-24 h-24 rounded-full bg-purple-500/20 blur-2xl animate-pulse"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-purple-400">NEW • Game</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Neon Breakout</h3>
+            <p class="text-sm text-gray-400 mb-3">Plasma-infused Breakout with multi-HP bricks, ghost ball preview, and explosive particle effects. Break all bricks to advance levels.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-purple-500/20 rounded text-xs text-purple-300">Breakout</span>
+                <span class="px-2 py-0.5 bg-rose-500/20 rounded text-xs text-rose-300">Perplexity AI</span>
+              </div>
+              <a href="./games/neon-breakout.html" class="flex items-center gap-1 text-sm text-purple-400 hover:text-purple-300 transition-colors">
+                <span>Play</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Void Maze - AI Generated Game -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-emerald-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-emerald-900/30 via-teal-900/30 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">▓</div>
+              <div class="absolute w-24 h-24 rounded-full bg-emerald-500/20 blur-2xl animate-pulse"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-emerald-400">NEW • Game</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Void Maze</h3>
+            <p class="text-sm text-gray-400 mb-3">Navigate a glowing labyrinth in near-total darkness. Only a faint aura around you reveals the walls. Procedurally generated — every level unique.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-emerald-500/20 rounded text-xs text-emerald-300">Maze</span>
+                <span class="px-2 py-0.5 bg-rose-500/20 rounded text-xs text-rose-300">Perplexity AI</span>
+              </div>
+              <a href="./games/void-maze.html" class="flex items-center gap-1 text-sm text-emerald-400 hover:text-emerald-300 transition-colors">
+                <span>Play</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Plasma Tetris - AI Generated Game -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-pink-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-pink-900/30 via-rose-900/30 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">◈</div>
+              <div class="absolute w-24 h-24 rounded-full bg-pink-500/20 blur-2xl animate-pulse"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-pink-400">NEW • Game</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Plasma Tetris</h3>
+            <p class="text-sm text-gray-400 mb-3">Classic Tetris reimagined with plasma glow effects, ghost piece preview, hard-drop, and neon colour palette. Levels speed up — how long can you last?</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-pink-500/20 rounded text-xs text-pink-300">Puzzle</span>
+                <span class="px-2 py-0.5 bg-rose-500/20 rounded text-xs text-rose-300">Perplexity AI</span>
+              </div>
+              <a href="./games/plasma-tetris.html" class="flex items-center gap-1 text-sm text-pink-400 hover:text-pink-300 transition-colors">
+                <span>Play</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Particle Surge - AI Generated Game -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-yellow-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-yellow-900/30 via-orange-900/30 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">⚡</div>
+              <div class="absolute w-24 h-24 rounded-full bg-yellow-500/20 blur-2xl animate-pulse"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-yellow-400">NEW • Game</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Particle Surge</h3>
+            <p class="text-sm text-gray-400 mb-3">Click to fire energy blasts into a field of glowing nodes. Trigger chain reactions for massive combo scores. Only 5 shots — make every one count.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-yellow-500/20 rounded text-xs text-yellow-300">Strategy</span>
+                <span class="px-2 py-0.5 bg-rose-500/20 rounded text-xs text-rose-300">Perplexity AI</span>
+              </div>
+              <a href="./games/particle-surge.html" class="flex items-center gap-1 text-sm text-yellow-400 hover:text-yellow-300 transition-colors">
+                <span>Play</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Paper Plane Rally - Physics-based Flight Game -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-sky-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-sky-900/50 via-blue-800/50 to-cyan-900/50 relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">✈️</div>
+              <div class="absolute w-32 h-32 rounded-full bg-gradient-to-r from-sky-400/30 via-blue-400/20 to-cyan-400/30 animate-pulse blur-xl"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-sky-400">NEW • Physics</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Paper Plane Rally</h3>
+            <p class="text-sm text-gray-400 mb-3">Draw your flight path and watch your paper airplane soar through notebook skies! Collect stars, avoid obstacles, and reach the target zone.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2 flex-wrap">
+                <span class="px-2 py-0.5 bg-sky-500/20 rounded text-xs text-sky-300">5 Levels</span>
+                <a href="https://z.ai/subscribe?ic=R0K78RJKNW" target="_blank" class="px-2 py-0.5 bg-gradient-to-r from-violet-500/30 to-fuchsia-500/30 rounded text-xs text-white hover:from-violet-500/50 hover:to-fuchsia-500/50 transition-all">One shot made using Z.AI GLM 5</a>
+              </div>
+              <a href="./paper-plane-rally.html" class="flex items-center gap-1 text-sm text-sky-400 hover:text-sky-300 transition-colors">
+                <span>Play</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- Hit the Ship - Multiplayer Battleship Game -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-cyan-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-cyan-900/50 via-blue-900/50 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">⚓</div>
+              <div class="absolute w-32 h-32 rounded-full bg-gradient-to-r from-cyan-500/30 via-blue-500/20 to-teal-500/30 animate-pulse blur-xl"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-cyan-400">NEW • Multiplayer</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Hit the Ship!</h3>
+            <p class="text-sm text-gray-400 mb-3">Classic Battleship-style game for 2-4 players with nostalgic pencil-sketch visuals. Place ships and battle your friends!</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2 flex-wrap">
+                <span class="px-2 py-0.5 bg-cyan-500/20 rounded text-xs text-cyan-300">Turn-based</span>
+                <a href="https://z.ai/subscribe?ic=R0K78RJKNW" target="_blank" class="px-2 py-0.5 bg-gradient-to-r from-violet-500/30 to-fuchsia-500/30 rounded text-xs text-white hover:from-violet-500/50 hover:to-fuchsia-500/50 transition-all">One shot made using Z.AI GLM 5</a>
+              </div>
+              <a href="./hit-the-ship.html" class="flex items-center gap-1 text-sm text-cyan-400 hover:text-cyan-300 transition-colors">
+                <span>Play</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Galaxy Tour - NEW -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-purple-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-purple-900/50 via-indigo-900 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">🌌</div>
+              <div class="absolute w-32 h-32 rounded-full bg-gradient-to-r from-purple-500/30 via-pink-500/20 to-blue-500/30 animate-pulse blur-xl"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-purple-400">NEW • WebGL 3D</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Galaxy Tour</h3>
+            <p class="text-sm text-gray-400 mb-3">Explore a procedurally generated spiral galaxy with 80,000+ stars, nebulae, black holes, and asteroid belts.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-purple-500/20 rounded text-xs text-purple-300">Three.js</span>
+                <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Z.AI GLM 5</span>
+              </div>
+              <a href="./demos/galaxy-tour.html" class="flex items-center gap-1 text-sm text-purple-400 hover:text-purple-300 transition-colors">
+                <span>Explore</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+        <!-- Forex VPS - One VPS Rules Them All -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-green-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-green-900/50 via-emerald-900 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">📈</div>
+              <div class="absolute w-32 h-32 rounded-full bg-gradient-to-r from-green-500/30 via-emerald-500/20 to-cyan-500/30 animate-pulse blur-xl"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-green-400">NEW • Design</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Forex VPS - One VPS Rules Them All</h3>
+            <p class="text-sm text-gray-400 mb-3">Sub-millisecond latency for traders. Interactive world map, live latency counter, STP animation, and Steve Jobs inspired design.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-green-500/20 rounded text-xs text-green-300">Design</span>
+                <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Z.AI GLM 5</span>
+              </div>
+              <a href="https://www.rommark.dev/vps/" class="flex items-center gap-1 text-sm text-green-400 hover:text-green-300 transition-colors">
+                <span>Explore</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+        <!-- Puzzle Master -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-purple-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-purple-900/50 via-indigo-900 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">🧩</div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-purple-400">NEW • Game</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Puzzle Master</h3>
+            <p class="text-sm text-gray-400 mb-3">30 topics of brain-teasing puzzles! Quiz, Match, and more. Challenge yourself!</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-purple-500/20 rounded text-xs text-purple-300">Game</span>
+                <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Z.AI GLM 5</span>
+              </div>
+              <a href="./demos/puzzle-game.html" class="flex items-center gap-1 text-sm text-purple-400 hover:text-purple-300 transition-colors">
+                <span>Play</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+
+
+
+
+        <!-- Earth Moon 3D Simulation -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-cyan-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-blue-900/50 via-slate-900 to-gray-900 relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl animate-pulse">🌍</div>
+              <div class="absolute w-16 h-16 rounded-full bg-gradient-to-br from-gray-400 to-gray-600 animate-spin" style="animation-duration: 10s; transform: translateX(50px);"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-cyan-400">WebGL 3D</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Earth & Moon 3D</h3>
+            <p class="text-sm text-gray-400 mb-3">Interactive orbital simulation demonstrating 3D WebGL capabilities with realistic Earth and Moon rendering.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-blue-500/20 rounded text-xs text-blue-300">Three.js</span>
+                <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Z.AI GLM 5</span>
+              </div>
+              <a href="./demos/earth-moon-3d.html" class="flex items-center gap-1 text-sm text-cyan-400 hover:text-cyan-300 transition-colors">
+                <span>Explore</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Block Ops FPS Game -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-red-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-red-900/50 via-gray-900 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-5xl">🎮</div>
+            </div>
+            <div class="absolute top-2 left-2 px-2 py-1 bg-red-600 rounded text-xs text-white font-bold">FPS</div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-orange-400">ROBLOX STYLE</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Block Ops</h3>
+            <p class="text-sm text-gray-400 mb-3">Call of Duty meets Roblox! Fast-paced FPS with blocky graphics, enemy AI, health system, and killstreaks.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-red-500/20 rounded text-xs text-red-300">Action</span>
+                <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Z.AI GLM 5</span>
+              </div>
+              <a href="./demos/block-ops.html" class="flex items-center gap-1 text-sm text-red-400 hover:text-red-300 transition-colors">
+                <span>Play Now</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fractal Universe -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-purple-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-purple-900/50 via-violet-900 to-fuchsia-900 relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center text-5xl">🌌</div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-purple-500/20 rounded text-xs text-purple-300">WebGL</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Infinite Fractal Universe</h3>
+            <p class="text-sm text-gray-400 mb-3">Zoom infinitely into procedurally generated fractal worlds. Each layer reveals new mathematical beauty.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-purple-500/20 rounded text-xs text-purple-300">Math</span>
+                <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Z.AI GLM 5</span>
+              </div>
+              <a href="./demos/fractal-universe.html" class="text-sm text-purple-400 hover:text-purple-300">Explore →</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Dream World -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-cyan-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-cyan-900/50 via-purple-900 to-pink-900 relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center text-5xl">🌙</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">AI Dream World</h3>
+            <p class="text-sm text-gray-400 mb-3">Surreal floating islands, impossible stairs, and morphing objects. A dreamscape that shifts with mood.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-cyan-500/20 rounded text-xs text-cyan-300">3D</span>
+                <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Z.AI GLM 5</span>
+              </div>
+              <a href="./demos/dream-world.html" class="text-sm text-cyan-400 hover:text-cyan-300">Explore →</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Neural Network Visualizer -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-green-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-green-900/50 via-emerald-900 to-teal-900 relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center text-5xl">🧠</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Neural Network Visualizer</h3>
+            <p class="text-sm text-gray-400 mb-3">Watch neurons pulse and signals flow through layers. Interactive AI "thinking" visualization.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-green-500/20 rounded text-xs text-green-300">AI</span>
+                <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Z.AI GLM 5</span>
+              </div>
+              <a href="./demos/neural-network.html" class="text-sm text-green-400 hover:text-green-300">Explore →</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Solar System Generator -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-orange-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-orange-900/50 via-amber-900 to-red-900 relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center text-5xl">🪐</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Procedural Solar System</h3>
+            <p class="text-sm text-gray-400 mb-3">Generate unique alien solar systems with weird planets, moons, and rings. Save your favorites!</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-orange-500/20 rounded text-xs text-orange-300">Procedural</span>
+                <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Z.AI GLM 5</span>
+              </div>
+              <a href="./demos/solar-system.html" class="text-sm text-orange-400 hover:text-orange-300">Explore →</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sound Reactive Fluid -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-blue-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-blue-900/50 via-cyan-900 to-purple-900 relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center text-5xl">🌊</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Sound Reactive Fluid</h3>
+            <p class="text-sm text-gray-400 mb-3">Beautiful fluid simulation that responds to your microphone. Colors morph with sound waves.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-blue-500/20 rounded text-xs text-blue-300">Audio</span>
+                <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Z.AI GLM 5</span>
+              </div>
+              <a href="./demos/sound-fluid.html" class="text-sm text-blue-400 hover:text-blue-300">Explore →</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quantum Playground -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-violet-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-violet-900/50 via-purple-900 to-indigo-900 relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center text-5xl">⚛</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Quantum Particle Playground</h3>
+            <p class="text-sm text-gray-400 mb-3">Interactive quantum concepts - superposition, entanglement, wave collapse when observed!</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-violet-500/20 rounded text-xs text-violet-300">Physics</span>
+                <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Z.AI GLM 5</span>
+              </div>
+              <a href="./demos/quantum-playground.html" class="text-sm text-violet-400 hover:text-violet-300">Explore →</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Time Travel Earth -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-emerald-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-emerald-900/50 via-green-900 to-blue-900 relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center text-5xl">🌍</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Time-Travel Earth</h3>
+            <p class="text-sm text-gray-400 mb-3">Timeline slider shows Earth through ages - dinosaurs, ice ages, future. Educational & stunning!</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-emerald-500/20 rounded text-xs text-emerald-300">History</span>
+                <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Z.AI GLM 5</span>
+              </div>
+              <a href="./demos/time-travel-earth.html" class="text-sm text-emerald-400 hover:text-emerald-300">Explore →</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Personality Chatroom -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-pink-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-pink-900/50 via-rose-900 to-purple-900 relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center text-5xl">💬</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">AI Personality Chatroom</h3>
+            <p class="text-sm text-gray-400 mb-3">Multiple AI personalities (Sage, Artist, Scientist...) chatting with unique perspectives!</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-pink-500/20 rounded text-xs text-pink-300">Chat</span>
+                <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Z.AI GLM 5</span>
+              </div>
+              <a href="./demos/ai-chatroom.html" class="text-sm text-pink-400 hover:text-pink-300">Explore →</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Breathing Universe -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-teal-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-teal-900/50 via-cyan-900 to-purple-900 relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center text-5xl">🌌</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Breathing Universe</h3>
+            <p class="text-sm text-gray-400 mb-3">Guided breathing exercises in 3D space. World expands on inhale, contracts on exhale.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-teal-500/20 rounded text-xs text-teal-300">Wellness</span>
+                <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Z.AI GLM 5</span>
+              </div>
+              <a href="./demos/breathing-universe.html" class="text-sm text-teal-400 hover:text-teal-300">Explore →</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Living Code Editor -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-lime-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-lime-900/50 via-green-900 to-blue-900 relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center text-5xl">✨</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Living Code Editor</h3>
+            <p class="text-sm text-gray-400 mb-3">Type code and watch it come alive visually. Variables float, functions pulse, loops spin!</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-lime-500/20 rounded text-xs text-lime-300">Code</span>
+                <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Z.AI GLM 5</span>
+              </div>
+              <a href="./demos/living-code.html" class="text-sm text-lime-400 hover:text-lime-300">Explore →</a>
+            </div>
+          </div>
+        </div>
+
+
+
+        <!-- VIRAL FORGE -->
+        <a href="./viral-forge/" class="group project-card block relative overflow-hidden rounded-2xl glass card-glow fade-in" style="animation-delay: 0.1s;">
+          <div class="absolute inset-0 bg-gradient-to-br from-violet-600/20 via-purple-600/10 to-cyan-600/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-6 h-full">
+            <div class="flex items-start justify-between mb-4">
+              <span class="text-4xl">⚡</span>
+              <span class="px-2 py-1 bg-violet-500/30 rounded-full text-xs font-semibold text-white border border-violet-400/30">SOLO 3 Auto-Model</span>
+            </div>
+            <h3 class="text-2xl font-bold tracking-tight mb-1">ViralForge</h3>
+            <p class="text-white/40 text-sm mb-3">AI Campaign Generator</p>
+            <p class="text-white/50 text-sm line-clamp-2">Instantly generate platform-specific campaigns and stunning visuals from just a URL and a few keywords.</p>
+            <div class="mt-4 flex items-center text-violet-400 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+              Explore
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ml-1 transform group-hover:translate-x-1 transition-transform">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </div>
+          </div>
+        </a>
+
+        <!-- NEXUS 3D -->
+        <a href="./nexus-3d.html" class="group project-card block relative overflow-hidden rounded-2xl glass card-glow fade-in" style="animation-delay: 0.15s;">
+          <div class="absolute inset-0 bg-gradient-to-br from-violet-600/20 via-purple-600/10 to-fuchsia-600/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-6 h-full">
+            <div class="flex items-start justify-between mb-4">
+              <span class="text-4xl">◆</span>
+              <span class="px-2 py-1 bg-violet-500/30 rounded-full text-xs font-semibold text-white">Featured</span>
+            </div>
+            <h3 class="text-2xl font-bold tracking-tight mb-1">NEXUS 3D</h3>
+            <p class="text-white/40 text-sm mb-3">Immersive 3D Experience</p>
+            <p class="text-white/50 text-sm line-clamp-2">A breathtaking 3D showcase demonstrating cutting-edge web design capabilities with interactive transforms and depth.</p>
+            <div class="mt-4 flex items-center text-violet-400 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+              Explore
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ml-1 transform group-hover:translate-x-1 transition-transform">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </div>
+          </div>
+        </a>
+
+        <!-- DESIGN LAB -->
+        <a href="./design-lab.html" class="group project-card block relative overflow-hidden rounded-2xl glass card-glow fade-in" style="animation-delay: 0.2s;">
+          <div class="absolute inset-0 bg-gradient-to-br from-amber-500/20 via-orange-600/10 to-red-600/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-6 h-full">
+            <div class="flex items-start justify-between mb-4">
+              <span class="text-4xl">◈</span>
+              <span class="px-2 py-1 bg-amber-500/30 rounded-full text-xs font-semibold text-white">New</span>
+            </div>
+            <h3 class="text-2xl font-bold tracking-tight mb-1">DESIGN LAB</h3>
+            <p class="text-white/40 text-sm mb-3">10 Unique Landing Page Concepts</p>
+            <p class="text-white/50 text-sm line-clamp-2">A stunning portfolio showcasing 10 completely unique landing page design concepts. Each one a masterpiece of modern web design.</p>
+            <div class="mt-4 flex items-center text-amber-400 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+              Explore
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ml-1 transform group-hover:translate-x-1 transition-transform">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </div>
+          </div>
+        </a>
+
+        <!-- NEURAL CHAT -->
+        <a href="./neural-chat/" class="group project-card block relative overflow-hidden rounded-2xl glass card-glow fade-in" style="animation-delay: 0.25s;">
+          <div class="absolute inset-0 bg-gradient-to-br from-cyan-500/20 via-teal-600/10 to-violet-600/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-6 h-full">
+            <div class="flex items-start justify-between mb-4">
+              <span class="text-4xl">⬡</span>
+              <span class="px-2 py-1 bg-cyan-500/30 rounded-full text-xs font-semibold text-white">New</span>
+            </div>
+            <h3 class="text-2xl font-bold tracking-tight mb-1">NEURAL CHAT</h3>
+            <p class="text-white/40 text-sm mb-3">Futuristic AI Chat Interface</p>
+            <p class="text-white/50 text-sm line-clamp-2">A beautiful AI chat interface with animated neural network background, glassmorphism design, and interactive messaging.</p>
+            <div class="mt-4 flex items-center text-cyan-400 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+              Explore
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ml-1 transform group-hover:translate-x-1 transition-transform">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </div>
+          </div>
+        </a>
+
+        <!-- 3D WEBSITE EXPERIENCE -->
+        <a href="./3d-website-demo/" class="group project-card block relative overflow-hidden rounded-2xl glass card-glow fade-in" style="animation-delay: 0.3s;">
+          <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/20 via-purple-600/10 to-pink-600/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-6 h-full">
+            <div class="flex items-start justify-between mb-4">
+              <span class="text-4xl">◇</span>
+              <span class="px-2 py-1 bg-indigo-500/30 rounded-full text-xs font-semibold text-white">WebGL</span>
+            </div>
+            <h3 class="text-2xl font-bold tracking-tight mb-1">3D WEBSITE</h3>
+            <p class="text-white/40 text-sm mb-3">Immersive WebGL Landing Page</p>
+            <p class="text-white/50 text-sm line-clamp-2">A stunning 3D website demo featuring Three.js WebGL graphics, particle systems, glassmorphism UI, and scroll-driven animations.</p>
+            <div class="mt-4 flex items-center text-indigo-400 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+              Explore
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ml-1 transform group-hover:translate-x-1 transition-transform">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </div>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Games Section -->
+    <section id="section-games" class="fade-in" style="animation-delay: 0.4s;">
+      <h2 class="text-xl font-bold text-white/80 mb-6 flex items-center gap-3">
+        <span class="w-8 h-px bg-gradient-to-r from-emerald-500 to-transparent"></span>
+        AI-Generated Games
+        <span class="px-2 py-0.5 bg-emerald-500/20 rounded-full text-xs text-emerald-300">GLM 4.7</span>
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- Paper Plane Rally - Physics-based Flight Game -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-sky-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-sky-900/50 via-blue-800/50 to-cyan-900/50 relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">✈️</div>
+              <div class="absolute w-32 h-32 rounded-full bg-gradient-to-r from-sky-400/30 via-blue-400/20 to-cyan-400/30 animate-pulse blur-xl"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-sky-400">NEW • Physics</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Paper Plane Rally</h3>
+            <p class="text-sm text-gray-400 mb-3">Draw your flight path and watch your paper airplane soar through notebook skies! Collect stars, avoid obstacles, and reach the target zone.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2 flex-wrap">
+                <span class="px-2 py-0.5 bg-sky-500/20 rounded text-xs text-sky-300">5 Levels</span>
+                <a href="https://z.ai/subscribe?ic=R0K78RJKNW" target="_blank" class="px-2 py-0.5 bg-gradient-to-r from-violet-500/30 to-fuchsia-500/30 rounded text-xs text-white hover:from-violet-500/50 hover:to-fuchsia-500/50 transition-all">One shot made using Z.AI GLM 5</a>
+              </div>
+              <a href="./paper-plane-rally.html" class="flex items-center gap-1 text-sm text-sky-400 hover:text-sky-300 transition-colors">
+                <span>Play</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- Hit the Ship - Multiplayer Battleship Game -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-cyan-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-cyan-900/50 via-blue-900/50 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">⚓</div>
+              <div class="absolute w-32 h-32 rounded-full bg-gradient-to-r from-cyan-500/30 via-blue-500/20 to-teal-500/30 animate-pulse blur-xl"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-cyan-400">NEW • Multiplayer</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Hit the Ship!</h3>
+            <p class="text-sm text-gray-400 mb-3">Classic Battleship-style game for 2-4 players with nostalgic pencil-sketch visuals. Place ships and battle your friends!</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2 flex-wrap">
+                <span class="px-2 py-0.5 bg-cyan-500/20 rounded text-xs text-cyan-300">Turn-based</span>
+                <a href="https://z.ai/subscribe?ic=R0K78RJKNW" target="_blank" class="px-2 py-0.5 bg-gradient-to-r from-violet-500/30 to-fuchsia-500/30 rounded text-xs text-white hover:from-violet-500/50 hover:to-fuchsia-500/50 transition-all">One shot made using Z.AI GLM 5</a>
+              </div>
+              <a href="./hit-the-ship.html" class="flex items-center gap-1 text-sm text-cyan-400 hover:text-cyan-300 transition-colors">
+                <span>Play</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- TRAE AURORA -->
+        <a href="/tools/game/" class="group project-card block relative overflow-hidden rounded-2xl glass card-glow fade-in" style="animation-delay: 0.45s;">
+          <div class="absolute inset-0 bg-gradient-to-br from-emerald-500/20 via-green-600/10 to-teal-600/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-6 h-full">
+            <div class="flex items-start justify-between mb-4">
+              <span class="text-4xl">🎄</span>
+              <span class="px-2 py-1 bg-emerald-500/30 rounded-full text-xs font-semibold text-white">Featured</span>
+            </div>
+            <h3 class="text-2xl font-bold tracking-tight mb-1">TRAE AURORA</h3>
+            <p class="text-white/40 text-sm mb-3">Crystalline Christmas Experience</p>
+            <p class="text-white/50 text-sm line-clamp-2">Elite HTML5 Christmas adventure with Aurora Borealis engine, Gift Catcher Pro game, combo systems, and glassmorphism UI.</p>
+            <div class="mt-3 flex items-center gap-2">
+              <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-emerald-300">GLM 4.7</span>
+              <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-cyan-300">Gemini 3 Pro</span>
+            </div>
+            <div class="mt-4 flex items-center text-emerald-400 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+              Play Now
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ml-1 transform group-hover:translate-x-1 transition-transform">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </div>
+          </div>
+        </a>
+
+        <!-- AETHERIA -->
+        <a href="/tools/aetheria/" class="group project-card block relative overflow-hidden rounded-2xl glass card-glow fade-in" style="animation-delay: 0.5s;">
+          <div class="absolute inset-0 bg-gradient-to-br from-red-500/20 via-rose-600/10 to-orange-600/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-6 h-full">
+            <div class="flex items-start justify-between mb-4">
+              <span class="text-4xl">⚔️</span>
+              <span class="px-2 py-1 bg-red-500/30 rounded-full text-xs font-semibold text-white">Arena</span>
+            </div>
+            <h3 class="text-2xl font-bold tracking-tight mb-1">AETHERIA</h3>
+            <p class="text-white/40 text-sm mb-3">Slayer's Hub Arena Game</p>
+            <p class="text-white/50 text-sm line-clamp-2">Action-packed HTML5 arena game with crosshair targeting, enemy waves, and neon visual effects.</p>
+            <div class="mt-3 flex items-center gap-2">
+              <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-red-300">GLM 4.7</span>
+              <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-cyan-300">Gemini 3 Pro</span>
+            </div>
+            <div class="mt-4 flex items-center text-red-400 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+              Play Now
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ml-1 transform group-hover:translate-x-1 transition-transform">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </div>
+          </div>
+        </a>
+
+        <!-- BREATHE & POP -->
+        <a href="/bubble-pop-game.html" class="group project-card block relative overflow-hidden rounded-2xl glass card-glow fade-in" style="animation-delay: 0.55s;">
+          <div class="absolute inset-0 bg-gradient-to-br from-blue-500/20 via-indigo-600/10 to-purple-600/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-6 h-full">
+            <div class="flex items-start justify-between mb-4">
+              <span class="text-4xl">🫧</span>
+              <span class="px-2 py-1 bg-blue-500/30 rounded-full text-xs font-semibold text-white">Relaxation</span>
+            </div>
+            <h3 class="text-2xl font-bold tracking-tight mb-1">BREATHE & POP</h3>
+            <p class="text-white/40 text-sm mb-3">ASMR Stress Relief Game</p>
+            <p class="text-white/50 text-sm line-clamp-2">Satisfying bubble-popping ASMR experience designed for stress relief. Touch-optimized gameplay with satisfying pop sounds.</p>
+            <div class="mt-3">
+              <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-blue-300">GLM 4.7</span>
+            </div>
+            <div class="mt-4 flex items-center text-blue-400 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+              Play Now
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ml-1 transform group-hover:translate-x-1 transition-transform">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </div>
+          </div>
+        </a>
+
+        <!-- MEMORY GARDEN -->
+        <a href="/memory-garden.html" class="group project-card block relative overflow-hidden rounded-2xl glass card-glow fade-in" style="animation-delay: 0.6s;">
+          <div class="absolute inset-0 bg-gradient-to-br from-violet-500/20 via-fuchsia-600/10 to-pink-600/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-6 h-full">
+            <div class="flex items-start justify-between mb-4">
+              <span class="text-4xl">🌸</span>
+              <span class="px-2 py-1 bg-violet-500/30 rounded-full text-xs font-semibold text-white">Brain Training</span>
+            </div>
+            <h3 class="text-2xl font-bold tracking-tight mb-1">MEMORY GARDEN</h3>
+            <p class="text-white/40 text-sm mb-3">ASMR Memory Training</p>
+            <p class="text-white/50 text-sm line-clamp-2">Calming memory card game with animated particle backgrounds, bloom effects, and Zen-like gameplay.</p>
+            <div class="mt-3">
+              <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">GLM 4.7</span>
+            </div>
+            <div class="mt-4 flex items-center text-violet-400 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+              Play Now
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ml-1 transform group-hover:translate-x-1 transition-transform">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </div>
+          </div>
+        </a>
+
+        <!-- ECHO CHAMBER -->
+        <a href="./games/echo-chamber/" class="group project-card block relative overflow-hidden rounded-2xl glass card-glow fade-in" style="animation-delay: 0.65s;">
+          <div class="absolute inset-0 bg-gradient-to-br from-cyan-500/20 via-blue-600/10 to-purple-600/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-6 h-full">
+            <div class="flex items-start justify-between mb-4">
+              <span class="text-4xl">⏳</span>
+              <span class="px-2 py-1 bg-cyan-500/30 rounded-full text-xs font-semibold text-white">New</span>
+            </div>
+            <h3 class="text-2xl font-bold tracking-tight mb-1">ECHO CHAMBER</h3>
+            <p class="text-white/40 text-sm mb-3">Time-Bending FPS Shooter</p>
+            <p class="text-white/50 text-sm line-clamp-2">Unique Unity WebGL shooter where your past becomes your ally. Spawn time echoes that fight alongside you!</p>
+            <div class="mt-3 flex items-center gap-2">
+              <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-cyan-300">Unity WebGL</span>
+              <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Z.AI GLM 5</span>
+            </div>
+            <div class="mt-4 flex items-center text-cyan-400 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+              Play Now
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ml-1 transform group-hover:translate-x-1 transition-transform">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </div>
+          </div>
+        </a>
+        <!-- SNAKE GAME -->
+        <a href="./games/snake-game/" class="group project-card block relative overflow-hidden rounded-2xl glass card-glow fade-in" style="animation-delay: 0.7s;">
+          <div class="absolute inset-0 bg-gradient-to-br from-green-500/20 via-emerald-600/10 to-lime-500/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-6">
+            <div class="flex items-start justify-between mb-4">
+              <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-2xl">🐍</div>
+              <span class="text-xs text-white/40 bg-white/5 px-2 py-1 rounded">HTML5 Game</span>
+            </div>
+            <h3 class="text-lg font-semibold text-white mb-2">Snake Game</h3>
+            <p class="text-sm text-white/60 mb-4">Classic arcade game with a modern twist. Use arrow keys or WASD to control the snake.</p>
+            <div class="flex items-center gap-2 text-xs text-white/40">
+              <span class="px-2 py-1 bg-white/5 rounded">Canvas</span>
+              <span class="px-2 py-1 bg-white/5 rounded">JavaScript</span>
+              <span class="px-2 py-1 bg-white/5 rounded">GLM 4.7 Flash</span>
+            </div>
+            <div class="absolute bottom-6 right-6 text-white/20 group-hover:text-white/60 group-hover:translate-x-1 transition-all">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3"></path></svg>
+            </div>
+          </div>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- Apps & Tools Section -->
+    <section id="section-tools" class="mt-12 fade-in" style="animation-delay: 0.75s;">
+      <h2 class="text-xl font-bold text-white/80 mb-6 flex items-center gap-3">
+        <span class="w-8 h-px bg-gradient-to-r from-blue-500 to-transparent"></span>
+        Apps & Tools
+        <span class="px-2 py-0.5 bg-blue-500/20 rounded-full text-xs text-blue-300">Productivity</span>
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- Paper Plane Rally - Physics-based Flight Game -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-sky-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-sky-900/50 via-blue-800/50 to-cyan-900/50 relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">✈️</div>
+              <div class="absolute w-32 h-32 rounded-full bg-gradient-to-r from-sky-400/30 via-blue-400/20 to-cyan-400/30 animate-pulse blur-xl"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-sky-400">NEW • Physics</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Paper Plane Rally</h3>
+            <p class="text-sm text-gray-400 mb-3">Draw your flight path and watch your paper airplane soar through notebook skies! Collect stars, avoid obstacles, and reach the target zone.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2 flex-wrap">
+                <span class="px-2 py-0.5 bg-sky-500/20 rounded text-xs text-sky-300">5 Levels</span>
+                <a href="https://z.ai/subscribe?ic=R0K78RJKNW" target="_blank" class="px-2 py-0.5 bg-gradient-to-r from-violet-500/30 to-fuchsia-500/30 rounded text-xs text-white hover:from-violet-500/50 hover:to-fuchsia-500/50 transition-all">One shot made using Z.AI GLM 5</a>
+              </div>
+              <a href="./paper-plane-rally.html" class="flex items-center gap-1 text-sm text-sky-400 hover:text-sky-300 transition-colors">
+                <span>Play</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- Hit the Ship - Multiplayer Battleship Game -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-cyan-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-cyan-900/50 via-blue-900/50 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">⚓</div>
+              <div class="absolute w-32 h-32 rounded-full bg-gradient-to-r from-cyan-500/30 via-blue-500/20 to-teal-500/30 animate-pulse blur-xl"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-cyan-400">NEW • Multiplayer</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Hit the Ship!</h3>
+            <p class="text-sm text-gray-400 mb-3">Classic Battleship-style game for 2-4 players with nostalgic pencil-sketch visuals. Place ships and battle your friends!</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2 flex-wrap">
+                <span class="px-2 py-0.5 bg-cyan-500/20 rounded text-xs text-cyan-300">Turn-based</span>
+                <a href="https://z.ai/subscribe?ic=R0K78RJKNW" target="_blank" class="px-2 py-0.5 bg-gradient-to-r from-violet-500/30 to-fuchsia-500/30 rounded text-xs text-white hover:from-violet-500/50 hover:to-fuchsia-500/50 transition-all">One shot made using Z.AI GLM 5</a>
+              </div>
+              <a href="./hit-the-ship.html" class="flex items-center gap-1 text-sm text-cyan-400 hover:text-cyan-300 transition-colors">
+                <span>Play</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- PROMPTARCH -->
+        <a href="/tools/promptarch/" class="group project-card block relative overflow-hidden rounded-2xl glass card-glow fade-in" style="animation-delay: 0.8s;">
+          <div class="absolute inset-0 bg-gradient-to-br from-blue-500/20 via-cyan-600/10 to-sky-600/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-6 h-full">
+            <div class="flex items-start justify-between mb-4">
+              <span class="text-4xl">⚡</span>
+              <span class="px-2 py-1 bg-blue-500/30 rounded-full text-xs font-semibold text-white">Featured</span>
+            </div>
+            <h3 class="text-2xl font-bold tracking-tight mb-1">PROMPTARCH</h3>
+            <p class="text-white/40 text-sm mb-3">AI Prompt Architecture Tool</p>
+            <p class="text-white/50 text-sm line-clamp-2">Advanced prompt engineering and architecture platform for crafting powerful AI prompts with precision and creativity.</p>
+            <div class="mt-3">
+              <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-blue-300">Prompt Engineering</span>
+            </div>
+            <div class="mt-4 flex items-center text-blue-400 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+              Open App
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ml-1 transform group-hover:translate-x-1 transition-transform">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </div>
+          </div>
+        </a>
+
+        <!-- NANOJASONPRO -->
+        <a href="/tools/nanojason/" class="group project-card block relative overflow-hidden rounded-2xl glass card-glow fade-in" style="animation-delay: 0.85s;">
+          <div class="absolute inset-0 bg-gradient-to-br from-purple-500/20 via-violet-600/10 to-indigo-600/20 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-6 h-full">
+            <div class="flex items-start justify-between mb-4">
+              <span class="text-4xl">📦</span>
+              <span class="px-2 py-1 bg-purple-500/30 rounded-full text-xs font-semibold text-white">Dev Tool</span>
+            </div>
+            <h3 class="text-2xl font-bold tracking-tight mb-1">NANOJASONPRO</h3>
+            <p class="text-white/40 text-sm mb-3">JSON Data Management</p>
+            <p class="text-white/50 text-sm line-clamp-2">Powerful JSON manipulation and visualization tool for developers working with complex data structures and APIs.</p>
+            <div class="mt-3">
+              <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-purple-300">JSON Editor</span>
+            </div>
+            <div class="mt-4 flex items-center text-purple-400 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+              Open App
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="ml-1 transform group-hover:translate-x-1 transition-transform">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </div>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- More Design Showcase -->
+    <section id="section-experiments" class="mt-16">
+      <h2 class="text-2xl font-bold text-white mb-6">More Experiments</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- Paper Plane Rally - Physics-based Flight Game -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-sky-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-sky-900/50 via-blue-800/50 to-cyan-900/50 relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">✈️</div>
+              <div class="absolute w-32 h-32 rounded-full bg-gradient-to-r from-sky-400/30 via-blue-400/20 to-cyan-400/30 animate-pulse blur-xl"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-sky-400">NEW • Physics</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Paper Plane Rally</h3>
+            <p class="text-sm text-gray-400 mb-3">Draw your flight path and watch your paper airplane soar through notebook skies! Collect stars, avoid obstacles, and reach the target zone.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2 flex-wrap">
+                <span class="px-2 py-0.5 bg-sky-500/20 rounded text-xs text-sky-300">5 Levels</span>
+                <a href="https://z.ai/subscribe?ic=R0K78RJKNW" target="_blank" class="px-2 py-0.5 bg-gradient-to-r from-violet-500/30 to-fuchsia-500/30 rounded text-xs text-white hover:from-violet-500/50 hover:to-fuchsia-500/50 transition-all">One shot made using Z.AI GLM 5</a>
+              </div>
+              <a href="./paper-plane-rally.html" class="flex items-center gap-1 text-sm text-sky-400 hover:text-sky-300 transition-colors">
+                <span>Play</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+
+        <!-- Hit the Ship - Multiplayer Battleship Game -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-cyan-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-cyan-900/50 via-blue-900/50 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">⚓</div>
+              <div class="absolute w-32 h-32 rounded-full bg-gradient-to-r from-cyan-500/30 via-blue-500/20 to-teal-500/30 animate-pulse blur-xl"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-cyan-400">NEW • Multiplayer</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Hit the Ship!</h3>
+            <p class="text-sm text-gray-400 mb-3">Classic Battleship-style game for 2-4 players with nostalgic pencil-sketch visuals. Place ships and battle your friends!</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2 flex-wrap">
+                <span class="px-2 py-0.5 bg-cyan-500/20 rounded text-xs text-cyan-300">Turn-based</span>
+                <a href="https://z.ai/subscribe?ic=R0K78RJKNW" target="_blank" class="px-2 py-0.5 bg-gradient-to-r from-violet-500/30 to-fuchsia-500/30 rounded text-xs text-white hover:from-violet-500/50 hover:to-fuchsia-500/50 transition-all">One shot made using Z.AI GLM 5</a>
+              </div>
+              <a href="./hit-the-ship.html" class="flex items-center gap-1 text-sm text-cyan-400 hover:text-cyan-300 transition-colors">
+                <span>Play</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Aurora Gradient -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-purple-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-purple-900/50 via-indigo-900 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-5xl">🌌</div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-purple-400">Design</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Aurora Gradient</h3>
+            <p class="text-sm text-gray-400 mb-3">Beautiful aurora borealis color gradients</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-purple-500/20 rounded text-xs text-purple-300">UI</span>
+                <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Z.AI GLM 5</span>
+              </div>
+              <a href="./demos/aurora-gradient.html" class="flex items-center gap-1 text-sm text-purple-400 hover:text-purple-300 transition-colors">
+                <span>View</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Brutalist Bloc -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-purple-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-purple-900/50 via-indigo-900 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-5xl">🧱</div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-purple-400">Design</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Brutalist Bloc</h3>
+            <p class="text-sm text-gray-400 mb-3">Raw brutalist design aesthetic</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-purple-500/20 rounded text-xs text-purple-300">UI</span>
+                <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Z.AI GLM 5</span>
+              </div>
+              <a href="./demos/brutalist-bloc.html" class="flex items-center gap-1 text-sm text-purple-400 hover:text-purple-300 transition-colors">
+                <span>View</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cyber Nexus -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-purple-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-purple-900/50 via-indigo-900 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-5xl">🌐</div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-purple-400">Design</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Cyber Nexus</h3>
+            <p class="text-sm text-gray-400 mb-3">Cyberpunk inspired interface</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-purple-500/20 rounded text-xs text-purple-300">UI</span>
+                <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Z.AI GLM 5</span>
+              </div>
+              <a href="./demos/cyber-nexus.html" class="flex items-center gap-1 text-sm text-purple-400 hover:text-purple-300 transition-colors">
+                <span>View</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Editorial Noir -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-purple-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-purple-900/50 via-indigo-900 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-5xl">📰</div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-purple-400">Design</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Editorial Noir</h3>
+            <p class="text-sm text-gray-400 mb-3">Dark editorial magazine style</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-purple-500/20 rounded text-xs text-purple-300">UI</span>
+                <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Z.AI GLM 5</span>
+              </div>
+              <a href="./demos/editorial-noir.html" class="flex items-center gap-1 text-sm text-purple-400 hover:text-purple-300 transition-colors">
+                <span>View</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Geometric -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-purple-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-purple-900/50 via-indigo-900 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-5xl">🔷</div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-purple-400">Design</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Geometric</h3>
+            <p class="text-sm text-gray-400 mb-3">Geometric pattern designs</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-purple-500/20 rounded text-xs text-purple-300">UI</span>
+                <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Z.AI GLM 5</span>
+              </div>
+              <a href="./demos/geometric.html" class="flex items-center gap-1 text-sm text-purple-400 hover:text-purple-300 transition-colors">
+                <span>View</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Glass Morphism -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-purple-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-purple-900/50 via-indigo-900 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-5xl">🪟</div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-purple-400">Design</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Glass Morphism</h3>
+            <p class="text-sm text-gray-400 mb-3">Frosted glass UI effects</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-purple-500/20 rounded text-xs text-purple-300">UI</span>
+                <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Z.AI GLM 5</span>
+              </div>
+              <a href="./demos/glass-morphism.html" class="flex items-center gap-1 text-sm text-purple-400 hover:text-purple-300 transition-colors">
+                <span>View</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gradient Wave -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-purple-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-purple-900/50 via-indigo-900 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-5xl">🌊</div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-purple-400">Design</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Gradient Wave</h3>
+            <p class="text-sm text-gray-400 mb-3">Animated gradient waves</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-purple-500/20 rounded text-xs text-purple-300">UI</span>
+                <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Z.AI GLM 5</span>
+              </div>
+              <a href="./demos/gradient-wave.html" class="flex items-center gap-1 text-sm text-purple-400 hover:text-purple-300 transition-colors">
+                <span>View</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Holographic -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-purple-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-purple-900/50 via-indigo-900 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-5xl">✨</div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-purple-400">Design</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Holographic</h3>
+            <p class="text-sm text-gray-400 mb-3">Holographic iridescent effects</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-purple-500/20 rounded text-xs text-purple-300">UI</span>
+                <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Z.AI GLM 5</span>
+              </div>
+              <a href="./demos/holographic.html" class="flex items-center gap-1 text-sm text-purple-400 hover:text-purple-300 transition-colors">
+                <span>View</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Liquid Diamonds -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-purple-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-purple-900/50 via-indigo-900 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-5xl">💎</div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-purple-400">Design</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Liquid Diamonds</h3>
+            <p class="text-sm text-gray-400 mb-3">Liquid diamond animations</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-purple-500/20 rounded text-xs text-purple-300">UI</span>
+                <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Z.AI GLM 5</span>
+              </div>
+              <a href="./demos/liquid-diamonds.html" class="flex items-center gap-1 text-sm text-purple-400 hover:text-purple-300 transition-colors">
+                <span>View</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Luxury Noir -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-purple-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-purple-900/50 via-indigo-900 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-5xl">🖤</div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-purple-400">Design</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Luxury Noir</h3>
+            <p class="text-sm text-gray-400 mb-3">Luxury dark theme design</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-purple-500/20 rounded text-xs text-purple-300">UI</span>
+                <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Z.AI GLM 5</span>
+              </div>
+              <a href="./demos/luxury-noir.html" class="flex items-center gap-1 text-sm text-purple-400 hover:text-purple-300 transition-colors">
+                <span>View</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Neon Pulse -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-purple-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-purple-900/50 via-indigo-900 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-5xl">💜</div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-purple-400">Design</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Neon Pulse</h3>
+            <p class="text-sm text-gray-400 mb-3">Neon glow animations</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-purple-500/20 rounded text-xs text-purple-300">UI</span>
+                <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Z.AI GLM 5</span>
+              </div>
+              <a href="./demos/neon-pulse.html" class="flex items-center gap-1 text-sm text-purple-400 hover:text-purple-300 transition-colors">
+                <span>View</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Obsidian Prestige -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-purple-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-purple-900/50 via-indigo-900 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-5xl">⚫</div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-purple-400">Design</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Obsidian Prestige</h3>
+            <p class="text-sm text-gray-400 mb-3">Dark obsidian theme</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-purple-500/20 rounded text-xs text-purple-300">UI</span>
+                <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Z.AI GLM 5</span>
+              </div>
+              <a href="./demos/obsidian-prestige.html" class="flex items-center gap-1 text-sm text-purple-400 hover:text-purple-300 transition-colors">
+                <span>View</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Organic Flow -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-purple-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-purple-900/50 via-indigo-900 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-5xl">🌿</div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-purple-400">Design</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Organic Flow</h3>
+            <p class="text-sm text-gray-400 mb-3">Natural organic animations</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-purple-500/20 rounded text-xs text-purple-300">UI</span>
+                <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Z.AI GLM 5</span>
+              </div>
+              <a href="./demos/organic-flow.html" class="flex items-center gap-1 text-sm text-purple-400 hover:text-purple-300 transition-colors">
+                <span>View</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Retro Wave -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-purple-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-purple-900/50 via-indigo-900 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-5xl">📼</div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-purple-400">Design</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Retro Wave</h3>
+            <p class="text-sm text-gray-400 mb-3">80s synthwave aesthetic</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-purple-500/20 rounded text-xs text-purple-300">UI</span>
+                <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Z.AI GLM 5</span>
+              </div>
+              <a href="./demos/retro-wave.html" class="flex items-center gap-1 text-sm text-purple-400 hover:text-purple-300 transition-colors">
+                <span>View</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Zen Minimal -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-purple-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-purple-900/50 via-indigo-900 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-5xl">🧘</div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-purple-400">Design</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Zen Minimal</h3>
+            <p class="text-sm text-gray-400 mb-3">Minimalist zen design</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-purple-500/20 rounded text-xs text-purple-300">UI</span>
+                <span class="px-2 py-0.5 bg-white/10 rounded text-xs text-violet-300">Z.AI GLM 5</span>
+              </div>
+              <a href="./demos/zen-minimal.html" class="flex items-center gap-1 text-sm text-purple-400 hover:text-purple-300 transition-colors">
+                <span>View</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- GLM-5-Turbo Model Experiments -->
+    <section id="section-pony" class="mt-16 fade-in" style="animation-delay: 0.95s;">
+      <h2 class="text-xl font-bold text-white/80 mb-2 flex items-center gap-3">
+        <span class="w-8 h-px bg-gradient-to-r from-rose-500 to-transparent"></span>
+        GLM-5-Turbo Model Experiments
+        <span class="px-2 py-0.5 bg-rose-500/20 rounded-full text-xs text-rose-300">New</span>
+      </h2>
+      <p class="text-white/40 text-sm mb-8 ml-11">20 radical concepts — 15 landing page designs + 5 unique browser games. All built in single prompts.</p>
+
+      <!-- Landing Pages Sub-section -->
+      <h3 class="text-base font-semibold text-white/60 mb-4 flex items-center gap-2 ml-1">
+        <span class="text-rose-400">&#9670;</span> Landing Page Designs
+      </h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+
+        <!-- Void Architecture -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-violet-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-black via-gray-900/50 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">&#x2726;</div>
+              <div class="absolute w-24 h-24 rounded-full bg-violet-600/20 blur-2xl animate-pulse"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-violet-400">Design</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Void Architecture</h3>
+            <p class="text-sm text-gray-400 mb-3">Fall through an infinite void. Text emerges from darkness as you scroll, with pulsing energy lines connecting floating sections.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-violet-500/20 rounded text-xs text-violet-300">Dark Minimal</span>
+                <span class="px-2 py-0.5 bg-rose-500/20 rounded text-xs text-rose-300">GLM-5-Turbo</span>
+              </div>
+              <a href="./demos/void-architecture.html" class="flex items-center gap-1 text-sm text-violet-400 hover:text-violet-300 transition-colors">
+                <span>View</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Glitch Manifesto -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-green-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-green-900/30 via-black to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">&#x26A0;</div>
+              <div class="absolute w-24 h-24 rounded-full bg-green-500/20 blur-2xl animate-pulse"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-green-400">Design</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Glitch Manifesto</h3>
+            <p class="text-sm text-gray-400 mb-3">A cyberpunk terminal aesthetic with CRT scanlines, VHS tracking artifacts, RGB splitting, and corrupted typography.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-green-500/20 rounded text-xs text-green-300">Cyberpunk</span>
+                <span class="px-2 py-0.5 bg-rose-500/20 rounded text-xs text-rose-300">GLM-5-Turbo</span>
+              </div>
+              <a href="./demos/glitch-manifesto.html" class="flex items-center gap-1 text-sm text-green-400 hover:text-green-300 transition-colors">
+                <span>View</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chromatic Drift -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-pink-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-pink-900/30 via-purple-900/30 to-cyan-900/30 relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">&#x1F308;</div>
+              <div class="absolute w-24 h-24 rounded-full bg-pink-500/20 blur-2xl animate-pulse"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-pink-400">Design</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Chromatic Drift</h3>
+            <p class="text-sm text-gray-400 mb-3">Travel through color dimensions. Each section bleeds into the next as floating shapes drift through shifting hues.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-pink-500/20 rounded text-xs text-pink-300">Color Fluid</span>
+                <span class="px-2 py-0.5 bg-rose-500/20 rounded text-xs text-rose-300">GLM-5-Turbo</span>
+              </div>
+              <a href="./demos/chromatic-drift.html" class="flex items-center gap-1 text-sm text-pink-400 hover:text-pink-300 transition-colors">
+                <span>View</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Paper Origami -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-amber-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-amber-900/30 via-orange-900/20 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">&#x1F9E2;</div>
+              <div class="absolute w-24 h-24 rounded-full bg-amber-500/20 blur-2xl animate-pulse"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-amber-400">Design</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Paper Origami</h3>
+            <p class="text-sm text-gray-400 mb-3">A tactile paper craft landing page with CSS 3D fold effects, layered paper panels, and origami-inspired animations.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-amber-500/20 rounded text-xs text-amber-300">Paper Craft</span>
+                <span class="px-2 py-0.5 bg-rose-500/20 rounded text-xs text-rose-300">GLM-5-Turbo</span>
+              </div>
+              <a href="./demos/paper-origami.html" class="flex items-center gap-1 text-sm text-amber-400 hover:text-amber-300 transition-colors">
+                <span>View</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Magnetic Fields -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-blue-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-blue-900/30 via-indigo-900/30 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">&#x269B;</div>
+              <div class="absolute w-24 h-24 rounded-full bg-blue-500/20 blur-2xl animate-pulse"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-blue-400">Design</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Magnetic Fields</h3>
+            <p class="text-sm text-gray-400 mb-3">Interactive electromagnetic landscape. Iron filing particles follow your cursor. Content cards attract and repel.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-blue-500/20 rounded text-xs text-blue-300">Interactive</span>
+                <span class="px-2 py-0.5 bg-rose-500/20 rounded text-xs text-rose-300">GLM-5-Turbo</span>
+              </div>
+              <a href="./demos/magnetic-fields.html" class="flex items-center gap-1 text-sm text-blue-400 hover:text-blue-300 transition-colors">
+                <span>View</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Aurora Cathedral -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-indigo-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-indigo-900/30 via-purple-900/30 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">&#x1F3DB;</div>
+              <div class="absolute w-24 h-24 rounded-full bg-indigo-500/20 blur-2xl animate-pulse"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-indigo-400">Design</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Aurora Cathedral</h3>
+            <p class="text-sm text-gray-400 mb-3">Gothic cathedral meets northern lights. Stained glass, aurora ribbons, vaulted arches, and ethereal light beams.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-indigo-500/20 rounded text-xs text-indigo-300">Gothic</span>
+                <span class="px-2 py-0.5 bg-rose-500/20 rounded text-xs text-rose-300">GLM-5-Turbo</span>
+              </div>
+              <a href="./demos/aurora-cathedral.html" class="flex items-center gap-1 text-sm text-indigo-400 hover:text-indigo-300 transition-colors">
+                <span>View</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Liquid Chrome -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-gray-400/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-gray-800/30 via-gray-900/30 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">&#x1F9EC;</div>
+              <div class="absolute w-24 h-24 rounded-full bg-gray-400/20 blur-2xl animate-pulse"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-gray-400">Design</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Liquid Chrome</h3>
+            <p class="text-sm text-gray-400 mb-3">Mercury and liquid metal surfaces. Flowing reflections, morphing blobs, and hyper-modern chrome aesthetics.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-gray-500/20 rounded text-xs text-gray-300">Metallic</span>
+                <span class="px-2 py-0.5 bg-rose-500/20 rounded text-xs text-rose-300">GLM-5-Turbo</span>
+              </div>
+              <a href="./demos/liquid-chrome.html" class="flex items-center gap-1 text-sm text-gray-400 hover:text-gray-300 transition-colors">
+                <span>View</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Neon Jungle -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-lime-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-lime-900/30 via-green-900/30 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">&#x1F33F;</div>
+              <div class="absolute w-24 h-24 rounded-full bg-lime-500/20 blur-2xl animate-pulse"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-lime-400">Design</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Neon Jungle</h3>
+            <p class="text-sm text-gray-400 mb-3">Cyberpunk rainforest with bioluminescent flora. Neon vines, digital creatures, and firefly particles.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-lime-500/20 rounded text-xs text-lime-300">Bioluminescent</span>
+                <span class="px-2 py-0.5 bg-rose-500/20 rounded text-xs text-rose-300">GLM-5-Turbo</span>
+              </div>
+              <a href="./demos/neon-jungle.html" class="flex items-center gap-1 text-sm text-lime-400 hover:text-lime-300 transition-colors">
+                <span>View</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Kinetic Typography -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-amber-400/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-amber-900/30 via-yellow-900/20 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl font-black text-white/30">Aa</div>
+              <div class="absolute w-24 h-24 rounded-full bg-amber-500/20 blur-2xl animate-pulse"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-amber-400">Design</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Kinetic Typography</h3>
+            <p class="text-sm text-gray-400 mb-3">Typography IS the art. Letters animate, morph, and compose the entire visual landscape. No images needed.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-amber-500/20 rounded text-xs text-amber-300">Typographic</span>
+                <span class="px-2 py-0.5 bg-rose-500/20 rounded text-xs text-rose-300">GLM-5-Turbo</span>
+              </div>
+              <a href="./demos/kinetic-typography.html" class="flex items-center gap-1 text-sm text-amber-400 hover:text-amber-300 transition-colors">
+                <span>View</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Obsidian Mirror -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-red-900/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-red-950/30 via-gray-900/30 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">&#x1F48E;</div>
+              <div class="absolute w-24 h-24 rounded-full bg-red-800/20 blur-2xl animate-pulse"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-red-400">Design</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Obsidian Mirror</h3>
+            <p class="text-sm text-gray-400 mb-3">Volcanic glass surfaces with reflections. Sharp crystalline edges, lava cracks, and ember sparks.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-red-900/50 rounded text-xs text-red-300">Volcanic</span>
+                <span class="px-2 py-0.5 bg-rose-500/20 rounded text-xs text-rose-300">GLM-5-Turbo</span>
+              </div>
+              <a href="./demos/obsidian-mirror.html" class="flex items-center gap-1 text-sm text-red-400 hover:text-red-300 transition-colors">
+                <span>View</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Samurai Zen -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-rose-300/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-rose-900/20 via-stone-900/20 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">&#x1F5EF;</div>
+              <div class="absolute w-24 h-24 rounded-full bg-rose-400/15 blur-2xl animate-pulse"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-rose-300">Design</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Samurai Zen</h3>
+            <p class="text-sm text-gray-400 mb-3">Japanese ink wash meets modern minimalism. Brush strokes, cherry blossoms, ens&#333; circles, and zen gardens.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-rose-500/20 rounded text-xs text-rose-300">Sumi-e</span>
+                <span class="px-2 py-0.5 bg-rose-500/20 rounded text-xs text-rose-300">GLM-5-Turbo</span>
+              </div>
+              <a href="./demos/samurai-zen.html" class="flex items-center gap-1 text-sm text-rose-400 hover:text-rose-300 transition-colors">
+                <span>View</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Deep Ocean -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-cyan-600/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-cyan-950/40 via-blue-950/30 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">&#x1F41F;</div>
+              <div class="absolute w-24 h-24 rounded-full bg-cyan-500/20 blur-2xl animate-pulse"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-cyan-500">Design</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Deep Ocean</h3>
+            <p class="text-sm text-gray-400 mb-3">Bioluminescent deep sea world. Jellyfish, caustic light, bubbles, and the eerie beauty of the abyss.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-cyan-500/20 rounded text-xs text-cyan-300">Underwater</span>
+                <span class="px-2 py-0.5 bg-rose-500/20 rounded text-xs text-rose-300">GLM-5-Turbo</span>
+              </div>
+              <a href="./demos/deep-ocean.html" class="flex items-center gap-1 text-sm text-cyan-500 hover:text-cyan-400 transition-colors">
+                <span>View</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Circuit Garden -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-emerald-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-emerald-950/30 via-green-950/30 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">&#x1F9E9;</div>
+              <div class="absolute w-24 h-24 rounded-full bg-emerald-500/20 blur-2xl animate-pulse"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-emerald-400">Design</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Circuit Garden</h3>
+            <p class="text-sm text-gray-400 mb-3">Electronics meets nature. PCB traces grow like vines, chips bloom like flowers, data flows like water.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-emerald-500/20 rounded text-xs text-emerald-300">Bio-digital</span>
+                <span class="px-2 py-0.5 bg-rose-500/20 rounded text-xs text-rose-300">GLM-5-Turbo</span>
+              </div>
+              <a href="./demos/circuit-garden.html" class="flex items-center gap-1 text-sm text-emerald-400 hover:text-emerald-300 transition-colors">
+                <span>View</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cosmic Loom -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-violet-400/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-violet-950/30 via-fuchsia-950/20 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">&#x2728;</div>
+              <div class="absolute w-24 h-24 rounded-full bg-violet-500/20 blur-2xl animate-pulse"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-violet-400">Design</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Cosmic Loom</h3>
+            <p class="text-sm text-gray-400 mb-3">The universe as woven tapestry. Constellation threads, stellar fabric, and shooting stars connect everything.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-violet-500/20 rounded text-xs text-violet-300">Cosmic</span>
+                <span class="px-2 py-0.5 bg-rose-500/20 rounded text-xs text-rose-300">GLM-5-Turbo</span>
+              </div>
+              <a href="./demos/cosmic-loom.html" class="flex items-center gap-1 text-sm text-violet-400 hover:text-violet-300 transition-colors">
+                <span>View</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Volcanic Glass -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-orange-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-orange-950/30 via-red-950/20 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">&#x1F30B;</div>
+              <div class="absolute w-24 h-24 rounded-full bg-orange-500/20 blur-2xl animate-pulse"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-orange-400">Design</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Volcanic Glass</h3>
+            <p class="text-sm text-gray-400 mb-3">Lava meets glass. Molten transitions alternate with frosted ice surfaces. Fire and ice in dramatic contrast.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-orange-500/20 rounded text-xs text-orange-300">Elemental</span>
+                <span class="px-2 py-0.5 bg-rose-500/20 rounded text-xs text-rose-300">GLM-5-Turbo</span>
+              </div>
+              <a href="./demos/volcanic-glass.html" class="flex items-center gap-1 text-sm text-orange-400 hover:text-orange-300 transition-colors">
+                <span>View</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Haute Noir -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-amber-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-black via-gray-900/50 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">&#x1F453;</div>
+              <div class="absolute w-24 h-24 rounded-full bg-amber-600/20 blur-2xl animate-pulse"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-amber-400">Fashion</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Haute Noir</h3>
+            <p class="text-sm text-gray-400 mb-3">Luxury dark fashion house. Where darkness meets elegance with gold accents, editorial typography, and cinematic minimalism.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-amber-500/20 rounded text-xs text-amber-300">Dark Luxury</span>
+                <span class="px-2 py-0.5 bg-rose-500/20 rounded text-xs text-rose-300">GLM-5-Turbo</span>
+              </div>
+              <a href="./demos/haute-noir.html" class="flex items-center gap-1 text-sm text-amber-400 hover:text-amber-300 transition-colors">
+                <span>View</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Neon Couture -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-pink-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-black via-purple-900/30 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">&#x26A1;</div>
+              <div class="absolute w-24 h-24 rounded-full bg-pink-500/20 blur-2xl animate-pulse"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-pink-400">Fashion</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Neon Couture</h3>
+            <p class="text-sm text-gray-400 mb-3">Futuristic cyberpunk streetwear. Electric neon accents, grid patterns, and bold typography in a dark urban aesthetic.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-pink-500/20 rounded text-xs text-pink-300">Cyberpunk</span>
+                <span class="px-2 py-0.5 bg-rose-500/20 rounded text-xs text-rose-300">GLM-5-Turbo</span>
+              </div>
+              <a href="./demos/neon-couture.html" class="flex items-center gap-1 text-sm text-pink-400 hover:text-pink-300 transition-colors">
+                <span>View</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Silk Road -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-red-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-amber-50 via-rose-100 to-amber-100 relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">&#x1F9EC;</div>
+              <div class="absolute w-24 h-24 rounded-full bg-red-400/20 blur-2xl animate-pulse"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-white/50 rounded text-xs text-red-600">Fashion</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Silk Road</h3>
+            <p class="text-sm text-gray-400 mb-3">Elegant silk and luxury fabric fashion. Warm cream and burgundy tones with serif typography and artisanal craftsmanship.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-red-500/20 rounded text-xs text-red-300">Luxury Silk</span>
+                <span class="px-2 py-0.5 bg-rose-500/20 rounded text-xs text-rose-300">GLM-5-Turbo</span>
+              </div>
+              <a href="./demos/silk-road.html" class="flex items-center gap-1 text-sm text-red-400 hover:text-red-300 transition-colors">
+                <span>View</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Urban Edge -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-orange-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-white via-gray-100 to-gray-50 relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">&#x1F3C3;</div>
+              <div class="absolute w-24 h-24 rounded-full bg-orange-500/20 blur-2xl animate-pulse"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-orange-400">Fashion</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Urban Edge</h3>
+            <p class="text-sm text-gray-400 mb-3">Athletic streetwear fusion. High contrast black and white with electric orange accents, bold type, and dynamic asymmetric layouts.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-orange-500/20 rounded text-xs text-orange-300">Athletic</span>
+                <span class="px-2 py-0.5 bg-rose-500/20 rounded text-xs text-rose-300">GLM-5-Turbo</span>
+              </div>
+              <a href="./demos/urban-edge.html" class="flex items-center gap-1 text-sm text-orange-400 hover:text-orange-300 transition-colors">
+                <span>View</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ethereal Bloom -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-green-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-green-50 via-emerald-50 to-amber-50 relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">&#x1F33C;</div>
+              <div class="absolute w-24 h-24 rounded-full bg-green-400/20 blur-2xl animate-pulse"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-white/50 rounded text-xs text-green-600">Fashion</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Ethereal Bloom</h3>
+            <p class="text-sm text-gray-400 mb-3">Sustainable nature-inspired fashion. Soft sage greens, dusty roses, and organic shapes celebrating earth-conscious design.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-green-500/20 rounded text-xs text-green-300">Sustainable</span>
+                <span class="px-2 py-0.5 bg-rose-500/20 rounded text-xs text-rose-300">GLM-5-Turbo</span>
+              </div>
+              <a href="./demos/ethereal-bloom.html" class="flex items-center gap-1 text-sm text-green-400 hover:text-green-300 transition-colors">
+                <span>View</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Games Sub-section -->
+      <h3 class="text-base font-semibold text-white/60 mb-4 flex items-center gap-2 ml-1">
+        <span class="text-rose-400">&#9670;</span> Browser Games
+        <span class="text-xs text-white/30 ml-1">Touch + Keyboard</span>
+      </h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- Gravity Painter -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-cyan-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-cyan-900/30 via-teal-900/30 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">&#x1F3A8;</div>
+              <div class="absolute w-24 h-24 rounded-full bg-cyan-500/20 blur-2xl animate-pulse"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-cyan-400">Game</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Gravity Painter</h3>
+            <p class="text-sm text-gray-400 mb-3">Draw freehand shapes that become physics objects. Watch your art fall, bounce, and stack in a cascading physics painting.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-cyan-500/20 rounded text-xs text-cyan-300">Physics</span>
+                <span class="px-2 py-0.5 bg-rose-500/20 rounded text-xs text-rose-300">GLM-5-Turbo</span>
+              </div>
+              <a href="./games/gravity-painter.html" class="flex items-center gap-1 text-sm text-cyan-400 hover:text-cyan-300 transition-colors">
+                <span>Play</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Echo Navigator -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-teal-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-teal-900/30 via-emerald-900/30 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">&#x1F576;</div>
+              <div class="absolute w-24 h-24 rounded-full bg-teal-500/20 blur-2xl animate-pulse"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-teal-400">Game</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Echo Navigator</h3>
+            <p class="text-sm text-gray-400 mb-3">Navigate mazes in total darkness. Only a faint glow around you and your fading echo trail reveal the path. Procedurally generated.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-teal-500/20 rounded text-xs text-teal-300">Maze</span>
+                <span class="px-2 py-0.5 bg-rose-500/20 rounded text-xs text-rose-300">GLM-5-Turbo</span>
+              </div>
+              <a href="./games/echo-navigator.html" class="flex items-center gap-1 text-sm text-teal-400 hover:text-teal-300 transition-colors">
+                <span>Play</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Color Virus -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-red-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-red-900/30 via-orange-900/20 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">&#x1F9A0;</div>
+              <div class="absolute w-24 h-24 rounded-full bg-red-500/20 blur-2xl animate-pulse"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-red-400">Game</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Color Virus</h3>
+            <p class="text-sm text-gray-400 mb-3">Territory control strategy. Infect adjacent cells to expand. Outsmart the AI opponent using shields and bombs to dominate the grid.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-red-500/20 rounded text-xs text-red-300">Strategy</span>
+                <span class="px-2 py-0.5 bg-rose-500/20 rounded text-xs text-rose-300">GLM-5-Turbo</span>
+              </div>
+              <a href="./games/color-virus.html" class="flex items-center gap-1 text-sm text-red-400 hover:text-red-300 transition-colors">
+                <span>Play</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Rhythm Drops -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-yellow-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-yellow-900/30 via-amber-900/20 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">&#x1F3B5;</div>
+              <div class="absolute w-24 h-24 rounded-full bg-yellow-500/20 blur-2xl animate-pulse"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-yellow-400">Game</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Rhythm Drops</h3>
+            <p class="text-sm text-gray-400 mb-3">Musical rhythm game with 4 lanes. Hit drops in time to create melodies. Web Audio API generates real notes. Build combos!</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-yellow-500/20 rounded text-xs text-yellow-300">Music</span>
+                <span class="px-2 py-0.5 bg-rose-500/20 rounded text-xs text-rose-300">GLM-5-Turbo</span>
+              </div>
+              <a href="./games/rhythm-drops.html" class="flex items-center gap-1 text-sm text-yellow-400 hover:text-yellow-300 transition-colors">
+                <span>Play</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Morph Match -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-fuchsia-500/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-fuchsia-900/30 via-purple-900/30 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">&#x1F0CF;</div>
+              <div class="absolute w-24 h-24 rounded-full bg-fuchsia-500/20 blur-2xl animate-pulse"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-fuchsia-400">Game</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Morph Match</h3>
+            <p class="text-sm text-gray-400 mb-3">Memory game with a twist — the shapes on cards continuously morph between forms. Match pairs before they change again!</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-fuchsia-500/20 rounded text-xs text-fuchsia-300">Memory</span>
+                <span class="px-2 py-0.5 bg-rose-500/20 rounded text-xs text-rose-300">GLM-5-Turbo</span>
+              </div>
+              <a href="./games/morph-match.html" class="flex items-center gap-1 text-sm text-fuchsia-400 hover:text-fuchsia-300 transition-colors">
+                <span>Play</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Orbit Catcher -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-sky-400/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-sky-950/30 via-indigo-950/20 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">&#x1F31F;</div>
+              <div class="absolute w-24 h-24 rounded-full bg-sky-500/20 blur-2xl animate-pulse"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-sky-400">Game</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Orbit Catcher</h3>
+            <p class="text-sm text-gray-400 mb-3">Control a gravity well to catch falling stars. Stars orbit around you. Avoid black holes!</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-sky-500/20 rounded text-xs text-sky-300">Gravity</span>
+                <span class="px-2 py-0.5 bg-rose-500/20 rounded text-xs text-rose-300">GLM-5-Turbo</span>
+              </div>
+              <a href="./games/orbit-catcher.html" class="flex items-center gap-1 text-sm text-sky-400 hover:text-sky-300 transition-colors">
+                <span>Play</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Word Storm -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-emerald-400/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-emerald-950/30 via-teal-950/20 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl font-bold text-white/30">W</div>
+              <div class="absolute w-24 h-24 rounded-full bg-emerald-500/20 blur-2xl animate-pulse"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-emerald-400">Game</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Word Storm</h3>
+            <p class="text-sm text-gray-400 mb-3">Letters rain down. Tap them to spell words before the screen floods. Longer words score more!</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-emerald-500/20 rounded text-xs text-emerald-300">Word</span>
+                <span class="px-2 py-0.5 bg-rose-500/20 rounded text-xs text-rose-300">GLM-5-Turbo</span>
+              </div>
+              <a href="./games/word-storm.html" class="flex items-center gap-1 text-sm text-emerald-400 hover:text-emerald-300 transition-colors">
+                <span>Play</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pixel Defender -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-red-400/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-red-950/30 via-orange-950/20 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">&#x1F6E1;</div>
+              <div class="absolute w-24 h-24 rounded-full bg-red-500/20 blur-2xl animate-pulse"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-red-400">Game</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Pixel Defender</h3>
+            <p class="text-sm text-gray-400 mb-3">Tower defense on a pixel grid. Place colored defenders to stop waves of enemy pixels.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-red-500/20 rounded text-xs text-red-300">Tower Defense</span>
+                <span class="px-2 py-0.5 bg-rose-500/20 rounded text-xs text-rose-300">GLM-5-Turbo</span>
+              </div>
+              <a href="./games/pixel-defender.html" class="flex items-center gap-1 text-sm text-red-400 hover:text-red-300 transition-colors">
+                <span>Play</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Bubble Universe -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-pink-400/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-pink-950/30 via-purple-950/20 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">&#x1FAE7;</div>
+              <div class="absolute w-24 h-24 rounded-full bg-pink-500/20 blur-2xl animate-pulse"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-pink-400">Game</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Bubble Universe</h3>
+            <p class="text-sm text-gray-400 mb-3">Pop bubbles to trigger chain reactions. Golden bubbles, rainbow bursts, and skull bombs!</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-pink-500/20 rounded text-xs text-pink-300">Chain Reaction</span>
+                <span class="px-2 py-0.5 bg-rose-500/20 rounded text-xs text-rose-300">GLM-5-Turbo</span>
+              </div>
+              <a href="./games/bubble-universe.html" class="flex items-center gap-1 text-sm text-pink-400 hover:text-pink-300 transition-colors">
+                <span>Play</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Shadow Walker -->
+        <div class="bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl overflow-hidden hover:border-violet-400/50 transition-all duration-300 group">
+          <div class="aspect-video bg-gradient-to-br from-violet-950/30 via-slate-950/20 to-black relative overflow-hidden">
+            <div class="absolute inset-0 flex items-center justify-center">
+              <div class="text-6xl">&#x1F312;</div>
+              <div class="absolute w-24 h-24 rounded-full bg-violet-500/20 blur-2xl animate-pulse"></div>
+            </div>
+            <div class="absolute top-2 right-2 px-2 py-1 bg-black/50 rounded text-xs text-violet-400">Game</div>
+          </div>
+          <div class="p-4">
+            <h3 class="text-lg font-semibold text-white mb-1">Shadow Walker</h3>
+            <p class="text-sm text-gray-400 mb-3">Platformer where your shadow becomes platforms. Position yourself to create paths from shadows.</p>
+            <div class="flex items-center justify-between">
+              <div class="flex gap-2">
+                <span class="px-2 py-0.5 bg-violet-500/20 rounded text-xs text-violet-300">Platformer</span>
+                <span class="px-2 py-0.5 bg-rose-500/20 rounded text-xs text-rose-300">GLM-5-Turbo</span>
+              </div>
+              <a href="./games/shadow-walker.html" class="flex items-center gap-1 text-sm text-violet-400 hover:text-violet-300 transition-colors">
+                <span>Play</span>
+                <svg class="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    
+    <!-- TypeCore Speed Challenges -->
+    <section class="mb-16 fade-in" style="animation-delay: 0.75s;">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-8 h-8 rounded-lg bg-violet-500/20 flex items-center justify-center">
+          <svg class="w-4 h-4 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        </div>
+        <h2 class="text-xl font-bold">TYPE//CORE Speed Challenges</h2>
+        <p class="text-white/30 text-xs mt-0.5">Generated using Sonnet 4.6 on Perplexity</p>
+        <span class="text-xs px-2 py-0.5 bg-violet-500/20 rounded-full text-violet-300 font-semibold">10 Games · NEW</span>
+      </div>
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        
+        <a href="games/code-rush.html" class="group bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-5 hover:bg-white/10 hover:border-white/20 transition-all duration-300 block">
+          <div class="flex items-start justify-between mb-3">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center text-base font-bold" style="background:#34d39922;color:#34d399">⌨</div>
+            <span class="text-xs px-2 py-0.5 rounded-full font-semibold" style="background:#34d39922;color:#34d399">TYPE · SPEED</span>
+          </div>
+          <h3 class="font-bold text-sm mb-1.5 tracking-tight" style="color:#34d399">CODE//RUSH</h3>
+          <p class="text-white/40 text-xs leading-relaxed">Real code snippets — symbols, brackets, async, classes.</p>
+        </a>
+        <a href="games/quote-sprint.html" class="group bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-5 hover:bg-white/10 hover:border-white/20 transition-all duration-300 block">
+          <div class="flex items-start justify-between mb-3">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center text-base font-bold" style="background:#a78bfa22;color:#a78bfa">❝</div>
+            <span class="text-xs px-2 py-0.5 rounded-full font-semibold" style="background:#a78bfa22;color:#a78bfa">TYPE · SPEED</span>
+          </div>
+          <h3 class="font-bold text-sm mb-1.5 tracking-tight" style="color:#a78bfa">QUOTE//SPRINT</h3>
+          <p class="text-white/40 text-xs leading-relaxed">Famous quotes. Type with elegance under pressure.</p>
+        </a>
+        <a href="games/num-blitz.html" class="group bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-5 hover:bg-white/10 hover:border-white/20 transition-all duration-300 block">
+          <div class="flex items-start justify-between mb-3">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center text-base font-bold" style="background:#22d3ee22;color:#22d3ee">#</div>
+            <span class="text-xs px-2 py-0.5 rounded-full font-semibold" style="background:#22d3ee22;color:#22d3ee">TYPE · SPEED</span>
+          </div>
+          <h3 class="font-bold text-sm mb-1.5 tracking-tight" style="color:#22d3ee">NUM//BLITZ</h3>
+          <p class="text-white/40 text-xs leading-relaxed">Numbers, IPs, math expressions. Train your number row.</p>
+        </a>
+        <a href="games/symbol-rush.html" class="group bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-5 hover:bg-white/10 hover:border-white/20 transition-all duration-300 block">
+          <div class="flex items-start justify-between mb-3">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center text-base font-bold" style="background:#f43f5e22;color:#f43f5e">@</div>
+            <span class="text-xs px-2 py-0.5 rounded-full font-semibold" style="background:#f43f5e22;color:#f43f5e">TYPE · SPEED</span>
+          </div>
+          <h3 class="font-bold text-sm mb-1.5 tracking-tight" style="color:#f43f5e">SYMBOL//RUSH</h3>
+          <p class="text-white/40 text-xs leading-relaxed">Special chars, regex, URLs. The ultimate finger workout.</p>
+        </a>
+        <a href="games/zen-flow.html" class="group bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-5 hover:bg-white/10 hover:border-white/20 transition-all duration-300 block">
+          <div class="flex items-start justify-between mb-3">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center text-base font-bold" style="background:#10b98122;color:#10b981">✦</div>
+            <span class="text-xs px-2 py-0.5 rounded-full font-semibold" style="background:#10b98122;color:#10b981">TYPE · SPEED</span>
+          </div>
+          <h3 class="font-bold text-sm mb-1.5 tracking-tight" style="color:#10b981">ZEN//FLOW</h3>
+          <p class="text-white/40 text-xs leading-relaxed">Calm nature prose. Find your rhythm. Breathe. Type.</p>
+        </a>
+        <a href="games/sci-type.html" class="group bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-5 hover:bg-white/10 hover:border-white/20 transition-all duration-300 block">
+          <div class="flex items-start justify-between mb-3">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center text-base font-bold" style="background:#6366f122;color:#6366f1">⚛</div>
+            <span class="text-xs px-2 py-0.5 rounded-full font-semibold" style="background:#6366f122;color:#6366f1">TYPE · SPEED</span>
+          </div>
+          <h3 class="font-bold text-sm mb-1.5 tracking-tight" style="color:#6366f1">SCI//TYPE</h3>
+          <p class="text-white/40 text-xs leading-relaxed">Science and AI terminology. Full-speed vocabulary drill.</p>
+        </a>
+        <a href="games/speed-burst.html" class="group bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-5 hover:bg-white/10 hover:border-white/20 transition-all duration-300 block">
+          <div class="flex items-start justify-between mb-3">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center text-base font-bold" style="background:#ef444422;color:#ef4444">⚡</div>
+            <span class="text-xs px-2 py-0.5 rounded-full font-semibold" style="background:#ef444422;color:#ef4444">TYPE · SPEED</span>
+          </div>
+          <h3 class="font-bold text-sm mb-1.5 tracking-tight" style="color:#ef4444">SPEED//BURST</h3>
+          <p class="text-white/40 text-xs leading-relaxed">Short punchy bursts. Maximum velocity. Pure throughput.</p>
+        </a>
+        <a href="games/dev-lingo.html" class="group bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-5 hover:bg-white/10 hover:border-white/20 transition-all duration-300 block">
+          <div class="flex items-start justify-between mb-3">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center text-base font-bold" style="background:#0ea5e922;color:#0ea5e9">$</div>
+            <span class="text-xs px-2 py-0.5 rounded-full font-semibold" style="background:#0ea5e922;color:#0ea5e9">TYPE · SPEED</span>
+          </div>
+          <h3 class="font-bold text-sm mb-1.5 tracking-tight" style="color:#0ea5e9">DEV//LINGO</h3>
+          <p class="text-white/40 text-xs leading-relaxed">Git, terminal, CLI syntax. Build terminal fluency.</p>
+        </a>
+        <a href="games/focus-mode.html" class="group bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-5 hover:bg-white/10 hover:border-white/20 transition-all duration-300 block">
+          <div class="flex items-start justify-between mb-3">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center text-base font-bold" style="background:#84cc1622;color:#84cc16">◉</div>
+            <span class="text-xs px-2 py-0.5 rounded-full font-semibold" style="background:#84cc1622;color:#84cc16">TYPE · SPEED</span>
+          </div>
+          <h3 class="font-bold text-sm mb-1.5 tracking-tight" style="color:#84cc16">FOCUS//MODE</h3>
+          <p class="text-white/40 text-xs leading-relaxed">Long-form accuracy test. Precision beats speed here.</p>
+        </a>
+        <a href="games/word-storm.html" class="group bg-white/5 backdrop-blur-sm border border-white/10 rounded-xl p-5 hover:bg-white/10 hover:border-white/20 transition-all duration-300 block">
+          <div class="flex items-start justify-between mb-3">
+            <div class="w-9 h-9 rounded-lg flex items-center justify-center text-base font-bold" style="background:#f59e0b22;color:#f59e0b">⚡</div>
+            <span class="text-xs px-2 py-0.5 rounded-full font-semibold" style="background:#f59e0b22;color:#f59e0b">TYPE · SPEED</span>
+          </div>
+          <h3 class="font-bold text-sm mb-1.5 tracking-tight" style="color:#f59e0b">WORD//STORM</h3>
+          <p class="text-white/40 text-xs leading-relaxed">200 most common words. Pure speed. No punctuation. Flow.</p>
+        </a>
+      </div>
+    </section>
+
+    <!-- Coming Soon -->
+    <div class="mt-12 text-center fade-in" style="animation-delay: 0.9s;">
+      <div class="inline-flex flex-col items-center gap-4 px-8 py-6 glass rounded-2xl">
+        <div class="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center text-2xl text-white/40">+</div>
+        <p class="text-white/30 text-sm">More experiments coming soon...</p>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="mt-20 text-center text-white/20 text-sm">
+      <p>Powered by creativity and AI models</p>
+    </footer>
+  </div>
+
+  <script>
+    // Section filter active state on scroll
+    const sections = document.querySelectorAll('section[id]');
+    const filterBtns = document.querySelectorAll('.filter-btn');
+
+    function updateActiveFilter() {
+      let current = '';
+      const scrollY = window.scrollY + 180;
+      sections.forEach(section => {
+        if (scrollY >= section.offsetTop) {
+          current = section.id;
+        }
+      });
+      filterBtns.forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.section === current);
+      });
+    }
+
+    window.addEventListener('scroll', updateActiveFilter, { passive: true });
+    updateActiveFilter();
+  </script>
+</body>
+</html>

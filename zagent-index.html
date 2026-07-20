@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Playground | AI Concept Showcase</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+    * { font-family: 'Inter', sans-serif; }
+    body { background: #000; }
+    .gradient-text { background: linear-gradient(135deg, #8b5cf6, #d946ef, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); }
+    .card-glow:hover { box-shadow: 0 0 60px rgba(139, 92, 246, 0.3); }
+    @keyframes float { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-20px); } }
+    @keyframes pulse-glow { 0%, 100% { opacity: 0.3; } 50% { opacity: 0.6; } }
+    .float { animation: float 6s ease-in-out infinite; }
+    .pulse-glow { animation: pulse-glow 3s ease-in-out infinite; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    .fade-in { animation: fadeIn 0.8s ease-out forwards; }
+    .glm-badge { background: linear-gradient(135deg, rgba(99,102,241,0.3), rgba(217,70,239,0.3)); border: 1px solid rgba(168,85,247,0.4); }
+  </style>
+</head>
+<body class="min-h-screen text-white overflow-x-hidden">
+  <!-- Animated Background -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden">
+    <div class="absolute -top-40 -left-40 w-96 h-96 bg-violet-600/30 rounded-full blur-3xl pulse-glow"></div>
+    <div class="absolute top-1/3 -right-20 w-80 h-80 bg-fuchsia-600/20 rounded-full blur-3xl pulse-glow" style="animation-delay: 1s;"></div>
+    <div class="absolute bottom-20 left-1/4 w-72 h-72 bg-pink-600/20 rounded-full blur-3xl pulse-glow" style="animation-delay: 2s;"></div>
+  </div>
+
+  <div class="relative max-w-6xl mx-auto px-4 sm:px-6 py-12">
+    <!-- Navigation -->
+    <nav class="flex justify-between items-center mb-20">
+      <a href="https://rommark.dev" class="flex items-center gap-2 px-4 py-2 glass rounded-full text-sm font-medium hover:bg-white/10 transition-colors">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        rommark.dev
+      </a>
+      <div class="flex items-center gap-2 px-3 py-1.5 glass rounded-full text-xs">
+        <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+        Experimental Zone
+      </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="text-center mb-20 fade-in">
+      <div class="inline-flex items-center gap-2 px-4 py-2 glass rounded-full text-xs font-semibold uppercase tracking-widest text-white/60 mb-6">
+        <span class="text-lg">◆</span> AI Concept Showcase
+      </div>
+      <h1 class="text-7xl md:text-9xl font-black tracking-tighter mb-6 gradient-text">
+        Playground
+      </h1>
+      <p class="text-white/50 text-lg max-w-xl mx-auto">
+        Unique concept ideas generated with different AI models. Where creativity meets code.
+      </p>
+    </header>
+
+    <!-- GLM 5.2 SHOWCASE SECTION -->
+    <section class="mb-12 fade-in" style="animation-delay: 0.05s;">
+      <div class="flex items-center gap-3 mb-2">
+        <div class="glm-badge px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest text-violet-200">
+          ⚡ 20 Showcases · One-Shot Prompts
+        </div>
+      </div>
+      <h2 class="text-3xl md:text-4xl font-black tracking-tight mb-3" style="background: linear-gradient(135deg, #818cf8, #c084fc, #f0abfc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+        GLM 5.2 Capabilities
+      </h2>
+      <p class="text-white/50 text-sm max-w-2xl mb-8">
+        Each showcase below was generated with a single one-shot prompt to GLM 5.2. Click any card to explore the interactive demo, see which unique GLM 5.2 capabilities were leveraged, and read the exact prompt that produced it.
+      </p>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+        <!-- 01 Horizon Planner -->
+        <a href="./01-horizon-planner.html" class="group block relative overflow-hidden rounded-2xl glass card-glow transition-all duration-500">
+          <div class="absolute inset-0 bg-gradient-to-br from-indigo-600/30 via-violet-600/20 to-fuchsia-600/30 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-5">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-3xl">🌌</span>
+              <span class="text-xs mono text-white/30">#01</span>
+            </div>
+            <h3 class="text-lg font-black tracking-tight mb-1">Horizon Planner</h3>
+            <p class="text-xs text-indigo-300/80 mb-2 mono">Long-Horizon Planning</p>
+            <p class="text-xs text-white/50">Goal → 4 quarters → months → weeks. Watch a 12-month roadmap decompose itself.</p>
+          </div>
+        </a>
+
+        <!-- 02 Cascade Pipes -->
+        <a href="./02-cascade-pipes.html" class="group block relative overflow-hidden rounded-2xl glass card-glow transition-all duration-500">
+          <div class="absolute inset-0 bg-gradient-to-br from-emerald-600/30 via-teal-600/20 to-cyan-600/30 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-5">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-3xl">🔗</span>
+              <span class="text-xs mono text-white/30">#02</span>
+            </div>
+            <h3 class="text-lg font-black tracking-tight mb-1">Cascade Pipes</h3>
+            <p class="text-xs text-emerald-300/80 mb-2 mono">Tool Chaining</p>
+            <p class="text-xs text-white/50">A query flows through 6 specialized tools — each transforms the data downstream.</p>
+          </div>
+        </a>
+
+        <!-- 03 Memory Vault -->
+        <a href="./03-memory-vault.html" class="group block relative overflow-hidden rounded-2xl glass card-glow transition-all duration-500">
+          <div class="absolute inset-0 bg-gradient-to-br from-purple-600/30 via-violet-600/20 to-indigo-600/30 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-5">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-3xl">📚</span>
+              <span class="text-xs mono text-white/30">#03</span>
+            </div>
+            <h3 class="text-lg font-black tracking-tight mb-1">Memory Vault</h3>
+            <p class="text-xs text-purple-300/80 mb-2 mono">Long Context Memory</p>
+            <p class="text-xs text-white/50">128K-token vault. Retrieve the 3 most relevant chunks for any query.</p>
+          </div>
+        </a>
+
+        <!-- 04 Speculative Race -->
+        <a href="./04-speculative-race.html" class="group block relative overflow-hidden rounded-2xl glass card-glow transition-all duration-500">
+          <div class="absolute inset-0 bg-gradient-to-br from-amber-600/30 via-orange-600/20 to-red-600/30 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-5">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-3xl">⚡</span>
+              <span class="text-xs mono text-white/30">#04</span>
+            </div>
+            <h3 class="text-lg font-black tracking-tight mb-1">Speculative Race</h3>
+            <p class="text-xs text-amber-300/80 mb-2 mono">Speculative Decoding</p>
+            <p class="text-xs text-white/50">A 3-lane race: draft model sprints, verifier checks, output streams.</p>
+          </div>
+        </a>
+
+        <!-- 05 Constraint Cube -->
+        <a href="./05-constraint-cube.html" class="group block relative overflow-hidden rounded-2xl glass card-glow transition-all duration-500">
+          <div class="absolute inset-0 bg-gradient-to-br from-rose-600/30 via-orange-600/20 to-amber-600/30 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-5">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-3xl">🎯</span>
+              <span class="text-xs mono text-white/30">#05</span>
+            </div>
+            <h3 class="text-lg font-black tracking-tight mb-1">Constraint Cube</h3>
+            <p class="text-xs text-rose-300/80 mb-2 mono">Constraint Satisfaction</p>
+            <p class="text-xs text-white/50">4-color Latin-square puzzle with real-time constraint propagation.</p>
+          </div>
+        </a>
+
+        <!-- 06 Self-Heal IDE -->
+        <a href="./06-self-heal-ide.html" class="group block relative overflow-hidden rounded-2xl glass card-glow transition-all duration-500">
+          <div class="absolute inset-0 bg-gradient-to-br from-yellow-600/30 via-amber-600/20 to-lime-600/30 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-5">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-3xl">🩹</span>
+              <span class="text-xs mono text-white/30">#06</span>
+            </div>
+            <h3 class="text-lg font-black tracking-tight mb-1">Self-Heal IDE</h3>
+            <p class="text-xs text-yellow-300/80 mb-2 mono">Self-Correction Loop</p>
+            <p class="text-xs text-white/50">Buggy code → diagnose → patch → verify. A 4-step self-healing loop.</p>
+          </div>
+        </a>
+
+        <!-- 07 Reasoning Trace -->
+        <a href="./07-reasoning-trace.html" class="group block relative overflow-hidden rounded-2xl glass card-glow transition-all duration-500">
+          <div class="absolute inset-0 bg-gradient-to-br from-sky-600/30 via-blue-600/20 to-indigo-600/30 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-5">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-3xl">⛓️</span>
+              <span class="text-xs mono text-white/30">#07</span>
+            </div>
+            <h3 class="text-lg font-black tracking-tight mb-1">Reasoning Trace</h3>
+            <p class="text-xs text-sky-300/80 mb-2 mono">Multi-Step Reasoning</p>
+            <p class="text-xs text-white/50">A train word problem decomposed into 6 explicit reasoning steps.</p>
+          </div>
+        </a>
+
+        <!-- 08 Vision Inspector -->
+        <a href="./08-vision-inspector.html" class="group block relative overflow-hidden rounded-2xl glass card-glow transition-all duration-500">
+          <div class="absolute inset-0 bg-gradient-to-br from-pink-600/30 via-rose-600/20 to-purple-600/30 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-5">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-3xl">👁️</span>
+              <span class="text-xs mono text-white/30">#08</span>
+            </div>
+            <h3 class="text-lg font-black tracking-tight mb-1">Vision Inspector</h3>
+            <p class="text-xs text-pink-300/80 mb-2 mono">Vision Understanding</p>
+            <p class="text-xs text-white/50">Bounding boxes, confidence scores, natural captions — synthetic vision.</p>
+          </div>
+        </a>
+
+        <!-- 09 Narrative Loom -->
+        <a href="./09-narrative-loom.html" class="group block relative overflow-hidden rounded-2xl glass card-glow transition-all duration-500">
+          <div class="absolute inset-0 bg-gradient-to-br from-teal-600/30 via-cyan-600/20 to-emerald-600/30 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-5">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-3xl">📖</span>
+              <span class="text-xs mono text-white/30">#09</span>
+            </div>
+            <h3 class="text-lg font-black tracking-tight mb-1">Narrative Loom</h3>
+            <p class="text-xs text-teal-300/80 mb-2 mono">Long-Form Coherence</p>
+            <p class="text-xs text-white/50">A 5-chapter branching story with consistent characters and tone.</p>
+          </div>
+        </a>
+
+        <!-- 10 Math Cathedral -->
+        <a href="./10-math-cathedral.html" class="group block relative overflow-hidden rounded-2xl glass card-glow transition-all duration-500">
+          <div class="absolute inset-0 bg-gradient-to-br from-fuchsia-600/30 via-purple-600/20 to-rose-600/30 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-5">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-3xl">∫</span>
+              <span class="text-xs mono text-white/30">#10</span>
+            </div>
+            <h3 class="text-lg font-black tracking-tight mb-1">Math Cathedral</h3>
+            <p class="text-xs text-fuchsia-300/80 mb-2 mono">Mathematical Reasoning</p>
+            <p class="text-xs text-white/50">A symbolic integral solved step-by-step: substitution, transform, evaluate.</p>
+          </div>
+        </a>
+
+        <!-- 11 Code Genome -->
+        <a href="./11-code-genome.html" class="group block relative overflow-hidden rounded-2xl glass card-glow transition-all duration-500">
+          <div class="absolute inset-0 bg-gradient-to-br from-cyan-600/30 via-sky-600/20 to-blue-600/30 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-5">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-3xl">🧬</span>
+              <span class="text-xs mono text-white/30">#11</span>
+            </div>
+            <h3 class="text-lg font-black tracking-tight mb-1">Code Genome</h3>
+            <p class="text-xs text-cyan-300/80 mb-2 mono">Code Structure Analysis</p>
+            <p class="text-xs text-white/50">Source code decoded into a DNA strip — color-coded by syntactic role.</p>
+          </div>
+        </a>
+
+        <!-- 12 Pattern Pulse -->
+        <a href="./12-pattern-pulse.html" class="group block relative overflow-hidden rounded-2xl glass card-glow transition-all duration-500">
+          <div class="absolute inset-0 bg-gradient-to-br from-orange-600/30 via-amber-600/20 to-yellow-600/30 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-5">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-3xl">🔮</span>
+              <span class="text-xs mono text-white/30">#12</span>
+            </div>
+            <h3 class="text-lg font-black tracking-tight mb-1">Pattern Pulse</h3>
+            <p class="text-xs text-orange-300/80 mb-2 mono">Pattern Recognition</p>
+            <p class="text-xs text-white/50">A live dot stream with real-time pattern detection and confidence scores.</p>
+          </div>
+        </a>
+
+        <!-- 13 Token Tactics -->
+        <a href="./13-token-tactics.html" class="group block relative overflow-hidden rounded-2xl glass card-glow transition-all duration-500">
+          <div class="absolute inset-0 bg-gradient-to-br from-emerald-600/30 via-green-600/20 to-teal-600/30 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-5">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-3xl">💰</span>
+              <span class="text-xs mono text-white/30">#13</span>
+            </div>
+            <h3 class="text-lg font-black tracking-tight mb-1">Token Tactics</h3>
+            <p class="text-xs text-emerald-300/80 mb-2 mono">Token Budget Strategy</p>
+            <p class="text-xs text-white/50">A strategy game: spend 1000 tokens wisely to ship a quality blog post.</p>
+          </div>
+        </a>
+
+        <!-- 14 Multi-Mind Council -->
+        <a href="./14-multi-mind-council.html" class="group block relative overflow-hidden rounded-2xl glass card-glow transition-all duration-500">
+          <div class="absolute inset-0 bg-gradient-to-br from-violet-600/30 via-indigo-600/20 to-blue-600/30 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-5">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-3xl">🎭</span>
+              <span class="text-xs mono text-white/30">#14</span>
+            </div>
+            <h3 class="text-lg font-black tracking-tight mb-1">Multi-Mind Council</h3>
+            <p class="text-xs text-violet-300/80 mb-2 mono">Multi-Agent Collaboration</p>
+            <p class="text-xs text-white/50">4 specialist agents debate, then synthesize a balanced verdict.</p>
+          </div>
+        </a>
+
+        <!-- 15 State Forge -->
+        <a href="./15-state-forge.html" class="group block relative overflow-hidden rounded-2xl glass card-glow transition-all duration-500">
+          <div class="absolute inset-0 bg-gradient-to-br from-fuchsia-600/30 via-pink-600/20 to-rose-600/30 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-5">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-3xl">🔀</span>
+              <span class="text-xs mono text-white/30">#15</span>
+            </div>
+            <h3 class="text-lg font-black tracking-tight mb-1">State Forge</h3>
+            <p class="text-xs text-fuchsia-300/80 mb-2 mono">State Machine Synthesis</p>
+            <p class="text-xs text-white/50">An order-fulfillment FSM. Trigger events, watch transitions animate.</p>
+          </div>
+        </a>
+
+        <!-- 16 Context Atlas -->
+        <a href="./16-context-atlas.html" class="group block relative overflow-hidden rounded-2xl glass card-glow transition-all duration-500">
+          <div class="absolute inset-0 bg-gradient-to-br from-blue-600/30 via-cyan-600/20 to-violet-600/30 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-5">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-3xl">🗺️</span>
+              <span class="text-xs mono text-white/30">#16</span>
+            </div>
+            <h3 class="text-lg font-black tracking-tight mb-1">Context Atlas</h3>
+            <p class="text-xs text-blue-300/80 mb-2 mono">Context Visualization</p>
+            <p class="text-xs text-white/50">A 128K-token context window mapped: system, tools, history, docs, query.</p>
+          </div>
+        </a>
+
+        <!-- 17 Recursive Refiner -->
+        <a href="./17-recursive-refiner.html" class="group block relative overflow-hidden rounded-2xl glass card-glow transition-all duration-500">
+          <div class="absolute inset-0 bg-gradient-to-br from-purple-600/30 via-fuchsia-600/20 to-pink-600/30 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-5">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-3xl">🔁</span>
+              <span class="text-xs mono text-white/30">#17</span>
+            </div>
+            <h3 class="text-lg font-black tracking-tight mb-1">Recursive Refiner</h3>
+            <p class="text-xs text-purple-300/80 mb-2 mono">Iterative Self-Refinement</p>
+            <p class="text-xs text-white/50">One sentence, refined 5 times. Quality climbs 4.2 → 9.4 with self-critique.</p>
+          </div>
+        </a>
+
+        <!-- 18 Cross-Domain Mixer -->
+        <a href="./18-cross-domain-mixer.html" class="group block relative overflow-hidden rounded-2xl glass card-glow transition-all duration-500">
+          <div class="absolute inset-0 bg-gradient-to-br from-teal-600/30 via-cyan-600/20 to-emerald-600/30 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-5">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-3xl">⚛️</span>
+              <span class="text-xs mono text-white/30">#18</span>
+            </div>
+            <h3 class="text-lg font-black tracking-tight mb-1">Cross-Domain Mixer</h3>
+            <p class="text-xs text-teal-300/80 mb-2 mono">Cross-Domain Synthesis</p>
+            <p class="text-xs text-white/50">Pick two unrelated fields. GLM 5.2 fuses them into one novel insight.</p>
+          </div>
+        </a>
+
+        <!-- 19 Plan Adapter -->
+        <a href="./19-plan-adapter.html" class="group block relative overflow-hidden rounded-2xl glass card-glow transition-all duration-500">
+          <div class="absolute inset-0 bg-gradient-to-br from-amber-600/30 via-orange-600/20 to-red-600/30 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-5">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-3xl">🌊</span>
+              <span class="text-xs mono text-white/30">#19</span>
+            </div>
+            <h3 class="text-lg font-black tracking-tight mb-1">Plan Adapter</h3>
+            <p class="text-xs text-amber-300/80 mb-2 mono">Adaptive Replanning</p>
+            <p class="text-xs text-white/50">A plan is set. Reality intervenes. Watch GLM 5.2 revise it surgically.</p>
+          </div>
+        </a>
+
+        <!-- 20 Aurora Maze -->
+        <a href="./20-aurora-maze.html" class="group block relative overflow-hidden rounded-2xl glass card-glow transition-all duration-500">
+          <div class="absolute inset-0 bg-gradient-to-br from-violet-600/30 via-fuchsia-600/20 to-cyan-600/30 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-5">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-3xl">🌀</span>
+              <span class="text-xs mono text-white/30">#20</span>
+            </div>
+            <h3 class="text-lg font-black tracking-tight mb-1">Aurora Maze</h3>
+            <p class="text-xs text-violet-300/80 mb-2 mono">Procedural Generation + Pathfinding</p>
+            <p class="text-xs text-white/50">A 15×15 DFS-generated maze with a BFS AI solver. Play it yourself.</p>
+          </div>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- Original Projects Grid -->
+    <section class="mt-16">
+      <h2 class="text-xl font-bold text-white/80 mb-6 flex items-center gap-3">
+        <span class="w-8 h-px bg-gradient-to-r from-violet-500 to-transparent"></span>
+        Original Concepts
+      </h2>
+      <div class="space-y-6">
+        <!-- Project 1: NEXUS 3D -->
+        <a href="./nexus-3d.html" class="group block relative overflow-hidden rounded-3xl glass card-glow transition-all duration-500 fade-in" style="animation-delay: 0.1s;">
+          <div class="absolute inset-0 bg-gradient-to-br from-violet-600/30 via-purple-600/20 to-fuchsia-600/30 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-8 md:p-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div class="flex-1">
+              <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full text-xs font-medium text-violet-300 mb-4">
+                <span class="w-1.5 h-1.5 bg-white rounded-full"></span>
+                Pony Alpha
+              </div>
+              <div class="flex items-center gap-4 mb-4">
+                <span class="text-5xl font-black text-violet-400">◆</span>
+                <div>
+                  <h2 class="text-3xl md:text-4xl font-black tracking-tight">NEXUS 3D</h2>
+                  <p class="text-white/50 text-sm">Immersive 3D Experience</p>
+                </div>
+              </div>
+              <p class="text-white/60 max-w-xl">A breathtaking 3D showcase demonstrating cutting-edge web design capabilities with interactive transforms and depth.</p>
+            </div>
+            <div class="flex items-center justify-center w-14 h-14 rounded-full bg-white/10 group-hover:bg-white/20 transition-colors">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-white transform group-hover:translate-x-1 transition-transform">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </div>
+          </div>
+          <div class="absolute top-4 right-4 px-3 py-1 bg-violet-500/30 rounded-full text-xs font-semibold text-white">Featured</div>
+        </a>
+
+        <!-- Project 2: DESIGN LAB -->
+        <a href="./design-lab.html" class="group block relative overflow-hidden rounded-3xl glass card-glow transition-all duration-500 fade-in" style="animation-delay: 0.2s;">
+          <div class="absolute inset-0 bg-gradient-to-br from-amber-500/30 via-orange-600/20 to-red-600/30 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-8 md:p-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div class="flex-1">
+              <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full text-xs font-medium text-amber-300 mb-4">
+                <span class="w-1.5 h-1.5 bg-white rounded-full"></span>
+                Pony Alpha
+              </div>
+              <div class="flex items-center gap-4 mb-4">
+                <span class="text-5xl font-black text-amber-400">◈</span>
+                <div>
+                  <h2 class="text-3xl md:text-4xl font-black tracking-tight">DESIGN LAB</h2>
+                  <p class="text-white/50 text-sm">10 Unique Landing Page Concepts</p>
+                </div>
+              </div>
+              <p class="text-white/60 max-w-xl">A stunning portfolio showcasing 10 completely unique landing page design concepts. Each one a masterpiece of modern web design.</p>
+            </div>
+            <div class="flex items-center justify-center w-14 h-14 rounded-full bg-white/10 group-hover:bg-white/20 transition-colors">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-white transform group-hover:translate-x-1 transition-transform">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </div>
+          </div>
+          <div class="absolute top-4 right-4 px-3 py-1 bg-amber-500/30 rounded-full text-xs font-semibold text-white">New</div>
+        </a>
+
+        <!-- Project 3: TYPE//CORE -->
+        <a href="./typecore.html" class="group block relative overflow-hidden rounded-3xl glass card-glow transition-all duration-500 fade-in" style="animation-delay: 0.3s;">
+          <div class="absolute inset-0 bg-gradient-to-br from-cyan-500/30 via-violet-600/20 to-fuchsia-600/30 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-8 md:p-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div class="flex-1">
+              <div class="inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full text-xs font-medium text-cyan-300 mb-4">
+                <span class="w-1.5 h-1.5 bg-white rounded-full"></span>
+                Perplexity AI
+              </div>
+              <div class="flex items-center gap-4 mb-4">
+                <span class="text-5xl font-black text-cyan-400">⌨</span>
+                <div>
+                  <h2 class="text-3xl md:text-4xl font-black tracking-tight">TYPE//CORE</h2>
+                  <p class="text-white/50 text-sm">Real-Time Typing Speed Test</p>
+                </div>
+              </div>
+              <p class="text-white/60 max-w-xl">Live WPM tracking, accuracy meter, consistency scoring and grade system. 30s / 60s / 120s modes. How fast are your fingers?</p>
+            </div>
+            <div class="flex items-center justify-center w-14 h-14 rounded-full bg-white/10 group-hover:bg-white/20 transition-colors">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-white transform group-hover:translate-x-1 transition-transform">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </div>
+          </div>
+          <div class="absolute top-4 right-4 px-3 py-1 bg-cyan-500/30 rounded-full text-xs font-semibold text-white">New</div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Apps Section -->
+    <section class="mt-12 fade-in" style="animation-delay: 0.25s;">
+      <h2 class="text-xl font-bold text-white/80 mb-6 flex items-center gap-3">
+        <span class="w-8 h-px bg-gradient-to-r from-emerald-500 to-transparent"></span>
+        Apps
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- IB SYSTEM -->
+        <a href="./apps/ib-system/" class="group block relative overflow-hidden rounded-3xl glass card-glow transition-all duration-500 fade-in" style="animation-delay: 0.3s;">
+          <div class="absolute inset-0 bg-gradient-to-br from-emerald-500/30 via-teal-600/20 to-cyan-600/30 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-8 md:p-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div class="flex-1">
+              <div class="flex items-center gap-4 mb-4">
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white text-xl font-black">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                    <path d="M2 17l10 5 10-5"/>
+                    <path d="M2 12l10 5 10-5"/>
+                  </svg>
+                </div>
+                <div>
+                  <h2 class="text-2xl md:text-3xl font-black tracking-tight">IB System</h2>
+                  <p class="text-white/50 text-sm">Business Management Platform</p>
+                </div>
+              </div>
+              <p class="text-white/60 max-w-xl">Intelligent business management system with admin dashboard, user management, and reporting capabilities.</p>
+            </div>
+            <div class="flex items-center justify-center w-14 h-14 rounded-full bg-white/10 group-hover:bg-white/20 transition-colors">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-white transform group-hover:translate-x-1 transition-transform">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </div>
+          </div>
+          <div class="absolute top-4 right-4 px-3 py-1 bg-emerald-500/30 rounded-full text-xs font-semibold text-white">New</div>
+        </a>
+
+        <!-- FOREX SIGNALS -->
+        <a href="./apps/forex-signals/" class="group block relative overflow-hidden rounded-3xl glass card-glow transition-all duration-500 fade-in" style="animation-delay: 0.35s;">
+          <div class="absolute inset-0 bg-gradient-to-br from-amber-500/30 via-yellow-600/20 to-orange-600/30 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-8 md:p-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div class="flex-1">
+              <div class="flex items-center gap-4 mb-4">
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-amber-500 to-orange-500 flex items-center justify-center text-white text-xl font-black">FX</div>
+                <div>
+                  <h2 class="text-2xl md:text-3xl font-black tracking-tight">Forex Signals</h2>
+                  <p class="text-white/50 text-sm">Ichimoku Trading System</p>
+                </div>
+              </div>
+              <p class="text-white/60 max-w-xl">Advanced forex trading signals with Ichimoku cloud analysis and real-time market insights.</p>
+            </div>
+            <div class="flex items-center justify-center w-14 h-14 rounded-full bg-white/10 group-hover:bg-white/20 transition-colors">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-white transform group-hover:translate-x-1 transition-transform">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </div>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Tools Section -->
+    <section class="mt-12 fade-in" style="animation-delay: 0.25s;">
+      <h2 class="text-xl font-bold text-white/80 mb-6 flex items-center gap-3">
+        <span class="w-8 h-px bg-gradient-to-r from-blue-500 to-transparent"></span>
+        Tools
+      </h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- PROMPTARCH -->
+        <a href="/tools/promptarch/" class="group block relative overflow-hidden rounded-3xl glass card-glow transition-all duration-500 fade-in" style="animation-delay: 0.3s;">
+          <div class="absolute inset-0 bg-gradient-to-br from-blue-500/30 via-cyan-600/20 to-sky-600/30 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-8 md:p-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div class="flex-1">
+              <div class="flex items-center gap-4 mb-4">
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white text-xl font-black">PA</div>
+                <div>
+                  <h2 class="text-2xl md:text-3xl font-black tracking-tight">PromptArch</h2>
+                  <p class="text-white/50 text-sm">AI Prompt Architecture Tool</p>
+                </div>
+              </div>
+              <p class="text-white/60 max-w-xl">Advanced prompt engineering and architecture platform for crafting powerful AI prompts with precision.</p>
+            </div>
+            <div class="flex items-center justify-center w-14 h-14 rounded-full bg-white/10 group-hover:bg-white/20 transition-colors">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-white transform group-hover:translate-x-1 transition-transform">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </div>
+          </div>
+        </a>
+
+        <!-- NANOJASONPRO -->
+        <a href="/tools/nanojason/" class="group block relative overflow-hidden rounded-3xl glass card-glow transition-all duration-500 fade-in" style="animation-delay: 0.35s;">
+          <div class="absolute inset-0 bg-gradient-to-br from-purple-500/30 via-violet-600/20 to-indigo-600/30 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="relative p-8 md:p-10 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div class="flex-1">
+              <div class="flex items-center gap-4 mb-4">
+                <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-violet-500 flex items-center justify-center text-white text-xl font-black">NJ</div>
+                <div>
+                  <h2 class="text-2xl md:text-3xl font-black tracking-tight">NanoJasonPro</h2>
+                  <p class="text-white/50 text-sm">JSON Data Management</p>
+                </div>
+              </div>
+              <p class="text-white/60 max-w-xl">Powerful JSON manipulation and visualization tool for developers working with complex data structures.</p>
+            </div>
+            <div class="flex items-center justify-center w-14 h-14 rounded-full bg-white/10 group-hover:bg-white/20 transition-colors">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="text-white transform group-hover:translate-x-1 transition-transform">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </div>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="mt-20 text-center text-white/20 text-sm">
+      <p>Powered by creativity and AI models · 20 GLM 5.2 showcases added</p>
+    </footer>
+  </div>
+</body>
+</html>

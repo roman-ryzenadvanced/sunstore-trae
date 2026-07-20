@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Pattern Lock — Qwen 3.7 MAX Brain Lab</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+*{font-family:'Inter',sans-serif;box-sizing:border-box}
+body{background:#000;color:#fff;margin:0;overflow-x:hidden}
+.mono{font-family:'JetBrains Mono',monospace}
+.glass{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1)}
+.glass-strong{background:rgba(255,255,255,.08);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.15)}
+.orb{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0}
+@keyframes pulse-glow{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:.65;transform:scale(1.12)}}
+.orb1{width:520px;height:520px;background:radial-gradient(circle,#f97316,transparent 70%);top:-180px;left:-140px;animation:pulse-glow 9s ease-in-out infinite}
+.orb2{width:480px;height:480px;background:radial-gradient(circle,#a855f7,transparent 70%);bottom:-160px;right:-110px;animation:pulse-glow 11s ease-in-out infinite reverse}
+.gradient-text{background:linear-gradient(135deg,#f97316 0%,#f59e0b 40%,#a855f7 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.dot-pill{display:inline-block;width:8px;height:8px;border-radius:50%;background:#f97316;margin-right:8px;box-shadow:0 0 10px #f97316}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:9999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-size:13px;color:rgba(255,255,255,.7)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);color:#fff;font-weight:600;font-size:13px;cursor:pointer;transition:all .18s;user-select:none}
+.btn:hover{background:rgba(255,255,255,.12);transform:translateY(-1px)}
+.btn:active{transform:translateY(0) scale(.97)}
+.btn-primary{background:linear-gradient(135deg,#f97316,#a855f7);border-color:transparent}
+.btn-primary:hover{filter:brightness(1.15)}
+.btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.mute-btn{position:fixed;top:16px;right:16px;z-index:50;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#f97316}
+.mute-btn:hover{background:rgba(255,255,255,.14)}
+#stage{position:relative;width:100%;max-width:400px;aspect-ratio:1;margin:0 auto;touch-action:none}
+#canvas{display:block;width:100%;height:100%;border-radius:20px;cursor:crosshair}
+.dot-node{position:absolute;width:32px;height:32px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#e2e8f0,#94a3b8 60%,#475569);transform:translate(-50%,-50%);box-shadow:0 0 0 3px rgba(0,0,0,.4),0 0 10px rgba(148,163,184,.3);transition:all .2s;pointer-events:none;z-index:2}
+.dot-node.active{background:radial-gradient(circle at 35% 30%,#fed7aa,#f97316 60%,#c2410c);box-shadow:0 0 0 3px rgba(0,0,0,.4),0 0 22px rgba(249,115,22,.7)}
+.dot-node.preview{background:radial-gradient(circle at 35% 30%,#fde68a,#fbbf24 60%,#d97706);box-shadow:0 0 0 3px rgba(0,0,0,.4),0 0 18px rgba(251,191,36,.7)}
+.win-flash{animation:win-pulse 1.6s ease-out}
+@keyframes win-pulse{0%{box-shadow:0 0 0 rgba(52,211,153,0)}50%{box-shadow:0 0 60px rgba(52,211,153,.55)}100%{box-shadow:0 0 0 rgba(52,211,153,0)}}
+</style>
+</head>
+<body>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<button id="muteBtn" class="mute-btn" title="Mute" aria-label="Mute toggle">
+  <svg id="muteIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+</button>
+<div class="relative z-10 max-w-4xl mx-auto px-4 md:px-6 py-6 md:py-10">
+  <nav class="flex items-center justify-between mb-8 gap-3">
+    <a href="../" class="glass inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm hover:bg-white/10 transition">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+      Playground
+    </a>
+    <span class="glass inline-flex items-center px-4 py-2 rounded-full text-xs mono whitespace-nowrap"><span class="dot-pill"></span>Qwen 3.7 MAX · Brain Lab · #03</span>
+  </nav>
+  <header class="mb-8">
+    <span class="glass inline-block px-3 py-1 rounded-full text-[11px] uppercase tracking-wider text-white/60 mb-4">◆ Spatial Memory</span>
+    <h1 class="text-5xl md:text-7xl font-black tracking-tighter gradient-text leading-none mb-3">Pattern Lock</h1>
+    <p class="text-white/40 text-lg">Watch the pattern flash, then draw it from memory — like a phone unlock, but harder every round.</p>
+  </header>
+  <section class="glass-strong rounded-3xl p-6 md:p-8 mb-6">
+    <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+      <div class="flex items-center gap-4 text-sm">
+        <span class="mono text-white/60">Level <span id="lvl" class="text-white">1</span></span>
+        <span class="mono text-white/60">Nodes <span id="nd" class="text-white">4</span></span>
+        <span class="mono text-white/60">Best <span id="best" class="text-emerald-400">—</span></span>
+      </div>
+      <div class="flex gap-2">
+        <button id="replayBtn" class="btn">Replay</button>
+        <button id="startBtn" class="btn btn-primary">Show Pattern</button>
+      </div>
+    </div>
+    <div id="stage">
+      <canvas id="canvas"></canvas>
+    </div>
+    <p id="msg" class="text-center text-white/60 text-sm mt-4 h-5 mono"></p>
+  </section>
+  <section class="glass rounded-3xl p-6 md:p-8 mb-6">
+    <h2 class="text-xl font-bold mb-3">Why this trains your brain</h2>
+    <div class="flex flex-wrap gap-2 mb-4">
+      <span class="chip">Spatial Memory</span>
+      <span class="chip">Motor Planning</span>
+      <span class="chip">Sequential Recall</span>
+      <span class="chip">Visuo-Motor Integration</span>
+    </div>
+    <p class="text-white/60 text-sm leading-relaxed">Pattern recall combines spatial encoding with motor sequencing — the same dual-system the brain uses for navigation and tool use. As patterns get longer and cross more of the grid, you must chunk them into sub-shapes to hold them in working memory.</p>
+  </section>
+  <footer class="text-center text-white/30 text-xs mono py-4">Powered by Qwen 3.7 MAX · Brain Challenge Lab</footer>
+</div>
+<script>
+(function(){
+  'use strict';
+  var AC=null, muted=false;
+  function audio(){ if(!AC){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ AC=null; } } if(AC&&AC.state==='suspended'){ try{ AC.resume(); }catch(e){} } return AC; }
+  function blip(freq,dur,type,gain){
+    if(muted) return;
+    try{ var a=audio(); if(!a) return; var o=a.createOscillator(),g=a.createGain(); o.type=type||'sine'; o.frequency.value=freq||440; o.connect(g); g.connect(a.destination); var t=a.currentTime; g.gain.setValueAtTime(gain||0.06,t); g.gain.exponentialRampToValueAtTime(0.0001,t+(dur||0.1)); o.start(t); o.stop(t+(dur||0.1)); }catch(e){}
+  }
+  function tickSound(){ blip(520+Math.random()*200,0.06,'sine',0.05); }
+  function winSound(){ [523,659,784,1046,1318].forEach(function(f,i){ setTimeout(function(){ blip(f,0.2,'triangle',0.08); },i*90); }); }
+  function errSound(){ blip(160,0.2,'sawtooth',0.05); }
+
+  var GRID_N=3; // 3x3 dot grid
+  var TOTAL_DOTS=GRID_N*GRID_N;
+  var lvl=1, patternLen=4;
+  var pattern=[];
+  var userPattern=[];
+  var phase='idle'; // idle|show|draw|won|lost
+  var W=0,H=0;
+  var drawing=false;
+  var canvas=document.getElementById('canvas');
+  var ctx=canvas.getContext('2d');
+  var stage=document.getElementById('stage');
+  function $(id){ return document.getElementById(id); }
+
+  function bestKey(){ return 'qw_patlock_best'; }
+  function loadBest(){ try{ var v=localStorage.getItem(bestKey()); return v?parseInt(v,10):null; }catch(e){ return null; } }
+  function saveBest(v){ try{ localStorage.setItem(bestKey(),String(v)); }catch(e){} }
+
+  function resize(){
+    var r=stage.getBoundingClientRect();
+    var dpr=window.devicePixelRatio||1;
+    W=r.width; H=r.height;
+    canvas.width=W*dpr; canvas.height=H*dpr;
+    canvas.style.width=W+'px'; canvas.style.height=H+'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+    placeDots();
+    renderDots();
+    drawLines();
+  }
+
+  var dots=[]; // {x,y,px,py,el}
+  function placeDots(){
+    var pad=W*0.15;
+    var step=(W-2*pad)/(GRID_N-1);
+    dots=[];
+    for(var r=0;r<GRID_N;r++){
+      for(var c=0;c<GRID_N;c++){
+        var px=pad+c*step;
+        var py=pad+r*step;
+        dots.push({x:c,y:r,px:px,py:py,el:null});
+      }
+    }
+  }
+  function renderDots(){
+    var old=stage.querySelectorAll('.dot-node');
+    for(var i=0;i<old.length;i++){ old[i].parentNode&&old[i].parentNode.removeChild(old[i]); }
+    for(var k=0;k<dots.length;k++){
+      var el=document.createElement('div');
+      el.className='dot-node';
+      el.style.left=dots[k].px+'px';
+      el.style.top=dots[k].py+'px';
+      el.dataset.idx=k;
+      stage.appendChild(el);
+      dots[k].el=el;
+    }
+  }
+  function updateDotClasses(){
+    for(var i=0;i<dots.length;i++){
+      var el=dots[i].el; if(!el) continue;
+      el.classList.remove('active','preview');
+    }
+    if(phase==='show'){
+      for(var j=0;j<pattern.length;j++){
+        if(dots[pattern[j]]) dots[pattern[j]].el.classList.add('preview');
+      }
+    } else if(phase==='draw'){
+      for(var m=0;m<userPattern.length;m++){
+        if(dots[userPattern[m]]) dots[userPattern[m]].el.classList.add('active');
+      }
+    }
+  }
+  function drawLines(){
+    ctx.clearRect(0,0,W,H);
+    ctx.lineCap='round'; ctx.lineJoin='round';
+    if(phase==='show'&&pattern.length>1){
+      ctx.strokeStyle='rgba(251,191,36,0.7)';
+      ctx.lineWidth=5;
+      ctx.beginPath();
+      ctx.moveTo(dots[pattern[0]].px, dots[pattern[0]].py);
+      for(var i=1;i<pattern.length;i++){
+        ctx.lineTo(dots[pattern[i]].px, dots[pattern[i]].py);
+      }
+      ctx.stroke();
+    }
+    if(phase==='draw'&&userPattern.length>0){
+      ctx.strokeStyle='rgba(249,115,22,0.85)';
+      ctx.lineWidth=5;
+      ctx.beginPath();
+      ctx.moveTo(dots[userPattern[0]].px, dots[userPattern[0]].py);
+      for(var j=1;j<userPattern.length;j++){
+        ctx.lineTo(dots[userPattern[j]].px, dots[userPattern[j]].py);
+      }
+      ctx.stroke();
+    }
+  }
+  function updateHUD(){
+    if($('lvl')) $('lvl').textContent=lvl;
+    if($('nd')) $('nd').textContent=patternLen;
+    var b=loadBest();
+    if($('best')) $('best').textContent=(b==null?'—':b);
+  }
+  function flashMsg(t){ var m=$('msg'); if(m) m.textContent=t; }
+
+  function generatePattern(){
+    pattern=[];
+    var last=-1;
+    for(var i=0;i<patternLen;i++){
+      var choices=[];
+      for(var d=0;d<TOTAL_DOTS;d++){
+        if(d!==last) choices.push(d);
+      }
+      // avoid going to adjacent same as 2-back if possible
+      var pick=choices[Math.floor(Math.random()*choices.length)];
+      pattern.push(pick);
+      last=pick;
+    }
+  }
+
+  function showPattern(){
+    audio();
+    phase='show';
+    userPattern=[];
+    updateDotClasses();
+    drawLines();
+    flashMsg('Memorize the pattern…');
+    $('startBtn').disabled=true;
+    $('replayBtn').disabled=true;
+    // animate nodes lighting up in sequence
+    var i=0;
+    function step(){
+      if(i>0&&dots[pattern[i-1]]) dots[pattern[i-1]].el.classList.remove('preview');
+      if(i>=pattern.length){
+        // clear all
+        updateDotClasses();
+        drawLines();
+        phase='draw';
+        flashMsg('Now draw it! Connect the same dots in order');
+        $('replayBtn').disabled=false;
+        return;
+      }
+      if(dots[pattern[i]]) dots[pattern[i]].el.classList.add('preview');
+      tickSound();
+      i++;
+      setTimeout(step, 500);
+    }
+    setTimeout(step, 300);
+  }
+
+  function dotAt(clientX,clientY){
+    var r=canvas.getBoundingClientRect();
+    var x=clientX-r.left, y=clientY-r.top;
+    var R=28;
+    for(var i=0;i<dots.length;i++){
+      var dx=dots[i].px-x, dy=dots[i].py-y;
+      if(dx*dx+dy*dy<=R*R) return i;
+    }
+    return null;
+  }
+  function onDown(cx,cy){
+    if(phase!=='draw') return;
+    audio();
+    drawing=true;
+    var hit=dotAt(cx,cy);
+    if(hit!=null){
+      if(userPattern.length===0){
+        userPattern=[hit];
+        tickSound();
+        updateDotClasses(); drawLines();
+      }
+    }
+  }
+  function onMove(cx,cy){
+    if(phase!=='draw'||!drawing) return;
+    var hit=dotAt(cx,cy);
+    if(hit==null) return;
+    if(userPattern.length>0 && hit===userPattern[userPattern.length-1]) return;
+    if(userPattern.indexOf(hit)>=0) return; // no revisits
+    userPattern.push(hit);
+    tickSound();
+    updateDotClasses(); drawLines();
+    if(userPattern.length===pattern.length){ checkResult(); }
+  }
+  function onUp(){ drawing=false; }
+
+  function checkResult(){
+    phase='idle';
+    var correct=true;
+    for(var i=0;i<pattern.length;i++){
+      if(userPattern[i]!==pattern[i]){ correct=false; break; }
+    }
+    if(correct){
+      winSound();
+      var sec=document.querySelector('section.glass-strong');
+      if(sec){ sec.classList.add('win-flash'); setTimeout(function(){ sec.classList.remove('win-flash'); },1600); }
+      flashMsg('Correct! Next level…');
+      var b=loadBest();
+      if(b==null||lvl>b) saveBest(lvl);
+      updateHUD();
+      setTimeout(function(){
+        lvl++;
+        patternLen=Math.min(TOTAL_DOTS, 3+lvl);
+        generatePattern();
+        updateHUD();
+        flashMsg('Tap "Show Pattern" to begin');
+        $('startBtn').disabled=false;
+      },1500);
+    } else {
+      errSound();
+      flashMsg('Wrong pattern — try again');
+      phase='idle';
+      userPattern=[];
+      updateDotClasses(); drawLines();
+    }
+  }
+
+  canvas.addEventListener('mousedown',function(e){ e.preventDefault(); onDown(e.clientX,e.clientY); });
+  window.addEventListener('mousemove',function(e){ if(drawing) onMove(e.clientX,e.clientY); });
+  window.addEventListener('mouseup',onUp);
+  canvas.addEventListener('touchstart',function(e){ e.preventDefault(); var t=e.touches[0]; onDown(t.clientX,t.clientY); },{passive:false});
+  canvas.addEventListener('touchmove',function(e){ e.preventDefault(); var t=e.touches[0]; onMove(t.clientX,t.clientY); },{passive:false});
+  canvas.addEventListener('touchend',onUp);
+  canvas.addEventListener('touchcancel',onUp);
+
+  if($('startBtn')) $('startBtn').addEventListener('click',function(){ showPattern(); });
+  if($('replayBtn')) $('replayBtn').addEventListener('click',function(){
+    if(phase==='show') return;
+    userPattern=[]; phase='idle'; updateDotClasses(); drawLines();
+    showPattern();
+  });
+
+  var muteBtn=$('muteBtn'), muteIcon=$('muteIcon');
+  if(muteBtn) muteBtn.addEventListener('click',function(){
+    muted=!muted;
+    if(muted){ muteIcon.innerHTML='<path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>'; }
+    else { muteIcon.innerHTML='<path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>'; audio(); }
+  });
+
+  window.addEventListener('resize',resize);
+  function init(){
+    generatePattern();
+    resize();
+    updateHUD();
+    flashMsg('Tap "Show Pattern" to begin');
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init);
+  else init();
+})();
+</script>
+</body>
+</html>

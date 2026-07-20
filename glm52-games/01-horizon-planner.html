@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Water Sort Puzzle — Brain & ASMR Lab</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+*{font-family:'Inter',sans-serif}
+body{background:#000;color:#fff;overflow-x:hidden}
+.mono{font-family:'JetBrains Mono',monospace}
+.glass{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1)}
+.glass-strong{background:rgba(255,255,255,.08);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.15)}
+.orb{position:fixed;border-radius:9999px;filter:blur(80px);pointer-events:none;z-index:0}
+@keyframes pulse-glow{0%,100%{opacity:.45;transform:scale(1)}50%{opacity:.78;transform:scale(1.18)}}
+.orb1{width:520px;height:520px;background:radial-gradient(circle,#3b82f6,transparent 70%);top:-200px;left:-150px;animation:pulse-glow 9s ease-in-out infinite}
+.orb2{width:480px;height:480px;background:radial-gradient(circle,#8b5cf6,transparent 70%);bottom:-180px;right:-120px;animation:pulse-glow 11s ease-in-out infinite reverse}
+.gradient-text{background:linear-gradient(135deg,#60a5fa 0%,#a78bfa 50%,#f472b6 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.dot{display:inline-block;width:6px;height:6px;border-radius:9999px;background:#34d399;margin-right:8px;box-shadow:0 0 8px #34d399;vertical-align:middle}
+.dot-pill{display:inline-block;width:8px;height:8px;border-radius:9999px;background:#34d399;margin-right:8px;box-shadow:0 0 10px #34d399}
+.tube{width:58px;height:220px;position:relative;border:3px solid rgba(255,255,255,.18);border-top:none;border-radius:0 0 16px 16px;background:rgba(255,255,255,.02);overflow:hidden;cursor:pointer;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;flex-shrink:0}
+.tube::before{content:'';position:absolute;top:0;left:-3px;right:-3px;height:8px;background:rgba(255,255,255,.08);border-radius:0 0 8px 8px}
+.tube:hover{transform:translateY(-3px)}
+.tube.selected{border-color:#fbbf24;box-shadow:0 0 28px rgba(251,191,36,.55);transform:translateY(-8px)}
+.tube.empty-hint::after{content:'empty';position:absolute;bottom:50%;left:50%;transform:translate(-50%,50%);font-size:9px;color:rgba(255,255,255,.25);font-family:'JetBrains Mono',monospace;letter-spacing:.5px}
+.tube-content{position:absolute;bottom:0;left:0;right:0;display:flex;flex-direction:column-reverse}
+.seg{height:50px;position:relative;box-shadow:inset 0 6px 12px rgba(255,255,255,.18),inset 0 -4px 8px rgba(0,0,0,.25)}
+.seg.surface::after{content:'';position:absolute;top:0;left:0;right:0;height:5px;background:rgba(255,255,255,.35);border-radius:4px 4px 0 0}
+.seg.toprounded{border-radius:6px 6px 0 0}
+@keyframes flash-target{0%{box-shadow:0 0 0 rgba(255,255,255,0)}40%{box-shadow:0 0 32px rgba(255,255,255,.65)}100%{box-shadow:0 0 0 rgba(255,255,255,0)}}
+.tube.flash{animation:flash-target .55s ease-out}
+.win-flash{animation:win-pulse 1.6s ease-out}
+@keyframes win-pulse{0%{box-shadow:0 0 0 rgba(52,211,153,0)}50%{box-shadow:0 0 60px rgba(52,211,153,.55)}100%{box-shadow:0 0 0 rgba(52,211,153,0)}}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:9999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-size:13px;color:rgba(255,255,255,.7)}
+.btn{padding:10px 18px;border-radius:14px;font-weight:600;font-size:14px;transition:all .2s;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;cursor:pointer}
+.btn:hover{background:rgba(255,255,255,.12);transform:translateY(-1px)}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn-primary{background:linear-gradient(135deg,#3b82f6,#8b5cf6);border-color:transparent}
+.btn-primary:hover{filter:brightness(1.15)}
+.confetti{position:fixed;width:10px;height:14px;pointer-events:none;z-index:50;border-radius:2px}
+</style>
+</head>
+<body>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="relative z-10 max-w-5xl mx-auto px-4 md:px-6 py-6 md:py-10">
+  <nav class="flex items-center justify-between mb-8 gap-3">
+    <a href="../" class="glass inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm hover:bg-white/10 transition">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+      Playground
+    </a>
+    <span class="glass inline-flex items-center px-4 py-2 rounded-full text-xs mono whitespace-nowrap"><span class="dot-pill"></span>GLM 5.2 · Brain Lab · #01</span>
+  </nav>
+
+  <header class="mb-8">
+    <span class="glass inline-block px-3 py-1 rounded-full text-[11px] uppercase tracking-wider text-white/60 mb-4">◆ Logic &amp; Planning</span>
+    <h1 class="text-6xl md:text-8xl font-black tracking-tighter gradient-text leading-none mb-3">Water Sort Puzzle</h1>
+    <p class="text-white/40 text-lg">Pour, stack, and sort every tube into a single pure color.</p>
+  </header>
+
+  <section class="glass-strong rounded-3xl p-6 md:p-8 mb-6">
+    <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+      <div class="flex items-center gap-4 text-sm">
+        <span class="mono text-white/60">Level <span id="lvl" class="text-white">1</span></span>
+        <span class="mono text-white/60">Moves <span id="moves" class="text-white">0</span></span>
+        <span class="mono text-white/60">Best <span id="best" class="text-emerald-400">—</span></span>
+      </div>
+      <div class="flex gap-2">
+        <button id="undoBtn" class="btn">Undo</button>
+        <button id="newBtn" class="btn btn-primary">New Puzzle</button>
+      </div>
+    </div>
+    <div id="board" class="flex flex-wrap justify-center items-end gap-3 md:gap-5 min-h-[240px] py-4"></div>
+    <p id="msg" class="text-center text-white/60 text-sm mt-4 h-5 mono"></p>
+  </section>
+
+  <section class="glass rounded-3xl p-6 md:p-8 mb-6">
+    <h2 class="text-xl font-bold mb-3">Why this trains your brain</h2>
+    <div class="flex flex-wrap gap-2 mb-4">
+      <span class="chip">Planning</span>
+      <span class="chip">Logic</span>
+      <span class="chip">Working Memory</span>
+      <span class="chip">Spatial Reasoning</span>
+    </div>
+    <p class="text-white/60 text-sm leading-relaxed">Every pour is a sub-goal that constrains the next move, forcing you to hold partial states in mind and reason backward from the goal. Repeated multi-step planning strengthens prefrontal executive circuits used in real-world problem decomposition.</p>
+  </section>
+
+  <footer class="text-center text-white/30 text-xs mono py-4">Powered by Z.AI GLM 5.2 · Brain &amp; ASMR Lab</footer>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  // ---------- Audio ----------
+  var actx = null;
+  function audio(){
+    if(!actx){
+      try{ actx = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){ actx = null; }
+    }
+    if(actx && actx.state === 'suspended'){ try{ actx.resume(); }catch(e){} }
+    return actx;
+  }
+  function blip(freq, dur, type, gain){
+    try{
+      var a = audio(); if(!a) return;
+      var o = a.createOscillator();
+      var g = a.createGain();
+      o.type = type || 'sine';
+      o.frequency.value = freq || 440;
+      o.connect(g); g.connect(a.destination);
+      var t = a.currentTime;
+      g.gain.setValueAtTime(gain || 0.08, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + (dur || 0.12));
+      o.start(t); o.stop(t + (dur || 0.12));
+    }catch(e){}
+  }
+  function splashSound(){ blip(540, 0.1, 'triangle', 0.06); setTimeout(function(){blip(720,0.08,'triangle',0.05);},55); }
+  function winSound(){ [523,659,784,1046,1318].forEach(function(f,i){ setTimeout(function(){blip(f,0.22,'triangle',0.09);}, i*95); }); }
+  function errSound(){ blip(170, 0.18, 'sawtooth', 0.05); }
+  function clickSound(){ blip(660, 0.05, 'sine', 0.04); }
+
+  // ---------- Config ----------
+  var COLORS = ['#ef4444','#f59e0b','#22c55e','#3b82f6','#a855f7','#ec4899','#14b8a6','#f97316','#eab308','#06b6d4'];
+  var CAP = 4;
+
+  // ---------- State ----------
+  var level = 1;
+  var nColors = 4;
+  var nTubes = 6;
+  var tubes = [];
+  var selected = -1;
+  var moves = 0;
+  var history = [];
+  var busy = false;
+
+  function $(id){ return document.getElementById(id); }
+
+  function bestKey(){ return 'ws_best_l' + level; }
+  function loadBest(){ try{ var v = localStorage.getItem(bestKey()); return v ? parseInt(v,10) : null; }catch(e){ return null; } }
+  function saveBest(m){ try{ localStorage.setItem(bestKey(), String(m)); }catch(e){} }
+
+  function updateHUD(){
+    if($('lvl')) $('lvl').textContent = level;
+    if($('moves')) $('moves').textContent = moves;
+    if($('best')){ var b = loadBest(); $('best').textContent = (b==null ? '—' : b); }
+  }
+
+  function solvedState(nc){
+    var t = [];
+    for(var i=0;i<nc;i++){ var arr=[]; for(var j=0;j<CAP;j++) arr.push(i); t.push(arr); }
+    for(var k=0;k<2;k++){ t.push([]); }
+    return t;
+  }
+
+  function topColor(tube){ return tube.length ? tube[tube.length-1] : -1; }
+  function topRunLen(tube){
+    if(!tube.length) return 0;
+    var c = tube[tube.length-1], n = 0;
+    for(var i=tube.length-1;i>=0;i--){ if(tube[i]===c) n++; else break; }
+    return n;
+  }
+  function canPour(from,to){
+    if(from===to) return false;
+    if(!tubes[from].length) return false;
+    if(tubes[to].length>=CAP) return false;
+    var ft = topColor(tubes[from]);
+    var tt = topColor(tubes[to]);
+    return tubes[to].length===0 || ft===tt;
+  }
+  function doPour(from,to){
+    var run = topRunLen(tubes[from]);
+    var space = CAP - tubes[to].length;
+    var move = Math.min(run, space);
+    for(var i=0;i<move;i++){ tubes[to].push(tubes[from].pop()); }
+  }
+
+  function shufflePuzzle(){
+    tubes = solvedState(nColors);
+    var attempts = 0;
+    do {
+      var totalMoves = 50 + level*15 + attempts*30;
+      for(var i=0;i<totalMoves;i++){
+        var pool = [];
+        for(var s=0;s<tubes.length;s++){
+          if(!tubes[s].length) continue;
+          for(var t=0;t<tubes.length;t++){
+            if(s!==t && canPour(s,t)) pool.push([s,t]);
+          }
+        }
+        if(!pool.length) break;
+        var pick = pool[Math.floor(Math.random()*pool.length)];
+        doPour(pick[0], pick[1]);
+      }
+      attempts++;
+    } while(isSolved() && attempts < 6);
+  }
+
+  function isSolved(){
+    for(var i=0;i<tubes.length;i++){
+      var t = tubes[i];
+      if(t.length===0) continue;
+      if(t.length!==CAP) return false;
+      var c = t[0];
+      for(var j=1;j<t.length;j++){ if(t[j]!==c) return false; }
+    }
+    return true;
+  }
+
+  function render(){
+    var board = $('board'); if(!board) return;
+    board.innerHTML = '';
+    for(var i=0;i<tubes.length;i++){
+      var tube = document.createElement('div');
+      tube.className = 'tube' + (selected===i ? ' selected' : '') + (tubes[i].length===0 ? ' empty-hint' : '');
+      var content = document.createElement('div');
+      content.className = 'tube-content';
+      for(var s=0;s<tubes[i].length;s++){
+        var seg = document.createElement('div');
+        seg.className = 'seg';
+        if(s === tubes[i].length-1){ seg.className += ' surface toprounded'; }
+        seg.style.background = COLORS[tubes[i][s]];
+        content.appendChild(seg);
+      }
+      (function(idx){ tube.addEventListener('click', function(){ onTubeClick(idx); }); })(i);
+      board.appendChild(tube);
+    }
+  }
+
+  function flashTarget(i){
+    var board = $('board'); if(!board) return;
+    var children = board.children;
+    if(children[i]){ children[i].classList.add('flash'); setTimeout(function(){ children[i].classList.remove('flash'); }, 600); }
+  }
+
+  function onTubeClick(i){
+    if(busy) return;
+    audio();
+    if(selected === -1){
+      if(!tubes[i].length){ flashMsg('Empty tube — pick a colored one first'); errSound(); return; }
+      selected = i; clickSound(); render();
+      flashMsg('Selected — tap a target tube to pour');
+      return;
+    }
+    if(selected === i){ selected = -1; clickSound(); render(); flashMsg(''); return; }
+    if(canPour(selected, i)){
+      history.push(JSON.stringify({ tubes: tubes, moves: moves }));
+      if(history.length>80) history.shift();
+      doPour(selected, i);
+      moves++; selected = -1;
+      splashSound();
+      flashTarget(i);
+      render(); updateHUD();
+      if(isSolved()){ onWin(); }
+      else flashMsg('');
+    } else {
+      errSound();
+      if(tubes[i].length > 0){
+        selected = i; render();
+        flashMsg('Cannot pour there — re-selected this tube');
+      } else {
+        selected = -1; render();
+        flashMsg('Cannot pour there — tube full or color mismatch');
+      }
+    }
+  }
+
+  function flashMsg(t){ var m = $('msg'); if(m) m.textContent = t; }
+
+  function onWin(){
+    busy = true;
+    winSound();
+    flashBg();
+    confettiBurst();
+    flashMsg('Solved! Loading next level…');
+    var b = loadBest();
+    if(b==null || moves < b){ saveBest(moves); }
+    updateHUD();
+    setTimeout(function(){
+      busy = false;
+      level++;
+      configureLevel();
+      newPuzzle();
+    }, 1900);
+  }
+
+  function flashBg(){
+    var sec = document.querySelector('section.glass-strong');
+    if(!sec) return;
+    sec.classList.add('win-flash');
+    setTimeout(function(){ sec.classList.remove('win-flash'); }, 1600);
+  }
+
+  function confettiBurst(){
+    var palette = ['#ef4444','#f59e0b','#22c55e','#3b82f6','#a855f7','#ec4899','#14b8a6'];
+    for(var i=0;i<70;i++){
+      var c = document.createElement('div');
+      c.className = 'confetti';
+      c.style.background = palette[i % palette.length];
+      c.style.left = (50 + (Math.random()*20-10)) + '%';
+      c.style.top = '38%';
+      document.body.appendChild(c);
+      var vx = (Math.random()*2-1) * 5;
+      var vy = -(Math.random()*4 + 4);
+      var x = 0, y = 0, vyc = vy, t = 0;
+      var iv = setInterval(function(){
+        t += 0.04; x += vx; vyc += 0.28; y += vyc;
+        c.style.transform = 'translate(' + (x*40) + 'px, ' + (y*30) + 'px) rotate(' + (t*220) + 'deg)';
+        c.style.opacity = Math.max(0, 1 - t/2.2);
+        if(t > 2.2){ clearInterval(iv); if(c.parentNode) c.remove(); }
+      }, 16);
+    }
+  }
+
+  function configureLevel(){
+    nColors = Math.min(10, 3 + level);
+    nTubes = nColors + 2;
+  }
+
+  function newPuzzle(){
+    configureLevel();
+    tubes = solvedState(nColors);
+    shufflePuzzle();
+    selected = -1; moves = 0; history = []; busy = false;
+    render(); updateHUD(); flashMsg('');
+  }
+
+  function undo(){
+    if(busy) return;
+    if(!history.length){ flashMsg('Nothing to undo'); errSound(); return; }
+    var s = JSON.parse(history.pop());
+    tubes = s.tubes; moves = s.moves; selected = -1;
+    clickSound();
+    render(); updateHUD(); flashMsg('Undone');
+  }
+
+  function init(){
+    if($('newBtn')) $('newBtn').addEventListener('click', function(){ audio(); newPuzzle(); });
+    if($('undoBtn')) $('undoBtn').addEventListener('click', function(){ audio(); undo(); });
+    newPuzzle();
+  }
+
+  if(document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', init); }
+  else { init(); }
+})();
+</script>
+</body>
+</html>

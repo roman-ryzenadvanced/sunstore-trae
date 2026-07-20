@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Word Flash — Qwen 3.7 MAX Brain Lab</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+*{font-family:'Inter',sans-serif;box-sizing:border-box}
+body{background:#000;color:#fff;margin:0;overflow-x:hidden}
+.mono{font-family:'JetBrains Mono',monospace}
+.glass{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1)}
+.glass-strong{background:rgba(255,255,255,.08);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.15)}
+.orb{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0}
+@keyframes pulse-glow{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:.65;transform:scale(1.12)}}
+.orb1{width:520px;height:520px;background:radial-gradient(circle,#f97316,transparent 70%);top:-180px;left:-140px;animation:pulse-glow 9s ease-in-out infinite}
+.orb2{width:480px;height:480px;background:radial-gradient(circle,#a855f7,transparent 70%);bottom:-160px;right:-110px;animation:pulse-glow 11s ease-in-out infinite reverse}
+.gradient-text{background:linear-gradient(135deg,#f97316 0%,#f59e0b 40%,#a855f7 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.dot-pill{display:inline-block;width:8px;height:8px;border-radius:50%;background:#f97316;margin-right:8px;box-shadow:0 0 10px #f97316}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:9999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-size:13px;color:rgba(255,255,255,.7)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);color:#fff;font-weight:600;font-size:13px;cursor:pointer;transition:all .18s;user-select:none}
+.btn:hover{background:rgba(255,255,255,.12);transform:translateY(-1px)}
+.btn:active{transform:translateY(0) scale(.97)}
+.btn-primary{background:linear-gradient(135deg,#f97316,#a855f7);border-color:transparent}
+.btn-primary:hover{filter:brightness(1.15)}
+.btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.mute-btn{position:fixed;top:16px;right:16px;z-index:50;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#f97316}
+.mute-btn:hover{background:rgba(255,255,255,.14)}
+#wordDisplay{text-align:center;font-size:clamp(32px,9vw,64px);font-weight:900;font-family:'JetBrains Mono',monospace;color:#f97316;min-height:100px;display:flex;align-items:center;justify-content:center;text-transform:uppercase;letter-spacing:4px;transition:opacity .15s}
+#wordDisplay.hidden{opacity:0}
+#wordDisplay.flash{animation:wordFlash .4s ease}
+@keyframes wordFlash{0%{transform:scale(.7);opacity:0}50%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+#recallArea{width:100%;max-width:400px;margin:0 auto;display:block;text-align:center;font-size:24px;font-weight:700;font-family:'JetBrains Mono',monospace;background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.15);border-radius:16px;padding:14px;color:#fff;outline:none;text-transform:uppercase;letter-spacing:2px;transition:border-color .2s}
+#recallArea:focus{border-color:#f97316}
+#recallArea.correct{border-color:#34d399;color:#34d399}
+#recallArea.wrong{border-color:#ef4444;color:#ef4444}
+#recallList{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-top:12px}
+.recall-word{padding:5px 12px;border-radius:8px;font-size:13px;font-family:'JetBrains Mono',monospace;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5)}
+.recall-word.hit{background:rgba(52,211,153,.15);border-color:rgba(52,211,153,.3);color:#34d399}
+.recall-word.miss{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.2);color:#ef4444;text-decoration:line-through}
+.seg{display:inline-flex;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:3px}
+.seg button{padding:7px 14px;border-radius:9px;font-size:12px;font-weight:600;color:#94a3b8;background:transparent;border:none;cursor:pointer;transition:all .15s}
+.seg button.active{background:rgba(249,115,22,.2);color:#f97316}
+.win-flash{animation:win-pulse 1.6s ease-out}
+@keyframes win-pulse{0%{box-shadow:0 0 0 rgba(52,211,153,0)}50%{box-shadow:0 0 60px rgba(52,211,153,.55)}100%{box-shadow:0 0 0 rgba(52,211,153,0)}}
+</style>
+</head>
+<body>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<button id="muteBtn" class="mute-btn" title="Mute" aria-label="Mute toggle">
+  <svg id="muteIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+</button>
+<div class="relative z-10 max-w-4xl mx-auto px-4 md:px-6 py-6 md:py-10">
+  <nav class="flex items-center justify-between mb-8 gap-3">
+    <a href="../" class="glass inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm hover:bg-white/10 transition">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+      Playground
+    </a>
+    <span class="glass inline-flex items-center px-4 py-2 rounded-full text-xs mono whitespace-nowrap"><span class="dot-pill"></span>Qwen 3.7 MAX · Brain Lab · #08</span>
+  </nav>
+  <header class="mb-8">
+    <span class="glass inline-block px-3 py-1 rounded-full text-[11px] uppercase tracking-wider text-white/60 mb-4">◆ Verbal Memory</span>
+    <h1 class="text-5xl md:text-7xl font-black tracking-tighter gradient-text leading-none mb-3">Word Flash</h1>
+    <p class="text-white/40 text-lg">Words flash briefly — then type back every word you remember.</p>
+  </header>
+  <section class="glass-strong rounded-3xl p-6 md:p-8 mb-6">
+    <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+      <div class="flex items-center gap-4 text-sm">
+        <span class="mono text-white/60">Level <span id="lvl" class="text-white">1</span></span>
+        <span class="mono text-white/60">Words <span id="wcount" class="text-white">4</span></span>
+        <span class="mono text-white/60">Best <span id="best" class="text-emerald-400">—</span></span>
+      </div>
+      <div class="flex gap-2 flex-wrap items-center">
+        <div class="seg" id="speedSeg">
+          <button data-ms="1200">Slow</button>
+          <button data-ms="800" class="active">Normal</button>
+          <button data-ms="500">Fast</button>
+        </div>
+        <button id="startBtn" class="btn btn-primary">Start Round</button>
+      </div>
+    </div>
+    <div id="wordDisplay">—</div>
+    <input id="recallArea" type="text" placeholder="Type a word you remember…" autocomplete="off" disabled>
+    <div id="recallList"></div>
+    <div class="flex justify-center gap-2 mt-3">
+      <button id="submitBtn" class="btn btn-primary" disabled>Submit Word</button>
+    </div>
+    <p id="msg" class="text-center text-white/60 text-sm mt-4 h-5 mono"></p>
+  </section>
+  <section class="glass rounded-3xl p-6 md:p-8 mb-6">
+    <h2 class="text-xl font-bold mb-3">Why this trains your brain</h2>
+    <div class="flex flex-wrap gap-2 mb-4">
+      <span class="chip">Verbal Memory</span>
+      <span class="chip">Short-Term Storage</span>
+      <span class="chip">Phonological Loop</span>
+      <span class="chip">Free Recall</span>
+    </div>
+    <p class="text-white/60 text-sm leading-relaxed">Brief word presentation taps your phonological loop — the verbal component of working memory. You must sub-vocalize each word to encode it, then use semantic associations during recall. Increasing word count and decreasing flash speed pushes the boundaries of verbal short-term capacity.</p>
+  </section>
+  <footer class="text-center text-white/30 text-xs mono py-4">Powered by Qwen 3.7 MAX · Brain Challenge Lab</footer>
+</div>
+<script>
+(function(){
+  'use strict';
+  var AC=null, muted=false;
+  function audio(){ if(!AC){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ AC=null; } } if(AC&&AC.state==='suspended'){ try{ AC.resume(); }catch(e){} } return AC; }
+  function blip(freq,dur,type,gain){
+    if(muted) return;
+    try{ var a=audio(); if(!a) return; var o=a.createOscillator(),g=a.createGain(); o.type=type||'sine'; o.frequency.value=freq||440; o.connect(g); g.connect(a.destination); var t=a.currentTime; g.gain.setValueAtTime(gain||0.05,t); g.gain.exponentialRampToValueAtTime(0.0001,t+(dur||0.08)); o.start(t); o.stop(t+(dur||0.08)); }catch(e){}
+  }
+  function flashSound(){ blip(520+Math.random()*200,0.08,'sine',0.04); }
+  function correctSound(){ blip(660,0.1,'sine',0.06); setTimeout(function(){ blip(880,0.12,'sine',0.06); },100); }
+  function wrongSound(){ blip(160,0.18,'sawtooth',0.04); }
+  function winSound(){ [523,659,784,1046,1318].forEach(function(f,i){ setTimeout(function(){ blip(f,0.2,'triangle',0.08); },i*90); }); }
+
+  var WORDS=['ALPHA','BRAVO','CHARLIE','DELTA','ECHO','FOXTROT','GOLF','HOTEL','INDIA','JULIET','KILO','LIMA','MIKE','NOVEMBER','OSCAR','PAPA','QUEBEC','ROMEO','SIERRA','TANGO','UNIFORM','VICTOR','WHISKEY','XRAY','YANKEE','ZULU','OCEAN','MOUNTAIN','FOREST','RIVER','DESERT','ISLAND','THUNDER','CRYSTAL','PHOENIX','NEBULA','QUANTUM','PRISM','VERTEX','CIPHER','ORBIT','HELIX','SPECTRUM','ZENITH','AURORA','VORTEX','COMET','PULSE','FLUX','NOVA','STELLAR','COSMIC','SOLAR','LUNAR','TIDAL','EMBER','FROST','BLAZE','SURGE','DRIFT'];
+  var lvl=1, wordCount=4, flashMs=800;
+  var words=[];
+  var recalled=[];
+  var phase='idle'; // idle|show|recall|done
+  var display=document.getElementById('wordDisplay');
+  var recallInput=document.getElementById('recallArea');
+  var submitBtn=document.getElementById('submitBtn');
+  var startBtn=document.getElementById('startBtn');
+  var speedSeg=document.getElementById('speedSeg');
+  var recallListEl=document.getElementById('recallList');
+  function $(id){ return document.getElementById(id); }
+
+  function bestKey(){ return 'qw_wordflash_best'; }
+  function loadBest(){ try{ var v=localStorage.getItem(bestKey()); return v?parseInt(v,10):null; }catch(e){ return null; } }
+  function saveBest(v){ try{ localStorage.setItem(bestKey(),String(v)); }catch(e){} }
+
+  function updateHUD(){
+    if($('lvl')) $('lvl').textContent=lvl;
+    if($('wcount')) $('wcount').textContent=wordCount;
+    var b=loadBest();
+    if($('best')) $('best').textContent=(b==null?'—':b);
+  }
+  function flashMsg(t){ var m=$('msg'); if(m) m.textContent=t; }
+
+  function pickWords(n){
+    var pool=WORDS.slice();
+    var result=[];
+    for(var i=0;i<n;i++){
+      var idx=Math.floor(Math.random()*pool.length);
+      result.push(pool[idx]);
+      pool.splice(idx,1);
+    }
+    return result;
+  }
+
+  function showWords(){
+    audio();
+    phase='show';
+    words=pickWords(wordCount);
+    recalled=[];
+    startBtn.disabled=true;
+    recallInput.disabled=true;
+    submitBtn.disabled=true;
+    recallInput.value='';
+    recallInput.className='';
+    if(recallListEl) recallListEl.innerHTML='';
+    flashMsg('Watch the words…');
+    var i=0;
+    function step(){
+      if(i>=words.length){
+        if(display) display.textContent='—';
+        display.classList.remove('hidden');
+        phase='recall';
+        recallInput.disabled=false;
+        submitBtn.disabled=false;
+        recallInput.focus();
+        flashMsg('Type every word you remember (one at a time, press Enter)');
+        renderRecallList();
+        return;
+      }
+      if(display){
+        display.textContent=words[i];
+        display.classList.remove('flash');
+        void display.offsetWidth;
+        display.classList.add('flash');
+      }
+      flashSound();
+      i++;
+      setTimeout(step, flashMs);
+    }
+    setTimeout(step, 400);
+  }
+
+  function renderRecallList(){
+    if(!recallListEl) return;
+    recallListEl.innerHTML='';
+    for(var i=0;i<words.length;i++){
+      var el=document.createElement('span');
+      el.className='recall-word';
+      if(recalled.indexOf(words[i])>=0) el.classList.add('hit');
+      el.textContent=words[i];
+      recallListEl.appendChild(el);
+    }
+  }
+
+  function submitWord(){
+    if(phase!=='recall') return;
+    var val=recallInput.value.trim().toUpperCase();
+    if(!val) return;
+    recallInput.value='';
+    if(words.indexOf(val)>=0 && recalled.indexOf(val)<0){
+      recalled.push(val);
+      correctSound();
+      renderRecallList();
+      if(recalled.length===wordCount) onAllRecalled();
+    } else {
+      wrongSound();
+      recallInput.className='wrong';
+      setTimeout(function(){ recallInput.className=''; },300);
+    }
+  }
+
+  function onAllRecalled(){
+    phase='done';
+    winSound();
+    var sec=document.querySelector('section.glass-strong');
+    if(sec){ sec.classList.add('win-flash'); setTimeout(function(){ sec.classList.remove('win-flash'); },1600); }
+    flashMsg('Perfect recall! Level up…');
+    var b=loadBest();
+    if(b==null||lvl>b) saveBest(lvl);
+    lvl++;
+    wordCount=Math.min(WORDS.length, 3+lvl);
+    updateHUD();
+    setTimeout(function(){
+      phase='idle';
+      recallInput.disabled=true;
+      submitBtn.disabled=true;
+      startBtn.disabled=false;
+      flashMsg('Tap "Start Round" for the next challenge');
+    },1500);
+  }
+
+  // Allow finishing early
+  recallInput.addEventListener('keydown',function(e){
+    if(e.key==='Enter'){ 
+      if(phase==='recall'){
+        if(recalled.length>0 && recalled.length===wordCount) return;
+        if(recalled.length>0 && recalled.length<wordCount){
+          // Check if user wants to give up
+          phase='done';
+          var score=recalled.length;
+          var b=loadBest();
+          if(b==null||lvl>b) saveBest(lvl);
+          flashMsg('Recalled '+score+'/'+wordCount+' words — tap Start for next round');
+          recallInput.disabled=true;
+          submitBtn.disabled=true;
+          startBtn.disabled=false;
+          renderRecalMisses();
+        } else {
+          submitWord();
+        }
+      } else {
+        submitWord();
+      }
+      e.preventDefault();
+    }
+  });
+
+  function renderRecalMisses(){
+    if(!recallListEl) return;
+    var items=recallListEl.querySelectorAll('.recall-word');
+    for(var i=0;i<items.length;i++){
+      var w=items[i].textContent;
+      if(recalled.indexOf(w)<0) items[i].classList.add('miss');
+    }
+  }
+
+  if(submitBtn) submitBtn.addEventListener('click',function(){ submitWord(); });
+  if(startBtn) startBtn.addEventListener('click',function(){ showWords(); });
+  if(speedSeg) speedSeg.addEventListener('click',function(e){
+    var b=e.target.closest('button'); if(!b) return;
+    flashMs=parseInt(b.dataset.ms,10);
+    speedSeg.querySelectorAll('button').forEach(function(x){ x.classList.remove('active'); });
+    b.classList.add('active');
+  });
+
+  var muteBtn=$('muteBtn'), muteIcon=$('muteIcon');
+  if(muteBtn) muteBtn.addEventListener('click',function(){
+    muted=!muted;
+    if(muted){ muteIcon.innerHTML='<path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>'; }
+    else { muteIcon.innerHTML='<path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>'; audio(); }
+  });
+
+  function init(){ updateHUD(); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init);
+  else init();
+})();
+</script>
+</body>
+</html>

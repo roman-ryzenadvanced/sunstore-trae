@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stroop Color Test — Brain & ASMR Lab</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+*{font-family:'Inter',sans-serif}
+body{background:#000;color:#fff;overflow-x:hidden}
+.mono{font-family:'JetBrains Mono',monospace}
+.glass{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1)}
+.glass-strong{background:rgba(255,255,255,.08);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.15)}
+.orb{position:fixed;border-radius:9999px;filter:blur(80px);pointer-events:none;z-index:0}
+@keyframes pulse-glow{0%,100%{opacity:.45;transform:scale(1)}50%{opacity:.78;transform:scale(1.18)}}
+.orb1{width:520px;height:520px;background:radial-gradient(circle,#a855f7,transparent 70%);top:-200px;left:-150px;animation:pulse-glow 9s ease-in-out infinite}
+.orb2{width:480px;height:480px;background:radial-gradient(circle,#06b6d4,transparent 70%);bottom:-180px;right:-120px;animation:pulse-glow 11s ease-in-out infinite reverse}
+.gradient-text{background:linear-gradient(135deg,#c084fc 0%,#22d3ee 50%,#34d399 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.dot-pill{display:inline-block;width:8px;height:8px;border-radius:9999px;background:#34d399;margin-right:8px;box-shadow:0 0 10px #34d399}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:9999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-size:13px;color:rgba(255,255,255,.7)}
+.btn{padding:10px 18px;border-radius:14px;font-weight:600;font-size:14px;transition:all .2s;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;cursor:pointer}
+.btn:hover{background:rgba(255,255,255,.12);transform:translateY(-1px)}
+.btn-primary{background:linear-gradient(135deg,#a855f7,#06b6d4);border-color:transparent}
+.btn-primary:hover{filter:brightness(1.15)}
+.stroop-word{font-size:72px;font-weight:900;letter-spacing:-.03em;line-height:1.1;text-align:center;padding:32px 16px;min-height:140px;display:flex;align-items:center;justify-content:center;transition:all .15s ease}
+.color-btn{padding:14px 20px;border-radius:16px;font-weight:700;font-size:16px;cursor:pointer;transition:all .15s ease;border:3px solid rgba(255,255,255,.15);color:#fff;min-width:110px;text-align:center;text-transform:uppercase;letter-spacing:.04em}
+.color-btn:hover{transform:translateY(-2px);box-shadow:0 6px 24px rgba(0,0,0,.3)}
+.color-btn:active{transform:translateY(0)}
+.color-btn.correct-flash{border-color:#22c55e;box-shadow:0 0 28px rgba(34,197,94,.6)}
+.color-btn.wrong-flash{border-color:#ef4444;box-shadow:0 0 28px rgba(239,68,68,.6);animation:shake .35s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.timebar-track{height:6px;border-radius:9999px;background:rgba(255,255,255,.08);overflow:hidden;width:100%}
+.timebar-fill{height:100%;background:linear-gradient(90deg,#ef4444,#f59e0b,#22c55e);border-radius:9999px;transition:width .15s linear}
+.score-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:9999px;font-weight:700;font-size:15px}
+.score-pill.pos{background:rgba(34,197,94,.15);color:#4ade80;border:1px solid rgba(34,197,94,.3)}
+.score-pill.neg{background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3)}
+.result-card{padding:32px;border-radius:24px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);text-align:center}
+</style>
+</head>
+<body>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="relative z-10 max-w-5xl mx-auto px-4 md:px-6 py-6 md:py-10">
+  <nav class="flex items-center justify-between mb-8 gap-3">
+    <a href="../" class="glass inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm hover:bg-white/10 transition">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+      Playground
+    </a>
+    <span class="glass inline-flex items-center px-4 py-2 rounded-full text-xs mono whitespace-nowrap"><span class="dot-pill"></span>GLM 5.2 · Brain Lab · #05</span>
+  </nav>
+
+  <header class="mb-8">
+    <span class="glass inline-block px-3 py-1 rounded-full text-[11px] uppercase tracking-wider text-white/60 mb-4">◆ Inhibitory Control</span>
+    <h1 class="text-6xl md:text-8xl font-black tracking-tighter gradient-text leading-none mb-3">Stroop Color Test</h1>
+    <p class="text-white/40 text-lg">Name the ink color, not the word. Harder than it sounds.</p>
+  </header>
+
+  <section class="glass-strong rounded-3xl p-6 md:p-8 mb-6">
+    <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+      <div class="flex items-center gap-4 text-sm">
+        <span id="scorePill" class="score-pill pos">Score: 0</span>
+        <span class="mono text-white/60">Best <span id="best" class="text-emerald-400">—</span></span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="mono text-white/50 text-sm" id="timerLabel">60s</span>
+        <button id="startBtn" class="btn btn-primary">Start</button>
+      </div>
+    </div>
+
+    <div class="timebar-track mb-6"><div class="timebar-fill" id="timebar" style="width:100%"></div></div>
+
+    <div id="wordArea" class="stroop-word text-white/20">Ready?</div>
+
+    <div id="btnRow" class="flex flex-wrap justify-center gap-3 mt-6"></div>
+
+    <div id="resultArea" class="hidden">
+      <div class="result-card">
+        <div class="text-white/50 text-sm uppercase tracking-wider mb-2">Final Score</div>
+        <div class="text-6xl font-black mb-3" id="finalScore">0</div>
+        <div class="text-white/50 text-sm mb-1">Correct: <span id="finalCorrect" class="text-emerald-400">0</span> &middot; Wrong: <span id="finalWrong" class="text-rose-400">0</span></div>
+        <div class="text-white/50 text-sm">Best: <span id="finalBest" class="text-emerald-400">0</span></div>
+        <button id="replayBtn" class="btn btn-primary mt-4">Play Again</button>
+      </div>
+    </div>
+
+    <p id="msg" class="text-center text-white/60 text-sm mt-4 h-5 mono"></p>
+  </section>
+
+  <section class="glass rounded-3xl p-6 md:p-8 mb-6">
+    <h2 class="text-xl font-bold mb-3">Why this trains your brain</h2>
+    <div class="flex flex-wrap gap-2 mb-4">
+      <span class="chip">Inhibitory Control</span>
+      <span class="chip">Cognitive Flexibility</span>
+      <span class="chip">Selective Attention</span>
+      <span class="chip">Processing Speed</span>
+    </div>
+    <p class="text-white/60 text-sm leading-relaxed">Your brain reads words automatically; overriding that reflex to name the ink color forces the anterior cingulate cortex into overdrive. Every trial strengthens the inhibitory pathways that help you suppress automatic responses and choose deliberately — a skill that transfers to impulse control and focused decision-making.</p>
+  </section>
+
+  <footer class="text-center text-white/30 text-xs mono py-4">Powered by Z.AI GLM 5.2 · Brain &amp; ASMR Lab</footer>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  // ---------- Audio ----------
+  var actx = null;
+  function audio(){
+    if(!actx){ try{ actx = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){ actx = null; } }
+    if(actx && actx.state === 'suspended'){ try{ actx.resume(); }catch(e){} }
+    return actx;
+  }
+  function blip(freq, dur, type, gain){
+    try{
+      var a = audio(); if(!a) return;
+      var o = a.createOscillator(); var g = a.createGain();
+      o.type = type || 'sine'; o.frequency.value = freq || 440;
+      o.connect(g); g.connect(a.destination);
+      var t = a.currentTime;
+      g.gain.setValueAtTime(gain || 0.08, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + (dur || 0.12));
+      o.start(t); o.stop(t + (dur || 0.12));
+    }catch(e){}
+  }
+  function correctSound(){ blip(880, 0.1, 'triangle', 0.08); setTimeout(function(){blip(1175,0.1,'triangle',0.07);},60); }
+  function wrongSound(){ blip(200, 0.18, 'sawtooth', 0.07); setTimeout(function(){blip(160,0.18,'sawtooth',0.06);},100); }
+  function endSound(){ [784,659,523].forEach(function(f,i){ setTimeout(function(){blip(f,0.2,'triangle',0.08);}, i*110); }); }
+
+  // ---------- Config ----------
+  var WORDS = ['RED','GREEN','BLUE','YELLOW','PURPLE','CYAN'];
+  var COLORS = {
+    'RED': '#ef4444',
+    'GREEN': '#22c55e',
+    'BLUE': '#3b82f6',
+    'YELLOW': '#eab308',
+    'PURPLE': '#a855f7',
+    'CYAN': '#06b6d4'
+  };
+  var DURATION = 60; // seconds
+
+  // ---------- State ----------
+  var phase = 'idle'; // idle | playing | over
+  var score = 0;
+  var correctCount = 0;
+  var wrongCount = 0;
+  var startTime = 0;
+  var timerInterval = null;
+  var currentWord = '';
+  var currentInk = '';
+
+  function $(id){ return document.getElementById(id); }
+
+  function bestKey(){ return 'stroop_best'; }
+  function loadBest(){ try{ var v = localStorage.getItem(bestKey()); return v ? parseInt(v,10) : null; }catch(e){ return null; } }
+  function saveBest(v){ try{ localStorage.setItem(bestKey(), String(v)); }catch(e){} }
+
+  function updateHUD(){
+    if($('scorePill')){
+      $('scorePill').textContent = 'Score: ' + score;
+      $('scorePill').className = 'score-pill ' + (score >= 0 ? 'pos' : 'neg');
+    }
+    if($('best')){ var b = loadBest(); $('best').textContent = (b==null ? '—' : b); }
+  }
+
+  function setMsg(t){ var m = $('msg'); if(m) m.textContent = t; }
+
+  function buildButtons(){
+    var row = $('btnRow'); if(!row) return;
+    row.innerHTML = '';
+    var keys = Object.keys(COLORS);
+    // shuffle keys for button order
+    for(var i=keys.length-1;i>0;i--){
+      var j = Math.floor(Math.random()*(i+1));
+      var tmp = keys[i]; keys[i] = keys[j]; keys[j] = tmp;
+    }
+    for(var k=0;k<keys.length;k++){
+      (function(colorName){
+        var btn = document.createElement('button');
+        btn.className = 'color-btn';
+        btn.style.background = COLORS[colorName];
+        btn.textContent = colorName;
+        btn.addEventListener('click', function(){ onChoice(colorName, btn); });
+        btn.addEventListener('touchstart', function(e){ e.preventDefault(); onChoice(colorName, btn); }, {passive:false});
+        row.appendChild(btn);
+      })(keys[k]);
+    }
+  }
+
+  function nextTrial(){
+    // pick a word and an ink color (ensure ink != word ~70% of time)
+    var wordIdx = Math.floor(Math.random()*WORDS.length);
+    var inkIdx;
+    if(Math.random() < 0.7){
+      // different ink
+      do { inkIdx = Math.floor(Math.random()*WORDS.length); } while(inkIdx === wordIdx);
+    } else {
+      inkIdx = wordIdx;
+    }
+    currentWord = WORDS[wordIdx];
+    currentInk = WORDS[inkIdx];
+
+    var area = $('wordArea'); if(!area) return;
+    area.textContent = currentWord;
+    area.style.color = COLORS[currentInk];
+
+    buildButtons();
+  }
+
+  function onChoice(colorName, btnEl){
+    if(phase !== 'playing') return;
+    audio();
+    if(colorName === currentInk){
+      score++;
+      correctCount++;
+      correctSound();
+      if(btnEl) btnEl.classList.add('correct-flash');
+      setTimeout(function(){ if(btnEl) btnEl.classList.remove('correct-flash'); }, 250);
+    } else {
+      score = Math.max(0, score - 1);
+      wrongCount++;
+      wrongSound();
+      if(btnEl) btnEl.classList.add('wrong-flash');
+      setTimeout(function(){ if(btnEl) btnEl.classList.remove('wrong-flash'); }, 300);
+    }
+    updateHUD();
+    nextTrial();
+  }
+
+  function startGame(){
+    audio();
+    phase = 'playing';
+    score = 0; correctCount = 0; wrongCount = 0;
+    startTime = Date.now();
+    if($('startBtn')) $('startBtn').textContent = 'Restart';
+    if($('resultArea')) $('resultArea').classList.add('hidden');
+    if($('wordArea')) $('wordArea').style.display = '';
+    if($('btnRow')) $('btnRow').style.display = '';
+    if($('timerLabel')) $('timerLabel').textContent = '60s';
+    if($('timebar')) $('timebar').style.width = '100%';
+    updateHUD();
+    nextTrial();
+
+    if(timerInterval) clearInterval(timerInterval);
+    timerInterval = setInterval(function(){
+      var elapsed = (Date.now() - startTime) / 1000;
+      var left = Math.max(0, DURATION - elapsed);
+      if($('timerLabel')) $('timerLabel').textContent = Math.ceil(left) + 's';
+      if($('timebar')) $('timebar').style.width = (left/DURATION*100) + '%';
+      if(left <= 0){
+        endGame();
+      }
+    }, 100);
+  }
+
+  function endGame(){
+    phase = 'over';
+    if(timerInterval){ clearInterval(timerInterval); timerInterval = null; }
+    endSound();
+    var b = loadBest();
+    if(b==null || score > b){ saveBest(score); }
+    updateHUD();
+    if($('wordArea')) $('wordArea').style.display = 'none';
+    if($('btnRow')) $('btnRow').style.display = 'none';
+    if($('resultArea')){
+      $('resultArea').classList.remove('hidden');
+      if($('finalScore')) $('finalScore').textContent = score;
+      if($('finalCorrect')) $('finalCorrect').textContent = correctCount;
+      if($('finalWrong')) $('finalWrong').textContent = wrongCount;
+      if($('finalBest')){ var best = loadBest(); $('finalBest').textContent = (best==null ? 0 : best); }
+    }
+    if($('startBtn')) $('startBtn').textContent = 'Start';
+    setMsg('');
+  }
+
+  function init(){
+    if($('startBtn')) $('startBtn').addEventListener('click', startGame);
+    if($('replayBtn')) $('replayBtn').addEventListener('click', startGame);
+    updateHUD();
+  }
+
+  if(document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', init); }
+  else { init(); }
+})();
+</script>
+</body>
+</html>

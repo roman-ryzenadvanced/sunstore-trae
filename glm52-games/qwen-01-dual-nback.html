@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Dual N-Back — Qwen 3.7 MAX Brain Lab</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+*{font-family:'Inter',sans-serif;box-sizing:border-box}
+body{background:#000;color:#fff;margin:0;overflow-x:hidden}
+.mono{font-family:'JetBrains Mono',monospace}
+.glass{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1)}
+.glass-strong{background:rgba(255,255,255,.08);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.15)}
+.orb{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0}
+@keyframes pulse-glow{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:.65;transform:scale(1.12)}}
+.orb1{width:520px;height:520px;background:radial-gradient(circle,#f97316,transparent 70%);top:-180px;left:-140px;animation:pulse-glow 9s ease-in-out infinite}
+.orb2{width:480px;height:480px;background:radial-gradient(circle,#a855f7,transparent 70%);bottom:-160px;right:-110px;animation:pulse-glow 11s ease-in-out infinite reverse}
+.gradient-text{background:linear-gradient(135deg,#f97316 0%,#f59e0b 40%,#a855f7 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.dot-pill{display:inline-block;width:8px;height:8px;border-radius:50%;background:#f97316;margin-right:8px;box-shadow:0 0 10px #f97316}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:9999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-size:13px;color:rgba(255,255,255,.7)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 20px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);color:#fff;font-weight:600;font-size:14px;cursor:pointer;transition:all .18s;user-select:none}
+.btn:hover{background:rgba(255,255,255,.12);transform:translateY(-1px)}
+.btn:active{transform:translateY(0) scale(.97)}
+.btn-primary{background:linear-gradient(135deg,#f97316,#a855f7);border-color:transparent}
+.btn-primary:hover{filter:brightness(1.15)}
+.btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.btn-pos{background:rgba(249,115,22,.15);border-color:rgba(249,115,22,.35)}
+.btn-pos:hover{background:rgba(249,115,22,.25)}
+.btn-aud{background:rgba(168,85,247,.15);border-color:rgba(168,85,247,.35)}
+.btn-aud:hover{background:rgba(168,85,247,.25)}
+.btn.flash-pos{background:rgba(52,211,153,.3);border-color:rgba(52,211,153,.6);transition:none}
+.btn.flash-aud{background:rgba(52,211,153,.3);border-color:rgba(52,211,153,.6);transition:none}
+.btn.flash-wrong{background:rgba(239,68,68,.3);border-color:rgba(239,68,68,.6);transition:none}
+.mute-btn{position:fixed;top:16px;right:16px;z-index:50;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#f97316}
+.mute-btn:hover{background:rgba(255,255,255,.14)}
+#grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;max-width:320px;margin:0 auto}
+.cell{aspect-ratio:1;border-radius:16px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);transition:all .15s}
+.cell.lit{background:linear-gradient(135deg,#f97316,#f59e0b);box-shadow:0 0 28px rgba(249,115,22,.6),inset 0 0 14px rgba(255,255,255,.3)}
+.cell.match-pos{background:linear-gradient(135deg,#34d399,#10b981);box-shadow:0 0 22px rgba(52,211,153,.5)}
+#letterDisplay{text-align:center;font-size:32px;font-weight:800;color:#a855f7;min-height:48px;margin:16px 0;font-family:'JetBrains Mono',monospace;letter-spacing:2px}
+.seg{display:inline-flex;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:3px}
+.seg button{padding:7px 14px;border-radius:9px;font-size:12px;font-weight:600;color:#94a3b8;background:transparent;border:none;cursor:pointer;transition:all .15s}
+.seg button.active{background:rgba(249,115,22,.2);color:#f97316}
+.score-bar{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.score-item{text-align:center}
+.score-item .val{font-size:22px;font-weight:800;font-family:'JetBrains Mono',monospace}
+.score-item .label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.4)}
+.pos-color{color:#f97316}
+.aud-color{color:#a855f7}
+</style>
+</head>
+<body>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<button id="muteBtn" class="mute-btn" title="Mute" aria-label="Mute toggle">
+  <svg id="muteIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+</button>
+<div class="relative z-10 max-w-4xl mx-auto px-4 md:px-6 py-6 md:py-10">
+  <nav class="flex items-center justify-between mb-8 gap-3">
+    <a href="../" class="glass inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm hover:bg-white/10 transition">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+      Playground
+    </a>
+    <span class="glass inline-flex items-center px-4 py-2 rounded-full text-xs mono whitespace-nowrap"><span class="dot-pill"></span>Qwen 3.7 MAX · Brain Lab · #01</span>
+  </nav>
+  <header class="mb-8">
+    <span class="glass inline-block px-3 py-1 rounded-full text-[11px] uppercase tracking-wider text-white/60 mb-4">◆ Working Memory</span>
+    <h1 class="text-5xl md:text-7xl font-black tracking-tighter gradient-text leading-none mb-3">Dual N-Back</h1>
+    <p class="text-white/40 text-lg">The gold standard of cognitive training — track position AND sound, N steps back in time.</p>
+  </header>
+  <section class="glass-strong rounded-3xl p-6 md:p-8 mb-6">
+    <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+      <div class="flex items-center gap-4 text-sm">
+        <span class="mono text-white/60">N = <span id="nVal" class="text-white font-bold">2</span></span>
+        <span class="mono text-white/60">Trial <span id="trialNum" class="text-white">0</span>/<span id="trialTot" class="text-white">20</span></span>
+        <span class="mono text-white/60">Best <span id="bestN" class="text-emerald-400">2</span></span>
+      </div>
+      <div class="flex gap-2 flex-wrap">
+        <div class="seg" id="nSeg">
+          <button data-n="1">N=1</button>
+          <button data-n="2" class="active">N=2</button>
+          <button data-n="3">N=3</button>
+          <button data-n="4">N=4</button>
+          <button data-n="5">N=5</button>
+        </div>
+        <button id="startBtn" class="btn btn-primary">Start</button>
+      </div>
+    </div>
+    <div id="grid"></div>
+    <div id="letterDisplay">&nbsp;</div>
+    <div class="flex justify-center gap-3 flex-wrap mt-2">
+      <button id="posBtn" class="btn btn-pos" disabled>Position Match (A)</button>
+      <button id="audBtn" class="btn btn-aud" disabled>Sound Match (L)</button>
+    </div>
+    <div class="score-bar">
+      <div class="score-item"><div class="val pos-color" id="posScore">—</div><div class="label">Position %</div></div>
+      <div class="score-item"><div class="val aud-color" id="audScore">—</div><div class="label">Sound %</div></div>
+      <div class="score-item"><div class="val text-emerald-400" id="totalScore">—</div><div class="label">Combined</div></div>
+    </div>
+    <p id="msg" class="text-center text-white/60 text-sm mt-4 h-5 mono"></p>
+  </section>
+  <section class="glass rounded-3xl p-6 md:p-8 mb-6">
+    <h2 class="text-xl font-bold mb-3">Why this trains your brain</h2>
+    <div class="flex flex-wrap gap-2 mb-4">
+      <span class="chip">Working Memory</span>
+      <span class="chip">Dual-Task Load</span>
+      <span class="chip">Fluid Intelligence</span>
+      <span class="chip">Attention Control</span>
+    </div>
+    <p class="text-white/60 text-sm leading-relaxed">Dual N-Back is the most-studied cognitive training task in neuroscience. You simultaneously track a visual position and an auditory letter, checking each against what appeared N steps back. Research suggests consistent practice can improve working memory capacity and fluid reasoning — the core of problem-solving ability.</p>
+  </section>
+  <footer class="text-center text-white/30 text-xs mono py-4">Powered by Qwen 3.7 MAX · Brain Challenge Lab</footer>
+</div>
+<script>
+(function(){
+  'use strict';
+  var AC=null, muted=false;
+  function audio(){ if(!AC){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ AC=null; } } if(AC&&AC.state==='suspended'){ try{ AC.resume(); }catch(e){} } return AC; }
+  function speakLetter(l){
+    if(muted) return;
+    try{ var a=audio(); if(!a) return;
+      var freqs={C:262,D:294,F:349,G:392,H:440,J:494,K:523,L:587};
+      var f=freqs[l]||440;
+      var o=a.createOscillator(), g=a.createGain();
+      o.type='triangle'; o.frequency.value=f;
+      o.connect(g); g.connect(a.destination);
+      var t=a.currentTime;
+      g.gain.setValueAtTime(0.09,t);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+0.35);
+      o.start(t); o.stop(t+0.35);
+    }catch(e){}
+  }
+  function clickSound(){ try{ var a=audio(); if(!a||muted) return; var o=a.createOscillator(),g=a.createGain(); o.type='sine'; o.frequency.value=660; o.connect(g); g.connect(a.destination); var t=a.currentTime; g.gain.setValueAtTime(0.05,t); g.gain.exponentialRampToValueAtTime(0.0001,t+0.05); o.start(t); o.stop(t+0.05); }catch(e){} }
+  function winSound(){ [523,659,784,1046].forEach(function(f,i){ setTimeout(function(){ try{ var a=audio(); if(!a||muted) return; var o=a.createOscillator(),g=a.createGain(); o.type='triangle'; o.frequency.value=f; o.connect(g); g.connect(a.destination); var t=a.currentTime; g.gain.setValueAtTime(0.08,t); g.gain.exponentialRampToValueAtTime(0.0001,t+0.2); o.start(t); o.stop(t+0.2); }catch(e){} }, i*90); }); }
+  function errSound(){ try{ var a=audio(); if(!a||muted) return; var o=a.createOscillator(),g=a.createGain(); o.type='sawtooth'; o.frequency.value=160; o.connect(g); g.connect(a.destination); var t=a.currentTime; g.gain.setValueAtTime(0.05,t); g.gain.exponentialRampToValueAtTime(0.0001,t+0.2); o.start(t); o.stop(t+0.2); }catch(e){} }
+
+  var LETTERS=['C','D','F','G','H','J','K','L'];
+  var N=2, TRIALS=20, INTERVAL=2800;
+  var positions=[], letters=[];
+  var currentTrial=0, running=false;
+  var posResponded=false, audResponded=false;
+  var posCorrect=0, posTotal=0, audCorrect=0, audTotal=0;
+  var timer=null;
+  var grid=document.getElementById('grid');
+  var letterEl=document.getElementById('letterDisplay');
+  var posBtn=document.getElementById('posBtn');
+  var audBtn=document.getElementById('audBtn');
+  var startBtn=document.getElementById('startBtn');
+  var nSeg=document.getElementById('nSeg');
+  function $(id){ return document.getElementById(id); }
+
+  function buildGrid(){
+    grid.innerHTML='';
+    for(var i=0;i<9;i++){
+      var c=document.createElement('div');
+      c.className='cell'; c.dataset.idx=i;
+      grid.appendChild(c);
+    }
+  }
+  function clearGrid(){
+    var cells=grid.querySelectorAll('.cell');
+    for(var i=0;i<cells.length;i++){ cells[i].classList.remove('lit','match-pos'); }
+    if(letterEl) letterEl.innerHTML='&nbsp;';
+  }
+  function lightCell(idx){
+    var cells=grid.querySelectorAll('.cell');
+    if(cells[idx]) cells[idx].classList.add('lit');
+  }
+  function updateHUD(){
+    if($('nVal')) $('nVal').textContent=N;
+    if($('trialNum')) $('trialNum').textContent=currentTrial;
+    if($('trialTot')) $('trialTot').textContent=TRIALS;
+    var b=loadBest();
+    if($('bestN')) $('bestN').textContent=b;
+  }
+  function loadBest(){ try{ var v=localStorage.getItem('qw_dnb_best'); return v?parseInt(v,10):2; }catch(e){ return 2; } }
+  function saveBest(v){ try{ localStorage.setItem('qw_dnb_best',String(v)); }catch(e){} }
+  function flashMsg(t){ var m=$('msg'); if(m) m.textContent=t; }
+
+  function generateSequence(){
+    positions=[]; letters=[];
+    for(var i=0;i<TRIALS;i++){
+      // ~30% chance of position match, ~30% chance of audio match
+      var pos, let;
+      if(i>=N && Math.random()<0.3){ pos=positions[i-N]; }
+      else { pos=Math.floor(Math.random()*9); }
+      if(i>=N && Math.random()<0.3){ let=letters[i-N]; }
+      else { let=LETTERS[Math.floor(Math.random()*LETTERS.length)]; }
+      positions.push(pos);
+      letters.push(let);
+    }
+  }
+
+  function runTrial(){
+    if(currentTrial>=TRIALS){ endSession(); return; }
+    clearGrid();
+    posResponded=false; audResponded=false;
+    posBtn.disabled=false; audBtn.disabled=false;
+    var pos=positions[currentTrial];
+    var let=letters[currentTrial];
+    lightCell(pos);
+    if(letterEl) letterEl.textContent=let;
+    speakLetter(let);
+    currentTrial++;
+    updateHUD();
+    timer=setTimeout(function(){
+      posBtn.disabled=true; audBtn.disabled=true;
+      // auto-score non-responded trials
+      if(!posResponded){
+        posTotal++;
+        var shouldMatch=(currentTrial-1>=N && positions[currentTrial-1]===positions[currentTrial-1-N]);
+        if(!shouldMatch) posCorrect++;
+      }
+      if(!audResponded){
+        audTotal++;
+        var shouldMatch2=(currentTrial-1>=N && letters[currentTrial-1]===letters[currentTrial-1-N]);
+        if(!shouldMatch2) audCorrect++;
+      }
+      updateScores();
+      clearGrid();
+      setTimeout(runTrial,400);
+    }, INTERVAL);
+  }
+
+  function handlePos(){
+    if(!running||posResponded||currentTrial<1) return;
+    posResponded=true; posBtn.disabled=true;
+    audio(); clickSound();
+    posTotal++;
+    var idx=currentTrial-1;
+    var match=(idx>=N && positions[idx]===positions[idx-N]);
+    if(match){ posCorrect++; posBtn.classList.add('flash-pos'); }
+    else { posBtn.classList.add('flash-wrong'); errSound(); }
+    setTimeout(function(){ posBtn.classList.remove('flash-pos','flash-wrong'); },350);
+    updateScores();
+  }
+  function handleAud(){
+    if(!running||audResponded||currentTrial<1) return;
+    audResponded=true; audBtn.disabled=true;
+    audio(); clickSound();
+    audTotal++;
+    var idx=currentTrial-1;
+    var match=(idx>=N && letters[idx]===letters[idx-N]);
+    if(match){ audCorrect++; audBtn.classList.add('flash-aud'); }
+    else { audBtn.classList.add('flash-wrong'); errSound(); }
+    setTimeout(function(){ audBtn.classList.remove('flash-aud','flash-wrong'); },350);
+    updateScores();
+  }
+
+  function updateScores(){
+    var pp=posTotal>0?Math.round(posCorrect/posTotal*100):0;
+    var ap=audTotal>0?Math.round(audCorrect/audTotal*100):0;
+    var comb=posTotal>0&&audTotal>0?Math.round((pp+ap)/2):0;
+    if($('posScore')) $('posScore').textContent=posTotal>0?pp+'%':'—';
+    if($('audScore')) $('audScore').textContent=audTotal>0?ap+'%':'—';
+    if($('totalScore')) $('totalScore').textContent=comb>0?comb+'%':'—';
+  }
+
+  function startSession(){
+    audio();
+    running=true; currentTrial=0;
+    posCorrect=0; posTotal=0; audCorrect=0; audTotal=0;
+    startBtn.disabled=true;
+    nSeg.querySelectorAll('button').forEach(function(b){ b.disabled=true; });
+    generateSequence();
+    updateHUD();
+    flashMsg('Watch & listen — press A for position match, L for sound match');
+    setTimeout(runTrial, 800);
+  }
+
+  function endSession(){
+    running=false;
+    clearTimeout(timer);
+    clearGrid();
+    posBtn.disabled=true; audBtn.disabled=true;
+    startBtn.disabled=false;
+    nSeg.querySelectorAll('button').forEach(function(b){ b.disabled=false; });
+    var pp=posTotal>0?Math.round(posCorrect/posTotal*100):0;
+    var ap=audTotal>0?Math.round(audCorrect/audTotal*100):0;
+    var comb=Math.round((pp+ap)/2);
+    winSound();
+    if(comb>=80 && N<5){
+      N++;
+      flashMsg('Excellent! N increased to '+N+'. Keep training.');
+      var b=loadBest(); if(N>b) saveBest(N);
+    } else if(comb<50 && N>1){
+      N--;
+      flashMsg('N decreased to '+N+'. Build up gradually.');
+    } else {
+      flashMsg('Session complete — '+comb+'% combined. Tap Start for another round.');
+    }
+    updateHUD();
+  }
+
+  // keyboard shortcuts
+  document.addEventListener('keydown',function(e){
+    if(e.key==='a'||e.key==='A') handlePos();
+    if(e.key==='l'||e.key==='L') handleAud();
+  });
+
+  if(posBtn) posBtn.addEventListener('click',function(){ handlePos(); });
+  if(audBtn) audBtn.addEventListener('click',function(){ handleAud(); });
+  if(startBtn) startBtn.addEventListener('click',function(){ startSession(); });
+  if(nSeg) nSeg.addEventListener('click',function(e){
+    var b=e.target.closest('button'); if(!b||running) return;
+    N=parseInt(b.dataset.n,10);
+    nSeg.querySelectorAll('button').forEach(function(x){ x.classList.remove('active'); });
+    b.classList.add('active');
+    updateHUD();
+  });
+
+  var muteBtn=$('muteBtn'), muteIcon=$('muteIcon');
+  if(muteBtn) muteBtn.addEventListener('click',function(){
+    muted=!muted;
+    if(muted){ muteIcon.innerHTML='<path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>'; }
+    else { muteIcon.innerHTML='<path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>'; audio(); }
+  });
+
+  function init(){ buildGrid(); updateHUD(); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init);
+  else init();
+})();
+</script>
+</body>
+</html>

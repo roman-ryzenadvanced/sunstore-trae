@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Stroop Chain — Qwen 3.7 MAX Brain Lab</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+*{font-family:'Inter',sans-serif;box-sizing:border-box}
+body{background:#000;color:#fff;margin:0;overflow-x:hidden}
+.mono{font-family:'JetBrains Mono',monospace}
+.glass{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1)}
+.glass-strong{background:rgba(255,255,255,.08);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.15)}
+.orb{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0}
+@keyframes pulse-glow{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:.65;transform:scale(1.12)}}
+.orb1{width:520px;height:520px;background:radial-gradient(circle,#f97316,transparent 70%);top:-180px;left:-140px;animation:pulse-glow 9s ease-in-out infinite}
+.orb2{width:480px;height:480px;background:radial-gradient(circle,#a855f7,transparent 70%);bottom:-160px;right:-110px;animation:pulse-glow 11s ease-in-out infinite reverse}
+.gradient-text{background:linear-gradient(135deg,#f97316 0%,#f59e0b 40%,#a855f7 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.dot-pill{display:inline-block;width:8px;height:8px;border-radius:50%;background:#f97316;margin-right:8px;box-shadow:0 0 10px #f97316}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:9999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-size:13px;color:rgba(255,255,255,.7)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);color:#fff;font-weight:600;font-size:13px;cursor:pointer;transition:all .18s;user-select:none}
+.btn:hover{background:rgba(255,255,255,.12);transform:translateY(-1px)}
+.btn:active{transform:translateY(0) scale(.97)}
+.btn-primary{background:linear-gradient(135deg,#f97316,#a855f7);border-color:transparent}
+.btn-primary:hover{filter:brightness(1.15)}
+.btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.mute-btn{position:fixed;top:16px;right:16px;z-index:50;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#f97316}
+.mute-btn:hover{background:rgba(255,255,255,.14)}
+#ruleDisplay{text-align:center;font-size:14px;color:rgba(255,255,255,.6);min-height:24px;margin-bottom:8px}
+#ruleDisplay .highlight{color:#f97316;font-weight:700}
+#wordDisplay{text-align:center;font-size:clamp(48px,14vw,96px);font-weight:900;font-family:'JetBrains Mono',monospace;min-height:120px;display:flex;align-items:center;justify-content:center;text-transform:uppercase;letter-spacing:3px;transition:opacity .12s}
+#wordDisplay.pulse{animation:wordPulse .35s ease}
+@keyframes wordPulse{0%{transform:scale(.8);opacity:0}100%{transform:scale(1);opacity:1}}
+.options-row{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;max-width:480px;margin:16px auto 0}
+.opt-btn{padding:16px;border-radius:16px;font-size:18px;font-weight:700;font-family:'JetBrains Mono',monospace;cursor:pointer;transition:all .12s;user-select:none;border:2px solid;text-align:center}
+.opt-btn:hover{transform:translateY(-2px)}
+.opt-btn:active{transform:scale(.95)}
+.opt-btn.flash-correct{background:rgba(52,211,153,.3)!important;border-color:#34d399!important;color:#34d399!important}
+.opt-btn.flash-wrong{background:rgba(239,68,68,.3)!important;border-color:#ef4444!important;color:#ef4444!important;animation:shake .3s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.progress-bar{width:100%;height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;margin:8px 0}
+.progress-fill{height:100%;background:linear-gradient(90deg,#f97316,#a855f7);border-radius:3px;transition:width .3s}
+.stat-row{display:flex;justify-content:center;gap:24px;flex-wrap:wrap;margin-top:8px}
+.stat-item{text-align:center}
+.stat-item .val{font-size:20px;font-weight:800;font-family:'JetBrains Mono',monospace}
+.stat-item .label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.4)}
+.seg{display:inline-flex;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:3px}
+.seg button{padding:7px 14px;border-radius:9px;font-size:12px;font-weight:600;color:#94a3b8;background:transparent;border:none;cursor:pointer;transition:all .15s}
+.seg button.active{background:rgba(249,115,22,.2);color:#f97316}
+.win-flash{animation:win-pulse 1.6s ease-out}
+@keyframes win-pulse{0%{box-shadow:0 0 0 rgba(52,211,153,0)}50%{box-shadow:0 0 60px rgba(52,211,153,.55)}100%{box-shadow:0 0 0 rgba(52,211,153,0)}}
+</style>
+</head>
+<body>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<button id="muteBtn" class="mute-btn" title="Mute" aria-label="Mute toggle">
+  <svg id="muteIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+</button>
+<div class="relative z-10 max-w-4xl mx-auto px-4 md:px-6 py-6 md:py-10">
+  <nav class="flex items-center justify-between mb-8 gap-3">
+    <a href="../" class="glass inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm hover:bg-white/10 transition">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+      Playground
+    </a>
+    <span class="glass inline-flex items-center px-4 py-2 rounded-full text-xs mono whitespace-nowrap"><span class="dot-pill"></span>Qwen 3.7 MAX · Brain Lab · #10</span>
+  </nav>
+  <header class="mb-8">
+    <span class="glass inline-block px-3 py-1 rounded-full text-[11px] uppercase tracking-wider text-white/60 mb-4">◆ Inhibition Control</span>
+    <h1 class="text-5xl md:text-7xl font-black tracking-tighter gradient-text leading-none mb-3">Stroop Chain</h1>
+    <p class="text-white/40 text-lg">The rule changes every round — respond by COLOR, WORD, or INK, fast as you can.</p>
+  </header>
+  <section class="glass-strong rounded-3xl p-6 md:p-8 mb-6">
+    <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+      <div class="flex items-center gap-4 text-sm">
+        <span class="mono text-white/60">Streak <span id="streak" class="text-white">0</span></span>
+        <span class="mono text-white/60">Best <span id="best" class="text-emerald-400">—</span></span>
+      </div>
+      <div class="flex gap-2 flex-wrap items-center">
+        <div class="seg" id="modeSeg">
+          <button data-m="classic" class="active">Classic</button>
+          <button data-m="chain">Chain</button>
+        </div>
+        <button id="startBtn" class="btn btn-primary">Start</button>
+      </div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progBar" style="width:100%"></div></div>
+    <div id="ruleDisplay">&nbsp;</div>
+    <div id="wordDisplay">—</div>
+    <div class="options-row" id="optionsRow"></div>
+    <div class="stat-row">
+      <div class="stat-item"><div class="val text-emerald-400" id="correctCount">0</div><div class="label">Correct</div></div>
+      <div class="stat-item"><div class="val text-red-400" id="wrongCount">0</div><div class="label">Wrong</div></div>
+      <div class="stat-item"><div class="val text-amber-400" id="avgTime">—</div><div class="label">Avg (ms)</div></div>
+    </div>
+    <p id="msg" class="text-center text-white/60 text-sm mt-4 h-5 mono"></p>
+  </section>
+  <section class="glass rounded-3xl p-6 md:p-8 mb-6">
+    <h2 class="text-xl font-bold mb-3">Why this trains your brain</h2>
+    <div class="flex flex-wrap gap-2 mb-4">
+      <span class="chip">Inhibitory Control</span>
+      <span class="chip">Cognitive Flexibility</span>
+      <span class="chip">Task Switching</span>
+      <span class="chip">Selective Attention</span>
+    </div>
+    <p class="text-white/60 text-sm leading-relaxed">The Stroop effect is the gold standard measure of inhibitory control. In Chain mode, the rule switches unpredictably — forcing your prefrontal cortex to rapidly reconfigure the task set. This "mixing cost" and "switch cost" directly train cognitive flexibility, the ability to adapt mental strategies on the fly.</p>
+  </section>
+  <footer class="text-center text-white/30 text-xs mono py-4">Powered by Qwen 3.7 MAX · Brain Challenge Lab</footer>
+</div>
+<script>
+(function(){
+  'use strict';
+  var AC=null, muted=false;
+  function audio(){ if(!AC){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ AC=null; } } if(AC&&AC.state==='suspended'){ try{ AC.resume(); }catch(e){} } return AC; }
+  function blip(freq,dur,type,gain){
+    if(muted) return;
+    try{ var a=audio(); if(!a) return; var o=a.createOscillator(),g=a.createGain(); o.type=type||'sine'; o.frequency.value=freq||440; o.connect(g); g.connect(a.destination); var t=a.currentTime; g.gain.setValueAtTime(gain||0.05,t); g.gain.exponentialRampToValueAtTime(0.0001,t+(dur||0.08)); o.start(t); o.stop(t+(dur||0.08)); }catch(e){}
+  }
+  function correctSound(){ blip(660,0.08,'sine',0.05); setTimeout(function(){ blip(880,0.1,'sine',0.05); },80); }
+  function wrongSound(){ blip(160,0.18,'sawtooth',0.05); }
+  function winSound(){ [523,659,784,1046].forEach(function(f,i){ setTimeout(function(){ blip(f,0.2,'triangle',0.08); },i*90); }); }
+
+  var COLORS=[
+    {name:'RED',hex:'#ef4444'},
+    {name:'BLUE',hex:'#3b82f6'},
+    {name:'GREEN',hex:'#22c55e'},
+    {name:'YELLOW',hex:'#eab308'},
+    {name:'PURPLE',hex:'#a855f7'},
+    {name:'ORANGE',hex:'#f97316'}
+  ];
+  var MODE='classic'; // classic|chain
+  var RULES=['INK','WORD'];
+  var TRIAL_COUNT=20;
+  var currentRule='INK';
+  var currentTrial=0;
+  var streak=0, correct=0, wrong=0;
+  var totalTime=0, problemStart=0;
+  var running=false;
+  var currentWord='', currentColor='';
+  var wordDisplay=document.getElementById('wordDisplay');
+  var ruleDisplay=document.getElementById('ruleDisplay');
+  var optionsRow=document.getElementById('optionsRow');
+  var startBtn=document.getElementById('startBtn');
+  var modeSeg=document.getElementById('modeSeg');
+  var progBar=document.getElementById('progBar');
+  function $(id){ return document.getElementById(id); }
+
+  function bestKey(){ return 'qw_stroop_best_'+MODE; }
+  function loadBest(){ try{ var v=localStorage.getItem(bestKey()); return v?parseInt(v,10):null; }catch(e){ return null; } }
+  function saveBest(v){ try{ localStorage.setItem(bestKey(),String(v)); }catch(e){} }
+
+  function updateHUD(){
+    if($('streak')) $('streak').textContent=streak;
+    var b=loadBest();
+    if($('best')) $('best').textContent=(b==null?'—':b);
+    if($('correctCount')) $('correctCount').textContent=correct;
+    if($('wrongCount')) $('wrongCount').textContent=wrong;
+    var answered=correct+wrong;
+    if($('avgTime')) $('avgTime').textContent=answered>0?Math.round(totalTime/answered)+'ms':'—';
+    if(progBar) progBar.style.width=((TRIAL_COUNT-currentTrial)/TRIAL_COUNT*100)+'%';
+  }
+  function flashMsg(t){ var m=$('msg'); if(m) m.textContent=t; }
+
+  function randColor(){ return COLORS[Math.floor(Math.random()*COLORS.length)]; }
+
+  function generateTrial(){
+    // pick word (color name) and ink (different from word for Stroop interference)
+    var word=randColor();
+    var ink=randColor();
+    // ~60% chance they differ (for interference)
+    if(Math.random()<0.4) ink=word;
+    currentWord=word.name;
+    currentColor=ink.hex;
+    // rule
+    if(MODE==='chain'){
+      currentRule=RULES[Math.floor(Math.random()*RULES.length)];
+    }
+    // display
+    if(wordDisplay){
+      wordDisplay.textContent=currentWord;
+      wordDisplay.style.color=currentColor;
+      wordDisplay.classList.remove('pulse');
+      void wordDisplay.offsetWidth;
+      wordDisplay.classList.add('pulse');
+    }
+    if(ruleDisplay){
+      if(currentRule==='INK'){
+        ruleDisplay.innerHTML='Respond with the <span class="highlight">INK COLOR</span> (ignore the word)';
+      } else {
+        ruleDisplay.innerHTML='Respond with the <span class="highlight">WORD</span> (ignore the ink)';
+      }
+    }
+    // correct answer
+    var correctAns=currentRule==='INK'?getColorName(currentColor):currentWord;
+    // build options: correct + 3 distractors
+    var options=[correctAns];
+    var pool=COLORS.map(function(c){ return c.name; }).filter(function(n){ return n!==correctAns; });
+    for(var i=0;i<3&&pool.length>0;i++){
+      var idx=Math.floor(Math.random()*pool.length);
+      options.push(pool[idx]);
+      pool.splice(idx,1);
+    }
+    // shuffle
+    for(var j=options.length-1;j>0;j--){
+      var k=Math.floor(Math.random()*(j+1));
+      var t=options[j]; options[j]=options[k]; options[k]=t;
+    }
+    renderOptions(options,correctAns);
+    problemStart=Date.now();
+  }
+
+  function getColorName(hex){
+    for(var i=0;i<COLORS.length;i++){
+      if(COLORS[i].hex===hex) return COLORS[i].name;
+    }
+    return '';
+  }
+
+  function renderOptions(options,correctAns){
+    if(!optionsRow) return;
+    optionsRow.innerHTML='';
+    for(var i=0;i<options.length;i++){
+      var btn=document.createElement('button');
+      btn.className='opt-btn';
+      btn.textContent=options[i];
+      var cObj=COLORS.filter(function(c){ return c.name===options[i]; })[0];
+      if(cObj){
+        btn.style.background=cObj.hex+'22';
+        btn.style.borderColor=cObj.hex+'66';
+        btn.style.color=cObj.hex;
+      }
+      (function(ans,el){
+        el.addEventListener('click',function(){ onAnswer(ans,correctAns,el); });
+      })(options[i],correctAns,btn);
+      optionsRow.appendChild(btn);
+    }
+  }
+
+  function onAnswer(ans,correctAns,el){
+    if(!running) return;
+    var elapsed=Date.now()-problemStart;
+    totalTime+=elapsed;
+    currentTrial++;
+    if(ans===correctAns){
+      correct++; streak++;
+      el.classList.add('flash-correct');
+      correctSound();
+    } else {
+      wrong++; streak=0;
+      el.classList.add('flash-wrong');
+      wrongSound();
+    }
+    updateHUD();
+    // disable all options
+    var btns=optionsRow.querySelectorAll('.opt-btn');
+    for(var i=0;i<btns.length;i++){ btns[i].style.pointerEvents='none'; }
+    if(currentTrial>=TRIAL_COUNT){
+      setTimeout(endGame,500);
+    } else {
+      setTimeout(generateTrial,600);
+    }
+  }
+
+  function startGame(){
+    audio();
+    running=true;
+    currentTrial=0; correct=0; wrong=0; streak=0; totalTime=0;
+    if(MODE==='classic') currentRule='INK';
+    startBtn.disabled=true;
+    modeSeg.querySelectorAll('button').forEach(function(b){ b.disabled=true; });
+    generateTrial();
+    updateHUD();
+    flashMsg('Respond quickly and accurately!');
+  }
+
+  function endGame(){
+    running=false;
+    startBtn.disabled=false;
+    modeSeg.querySelectorAll('button').forEach(function(b){ b.disabled=false; });
+    if(wordDisplay){ wordDisplay.textContent='—'; wordDisplay.style.color='#fff'; }
+    if(ruleDisplay) ruleDisplay.innerHTML='&nbsp;';
+    if(optionsRow) optionsRow.innerHTML='';
+    winSound();
+    var sec=document.querySelector('section.glass-strong');
+    if(sec){ sec.classList.add('win-flash'); setTimeout(function(){ sec.classList.remove('win-flash'); },1600); }
+    var b=loadBest();
+    if(b==null||correct>b){ saveBest(correct); flashMsg('Done! '+correct+'/'+TRIAL_COUNT+' correct — new best!'); }
+    else { flashMsg('Done! '+correct+'/'+TRIAL_COUNT+' correct (best: '+b+')'); }
+    updateHUD();
+  }
+
+  // keyboard shortcuts: 1-4
+  document.addEventListener('keydown',function(e){
+    if(!running) return;
+    var btns=optionsRow.querySelectorAll('.opt-btn');
+    var k=parseInt(e.key,10);
+    if(k>=1&&k<=4&&btns[k-1]) btns[k-1].click();
+  });
+
+  if(startBtn) startBtn.addEventListener('click',function(){ startGame(); });
+  if(modeSeg) modeSeg.addEventListener('click',function(e){
+    var b=e.target.closest('button'); if(!b||running) return;
+    MODE=b.dataset.m;
+    modeSeg.querySelectorAll('button').forEach(function(x){ x.classList.remove('active'); });
+    b.classList.add('active');
+    updateHUD();
+  });
+
+  var muteBtn=$('muteBtn'), muteIcon=$('muteIcon');
+  if(muteBtn) muteBtn.addEventListener('click',function(){
+    muted=!muted;
+    if(muted){ muteIcon.innerHTML='<path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>'; }
+    else { muteIcon.innerHTML='<path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>'; audio(); }
+  });
+
+  function init(){ updateHUD(); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init);
+  else init();
+})();
+</script>
+</body>
+</html>

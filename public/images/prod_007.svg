@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <radialGradient id="bg7" cx="50%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0a0f1a"/>
+    </radialGradient>
+    <linearGradient id="panel7" x1="0.1" y1="0" x2="0.9" y2="1">
+      <stop offset="0%" stop-color="#2563eb"/>
+      <stop offset="50%" stop-color="#1e3a5f"/>
+      <stop offset="100%" stop-color="#081626"/>
+    </linearGradient>
+    <linearGradient id="glass7" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.2"/>
+      <stop offset="50%" stop-color="#ffffff" stop-opacity="0.03"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="shadow7">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#000000" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg7)"/>
+  <ellipse cx="200" cy="350" rx="140" ry="18" fill="#000000" opacity="0.3"/>
+  <!-- Bifacial panel -->
+  <g transform="translate(200,185) rotate(-8) scale(1,0.94)" filter="url(#shadow7)">
+    <rect x="-148" y="-98" width="296" height="196" rx="8" fill="url(#panel7)" stroke="#60a5fa" stroke-width="4"/>
+    <g stroke="#93c5fd" stroke-width="1" opacity="0.5">
+      <line x1="-112" y1="-98" x2="-112" y2="98"/>
+      <line x1="-74" y1="-98" x2="-74" y2="98"/>
+      <line x1="-37" y1="-98" x2="-37" y2="98"/>
+      <line x1="0" y1="-98" x2="0" y2="98"/>
+      <line x1="37" y1="-98" x2="37" y2="98"/>
+      <line x1="74" y1="-98" x2="74" y2="98"/>
+      <line x1="112" y1="-98" x2="112" y2="98"/>
+      <line x1="-148" y1="-49" x2="148" y2="-49"/>
+      <line x1="-148" y1="0" x2="148" y2="0"/>
+      <line x1="-148" y1="49" x2="148" y2="49"/>
+    </g>
+    <!-- Double glass edge -->
+    <rect x="-152" y="-102" width="304" height="204" rx="10" fill="none" stroke="#93c5fd" stroke-width="2" opacity="0.5"/>
+    <rect x="-148" y="-98" width="296" height="196" rx="8" fill="url(#glass7)"/>
+  </g>
+  <!-- Sun glow -->
+  <circle cx="335" cy="65" r="30" fill="#f97316" opacity="0.15"/>
+  <circle cx="335" cy="65" r="16" fill="#fbbf24" opacity="0.25"/>
+  <text x="200" y="375" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#e2e8f0" text-anchor="middle">Helios Prime 550Вт Бифациальная</text>
+</svg>

@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Playground | AI Concept Showcase</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+    * { font-family: 'Inter', sans-serif; }
+    body { background: #000; }
+    .gradient-text { 
+      background: linear-gradient(135deg, #8b5cf6, #d946ef, #ec4899); 
+      -webkit-background-clip: text; 
+      -webkit-text-fill-color: transparent; 
+    }
+    .glass { 
+      background: rgba(255,255,255,0.03); 
+      backdrop-filter: blur(20px); 
+      border: 1px solid rgba(255,255,255,0.07); 
+    }
+    .card-glow:hover { 
+      box-shadow: 0 0 50px rgba(139, 92, 246, 0.15); 
+      border-color: rgba(168, 85, 247, 0.3);
+    }
+    @keyframes float { 
+      0%, 100% { transform: translateY(0px); } 
+      50% { transform: translateY(-15px); } 
+    }
+    @keyframes pulse-glow { 
+      0%, 100% { opacity: 0.2; } 
+      50% { opacity: 0.5; } 
+    }
+    .float { animation: float 6s ease-in-out infinite; }
+    .pulse-glow { animation: pulse-glow 4s ease-in-out infinite; }
+    @keyframes fadeIn { 
+      from { opacity: 0; transform: translateY(20px); } 
+      to { opacity: 1; transform: translateY(0); } 
+    }
+    .fade-in { animation: fadeIn 0.6s ease-out forwards; }
+    
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: #000; }
+    ::-webkit-scrollbar-thumb { background: #222; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #333; }
+  </style>
+</head>
+<body class="min-h-screen text-white overflow-x-hidden pb-20">
+  <!-- Animated Background Glows -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+    <div class="absolute -top-40 -left-40 w-96 h-96 bg-violet-600/20 rounded-full blur-3xl pulse-glow"></div>
+    <div class="absolute top-1/3 -right-20 w-80 h-80 bg-fuchsia-600/15 rounded-full blur-3xl pulse-glow" style="animation-delay: 1.5s;"></div>
+    <div class="absolute bottom-20 left-1/4 w-72 h-72 bg-pink-600/15 rounded-full blur-3xl pulse-glow" style="animation-delay: 3s;"></div>
+  </div>
+
+  <div class="relative max-w-6xl mx-auto px-4 sm:px-6 py-12 z-10">
+    <!-- Navigation -->
+    <nav class="flex justify-between items-center mb-16 fade-in">
+      <a href="https://rommark.dev" class="flex items-center gap-2 px-4 py-2 glass rounded-full text-xs font-semibold uppercase tracking-wider hover:bg-white/10 hover:border-white/20 transition-all">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="inline">
+          <path d="M19 12H5M12 19l-7-7 7-7"/>
+        </svg>
+        rommark.dev
+      </a>
+      <div class="flex items-center gap-2 px-3 py-1.5 glass rounded-full text-xs font-medium text-white/70">
+        <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+        Interactive zone
+      </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="text-center mb-16 fade-in">
+      <div class="inline-flex items-center gap-2 px-4 py-2 glass rounded-full text-xs font-semibold uppercase tracking-widest text-white/60 mb-6">
+        <span class="text-violet-400">◆</span> Multi-Model Arena
+      </div>
+      <h1 class="text-6xl md:text-8xl font-black tracking-tighter mb-6 gradient-text">
+        Playground
+      </h1>
+      <p class="text-white/50 text-base md:text-lg max-w-xl mx-auto leading-relaxed">
+        A catalog of <span class="text-white font-semibold" id="total-count">0</span> experimental projects, mini-games, and layouts generated across various state-of-the-art AI models.
+      </p>
+    </header>
+
+    <!-- Controls Panel: Filters and Search -->
+    <div class="mb-12 glass rounded-3xl p-6 md:p-8 fade-in" style="animation-delay: 0.1s;">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+        <div>
+          <h2 class="text-lg font-bold text-white mb-1">Filter by AI Model</h2>
+          <p class="text-xs text-white/40">Select a model to view its specific creations and release timelines.</p>
+        </div>
+        
+        <!-- Real-Time Search Bar -->
+        <div class="relative w-full md:w-80">
+          <input type="text" id="search-input" placeholder="Search creations..." class="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-3 pl-11 text-sm text-white placeholder-white/30 focus:outline-none focus:border-violet-500/50 transition-colors">
+          <svg class="absolute left-4 top-3.5 w-4 h-4 text-white/30" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+        </div>
+      </div>
+      
+      <!-- Filter Tabs Grid -->
+      <div class="flex flex-wrap gap-2" id="filter-tabs">
+        <button data-model="all" class="filter-tab px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300 bg-white/10 text-white border border-white/20">
+          All Models <span class="ml-1 opacity-50 font-normal" id="count-all">0</span>
+        </button>
+        <button data-model="GLM 5.2" class="filter-tab px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300 bg-white/5 text-white/70 border border-white/5 hover:bg-white/10 hover:text-white">
+          GLM 5.2 <span class="ml-1 opacity-50 font-normal" id="count-glm52">0</span>
+        </button>
+        <button data-model="GLM 5 Turbo" class="filter-tab px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300 bg-white/5 text-white/70 border border-white/5 hover:bg-white/10 hover:text-white">
+          GLM 5 Turbo <span class="ml-1 opacity-50 font-normal" id="count-glm5t">0</span>
+        </button>
+        <button data-model="GLM 5.0" class="filter-tab px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300 bg-white/5 text-white/70 border border-white/5 hover:bg-white/10 hover:text-white">
+          GLM 5.0 <span class="ml-1 opacity-50 font-normal" id="count-glm50">0</span>
+        </button>
+        <button data-model="GLM 4.7" class="filter-tab px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300 bg-white/5 text-white/70 border border-white/5 hover:bg-white/10 hover:text-white">
+          GLM 4.7 <span class="ml-1 opacity-50 font-normal" id="count-glm47">0</span>
+        </button>
+        <button data-model="Perplexity AI" class="filter-tab px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300 bg-white/5 text-white/70 border border-white/5 hover:bg-white/10 hover:text-white">
+          Perplexity AI <span class="ml-1 opacity-50 font-normal" id="count-perplexity">0</span>
+        </button>
+        <button data-model="SOLO 3" class="filter-tab px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300 bg-white/5 text-white/70 border border-white/5 hover:bg-white/10 hover:text-white">
+          SOLO 3 <span class="ml-1 opacity-50 font-normal" id="count-solo">0</span>
+        </button>
+        <button data-model="Pony Alpha" class="filter-tab px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300 bg-white/5 text-white/70 border border-white/5 hover:bg-white/10 hover:text-white">
+          Pony Alpha <span class="ml-1 opacity-50 font-normal" id="count-pony">0</span>
+        </button>
+        <button data-model="Qwen 3.7 MAX" class="filter-tab px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300 bg-white/5 text-white/70 border border-white/5 hover:bg-white/10 hover:text-white">
+          Qwen 3.7 MAX <span class="ml-1 opacity-50 font-normal" id="count-qwen">0</span>
+        </button>
+        <button data-model="Productivity Tools" class="filter-tab px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300 bg-white/5 text-white/70 border border-white/5 hover:bg-white/10 hover:text-white">
+          Productivity <span class="ml-1 opacity-50 font-normal" id="count-productivity">0</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Active Filter Description / Section Header -->
+    <div id="section-meta" class="mb-8 fade-in" style="animation-delay: 0.15s;">
+      <h3 id="active-group-title" class="text-2xl font-black text-white tracking-tight mb-2">All Creations</h3>
+      <p id="active-group-desc" class="text-xs text-white/40">Showing all historical and current interactive projects from the playground.</p>
+    </div>
+
+    <!-- Dynamic Grid Container -->
+    <div id="grid-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 fade-in" style="animation-delay: 0.2s;">
+      <!-- Project cards will be rendered here dynamically -->
+    </div>
+    
+    <!-- Empty State -->
+    <div id="empty-state" class="hidden text-center py-20">
+      <span class="text-5xl mb-4 block">🔍</span>
+      <h3 class="text-xl font-bold text-white mb-2">No projects found</h3>
+      <p class="text-sm text-white/40">Try refining your search terms or filter selection.</p>
+    </div>
+  </div>
+
+  <!-- Project Database & Dynamic Logic -->
+  <script>
+    // Embedded consolidated projects database
+    const projects = [{"title": "Horizon Planner", "href": "./01-horizon-planner.html", "model": "GLM 5.2", "release_date": "July 20, 2026", "description": "Goal \u2192 4 quarters \u2192 months \u2192 weeks. Watch a 12-month roadmap decompose itself.", "tagline": "Long-Horizon Planning", "emoji": "\ud83c\udf0c"}, {"title": "Cascade Pipes", "href": "./02-cascade-pipes.html", "model": "GLM 5.2", "release_date": "July 20, 2026", "description": "A query flows through 6 specialized tools \u2014 each transforms the data downstream.", "tagline": "Tool Chaining", "emoji": "\ud83d\udd17"}, {"title": "Memory Vault", "href": "./03-memory-vault.html", "model": "GLM 5.2", "release_date": "July 20, 2026", "description": "128K-token vault. Retrieve the 3 most relevant chunks for any query.", "tagline": "Long Context Memory", "emoji": "\ud83d\udcda"}, {"title": "Speculative Race", "href": "./04-speculative-race.html", "model": "GLM 5.2", "release_date": "July 20, 2026", "description": "A 3-lane race: draft model sprints, verifier checks, output streams.", "tagline": "Speculative Decoding", "emoji": "\u26a1"}, {"title": "Constraint Cube", "href": "./05-constraint-cube.html", "model": "GLM 5.2", "release_date": "July 20, 2026", "description": "4-color Latin-square puzzle with real-time constraint propagation.", "tagline": "Constraint Satisfaction", "emoji": "\ud83c\udfaf"}, {"title": "Self-Heal IDE", "href": "./06-self-heal-ide.html", "model": "GLM 5.2", "release_date": "July 20, 2026", "description": "Buggy code \u2192 diagnose \u2192 patch \u2192 verify. A 4-step self-healing loop.", "tagline": "Self-Correction Loop", "emoji": "\ud83e\ude79"}, {"title": "Reasoning Trace", "href": "./07-reasoning-trace.html", "model": "GLM 5.2", "release_date": "July 20, 2026", "description": "A train word problem decomposed into 6 explicit reasoning steps.", "tagline": "Multi-Step Reasoning", "emoji": "\u26a1"}, {"title": "Vision Inspector", "href": "./08-vision-inspector.html", "model": "GLM 5.2", "release_date": "July 20, 2026", "description": "Bounding boxes, confidence scores, natural captions \u2014 synthetic vision.", "tagline": "Vision Understanding", "emoji": "\u26a1"}, {"title": "Narrative Loom", "href": "./09-narrative-loom.html", "model": "GLM 5.2", "release_date": "July 20, 2026", "description": "A 5-chapter branching story with consistent characters and tone.", "tagline": "Long-Form Coherence", "emoji": "\ud83d\udcd6"}, {"title": "Math Cathedral", "href": "./10-math-cathedral.html", "model": "GLM 5.2", "release_date": "July 20, 2026", "description": "A symbolic integral solved step-by-step: substitution, transform, evaluate.", "tagline": "Mathematical Reasoning", "emoji": "\u222b"}, {"title": "Code Genome", "href": "./11-code-genome.html", "model": "GLM 5.2", "release_date": "July 20, 2026", "description": "Source code decoded into a DNA strip \u2014 color-coded by syntactic role.", "tagline": "Code Structure Analysis", "emoji": "\ud83e\uddec"}, {"title": "Pattern Pulse", "href": "./12-pattern-pulse.html", "model": "GLM 5.2", "release_date": "July 20, 2026", "description": "A live dot stream with real-time pattern detection and confidence scores.", "tagline": "Pattern Recognition", "emoji": "\ud83d\udd2e"}, {"title": "Token Tactics", "href": "./13-token-tactics.html", "model": "GLM 5.2", "release_date": "July 20, 2026", "description": "A strategy game: spend 1000 tokens wisely to ship a quality blog post.", "tagline": "Token Budget Strategy", "emoji": "\ud83d\udcb0"}, {"title": "Multi-Mind Council", "href": "./14-multi-mind-council.html", "model": "GLM 5.2", "release_date": "July 20, 2026", "description": "4 specialist agents debate, then synthesize a balanced verdict.", "tagline": "Multi-Agent Collaboration", "emoji": "\ud83c\udfad"}, {"title": "State Forge", "href": "./15-state-forge.html", "model": "GLM 5.2", "release_date": "July 20, 2026", "description": "An order-fulfillment FSM. Trigger events, watch transitions animate.", "tagline": "State Machine Synthesis", "emoji": "\ud83d\udd00"}, {"title": "Context Atlas", "href": "./16-context-atlas.html", "model": "GLM 5.2", "release_date": "July 20, 2026", "description": "A 128K-token context window mapped: system, tools, history, docs, query.", "tagline": "Context Visualization", "emoji": "\u26a1"}, {"title": "Recursive Refiner", "href": "./17-recursive-refiner.html", "model": "GLM 5.2", "release_date": "July 20, 2026", "description": "One sentence, refined 5 times. Quality climbs 4.2 \u2192 9.4 with self-critique.", "tagline": "Iterative Self-Refinement", "emoji": "\ud83d\udd01"}, {"title": "Cross-Domain Mixer", "href": "./18-cross-domain-mixer.html", "model": "GLM 5.2", "release_date": "July 20, 2026", "description": "Pick two unrelated fields. GLM 5.2 fuses them into one novel insight.", "tagline": "Cross-Domain Synthesis", "emoji": "\u26a1"}, {"title": "Plan Adapter", "href": "./19-plan-adapter.html", "model": "GLM 5.2", "release_date": "July 20, 2026", "description": "A plan is set. Reality intervenes. Watch GLM 5.2 revise it surgically.", "tagline": "Adaptive Replanning", "emoji": "\ud83c\udf0a"}, {"title": "Aurora Maze", "href": "./20-aurora-maze.html", "model": "GLM 5.2", "release_date": "July 20, 2026", "description": "A 15\u00d715 DFS-generated maze with a BFS AI solver. Play it yourself.", "tagline": "Procedural Generation + Pathfinding", "emoji": "\ud83c\udf00"}, {"title": "Dual N-Back", "href": "./qwen-01-dual-nback.html", "model": "Qwen 3.7 MAX", "release_date": "July 20, 2026", "description": "Track position AND sound simultaneously, N steps back in time. The gold standard of cognitive training.", "tagline": "Working Memory", "emoji": "\ud83e\udde0"}, {"title": "Schulte Table", "href": "./qwen-02-schulte-table.html", "model": "Qwen 3.7 MAX", "release_date": "July 20, 2026", "description": "Find numbers 1\u2192N as fast as possible using peripheral vision. 3\u00d73 to 7\u00d77 grid sizes.", "tagline": "Visual Search Speed", "emoji": "\ud83d\udc41"}, {"title": "Pattern Lock", "href": "./qwen-03-pattern-lock.html", "model": "Qwen 3.7 MAX", "release_date": "July 20, 2026", "description": "Watch the pattern flash, then draw it from memory. Like a phone unlock, but harder every round.", "tagline": "Spatial Memory", "emoji": "\ud83d\udd10"}, {"title": "Card Concentration", "href": "./qwen-04-card-concentration.html", "model": "Qwen 3.7 MAX", "release_date": "July 20, 2026", "description": "Flip two cards at a time and find all matching pairs with the fewest flips. 4\u00d74 or 6\u00d76 grid.", "tagline": "Memory Pairs", "emoji": "\ud83c\udccf"}, {"title": "Digit Span Backwards", "href": "./qwen-05-digit-span-backwards.html", "model": "Qwen 3.7 MAX", "release_date": "July 20, 2026", "description": "Hear the digits, then type them in REVERSE order. How far can your memory reach?", "tagline": "Reverse Recall", "emoji": "\ud83d\udd22"}, {"title": "Chameleon Grid", "href": "./qwen-06-chameleon-grid.html", "model": "Qwen 3.7 MAX", "release_date": "July 20, 2026", "description": "Memorize the grid colors. One tile changes \u2014 spot it before time runs out.", "tagline": "Change Detection", "emoji": "\ud83c\udfa8"}, {"title": "Speed Arithmetic", "href": "./qwen-07-speed-arithmetic.html", "model": "Qwen 3.7 MAX", "release_date": "July 20, 2026", "description": "Solve as many math problems as you can in 60 seconds. Easy, medium, and hard difficulty.", "tagline": "Mental Math", "emoji": "\u26a1"}, {"title": "Word Flash", "href": "./qwen-08-word-flash.html", "model": "Qwen 3.7 MAX", "release_date": "July 20, 2026", "description": "Words flash briefly \u2014 then type back every word you remember. Adjustable speed.", "tagline": "Verbal Memory", "emoji": "\ud83d\udcac"}, {"title": "Board Memory", "href": "./qwen-09-board-memory.html", "model": "Qwen 3.7 MAX", "release_date": "July 20, 2026", "description": "Study piece positions on a board, then place them all from memory on a blank grid.", "tagline": "Grid Recall", "emoji": "\u265f"}, {"title": "Stroop Chain", "href": "./qwen-10-stroop-chain.html", "model": "Qwen 3.7 MAX", "release_date": "July 20, 2026", "description": "The rule changes every round \u2014 respond by color or word. Classic and chain modes.", "tagline": "Inhibition Control", "emoji": "\ud83c\udfaf"}, {"title": "TYPE//CORE", "href": "./typecore.html", "model": "Perplexity AI", "release_date": "April 10, 2026", "description": "Real-time typing speed test with live WPM, accuracy meter, consistency score and grade system. Three modes: 30s / 60s / 120s.", "tagline": "", "emoji": "\ud83d\udd0d"}, {"title": "Zen Garden", "href": "./zen-garden.html", "model": "Perplexity AI", "release_date": "April 10, 2026", "description": "Rake sand, place stones, draw water ripples and cherry blossoms. Meditative ASMR canvas experience.", "tagline": "", "emoji": "\ud83d\udd0d"}, {"title": "Rain Room", "href": "./rain-room.html", "model": "Perplexity AI", "release_date": "April 10, 2026", "description": "Falling rain simulation with ripples, streaks and intensity control. Pure ASMR rainstorm.", "tagline": "", "emoji": "\ud83d\udd0d"}, {"title": "Sand Art", "href": "./sand-art.html", "model": "Perplexity AI", "release_date": "April 10, 2026", "description": "Pour colored sand with real falling physics. Toggle gravity, mix colors, create art.", "tagline": "", "emoji": "\ud83d\udd0d"}, {"title": "Nova Strike", "href": "./nova-strike.html", "model": "Perplexity AI", "release_date": "April 10, 2026", "description": "Classic space shooter. Arrow keys move, Space shoots. Survive endless waves of alien ships.", "tagline": "", "emoji": "\ud83c\udfae"}, {"title": "Bullet Storm", "href": "./bullet-storm.html", "model": "Perplexity AI", "release_date": "April 10, 2026", "description": "Bullet-hell dodge game. Move your mouse to survive wave after wave of insane bullet patterns.", "tagline": "", "emoji": "\ud83c\udfae"}, {"title": "Void Walker", "href": "./void-walker.html", "model": "Perplexity AI", "release_date": "April 10, 2026", "description": "3D warp-speed star field. Move mouse to steer through nebulae and galaxies. Click to boost.", "tagline": "", "emoji": "\ud83d\udd0d"}, {"title": "Planet Forge", "href": "./planet-forge.html", "model": "Perplexity AI", "release_date": "April 10, 2026", "description": "Build your own solar system. Place rocky, gas, ice and lava planets. Watch them orbit the sun.", "tagline": "", "emoji": "\ud83d\udd0d"}, {"title": "Block Obby", "href": "./block-obby.html", "model": "Perplexity AI", "release_date": "April 10, 2026", "description": "Roblox-style obstacle course! Jump across colorful platforms, avoid falling. 3 levels with moving platforms.", "tagline": "", "emoji": "\ud83d\udd0d"}, {"title": "Gunfire Arena", "href": "./gunfire-arena.html", "model": "Perplexity AI", "release_date": "April 10, 2026", "description": "Top-down shooter with walls for cover. WASD move, mouse aim, click shoot. Take out enemy waves.", "tagline": "", "emoji": "\ud83d\udd0d"}, {"title": "Neon Rogue", "href": "./neon-rogue.html", "model": "Perplexity AI", "release_date": "April 10, 2026", "description": "Dungeon crawler roguelike. Fight enemies, level up, collect loot. Descend deeper into neon darkness.", "tagline": "", "emoji": "\ud83c\udfae"}, {"title": "Stellar Drift", "href": "./games/stellar-drift.html", "model": "Perplexity AI", "release_date": "April 10, 2026", "description": "Guide your ship through asteroid fields using only your mouse. Collect glowing orbs, dodge rock formations, and survive escalating waves.", "tagline": "", "emoji": "\ud83d\udd0d"}, {"title": "Neon Breakout", "href": "./games/neon-breakout.html", "model": "Perplexity AI", "release_date": "April 10, 2026", "description": "Plasma-infused Breakout with multi-HP bricks, ghost ball preview, and explosive particle effects. Break all bricks to advance levels.", "tagline": "", "emoji": "\ud83c\udfae"}, {"title": "Void Maze", "href": "./games/void-maze.html", "model": "Perplexity AI", "release_date": "April 10, 2026", "description": "Navigate a glowing labyrinth in near-total darkness. Only a faint aura around you reveals the walls. Procedurally generated \u2014 every level unique.", "tagline": "", "emoji": "\ud83c\udfae"}, {"title": "Plasma Tetris", "href": "./games/plasma-tetris.html", "model": "Perplexity AI", "release_date": "April 10, 2026", "description": "Classic Tetris reimagined with plasma glow effects, ghost piece preview, hard-drop, and neon colour palette. Levels speed up \u2014 how long can you last?", "tagline": "", "emoji": "\ud83c\udfae"}, {"title": "Particle Surge", "href": "./games/particle-surge.html", "model": "Perplexity AI", "release_date": "April 10, 2026", "description": "Click to fire energy blasts into a field of glowing nodes. Trigger chain reactions for massive combo scores. Only 5 shots \u2014 make every one count.", "tagline": "", "emoji": "\ud83d\udd0d"}, {"title": "Paper Plane Rally", "href": "./paper-plane-rally.html", "model": "GLM 5.0", "release_date": "March 03, 2026", "description": "Draw your flight path and watch your paper airplane soar through notebook skies! Collect stars, avoid obstacles, and reach the target zone.", "tagline": "", "emoji": "\ud83c\udf10"}, {"title": "Galaxy Tour", "href": "./demos/galaxy-tour.html", "model": "GLM 5.0", "release_date": "February 11, 2026", "description": "Explore a procedurally generated spiral galaxy with 80,000+ stars, nebulae, black holes, and asteroid belts.", "tagline": "", "emoji": "\ud83c\udf0c"}, {"title": "Forex VPS - One VPS Rules Them All", "href": "https://www.rommark.dev/vps/", "model": "GLM 5.0", "release_date": "July 20, 2026", "description": "Sub-millisecond latency for traders. Interactive world map, live latency counter, STP animation, and Steve Jobs inspired design.", "tagline": "", "emoji": "\ud83d\udcc8"}, {"title": "Puzzle Master", "href": "./demos/puzzle-game.html", "model": "GLM 4.7", "release_date": "February 12, 2026", "description": "30 topics of brain-teasing puzzles! Quiz, Match, and more. Challenge yourself!", "tagline": "", "emoji": "\ud83c\udfae"}, {"title": "Earth & Moon 3D", "href": "./demos/earth-moon-3d.html", "model": "GLM 5.0", "release_date": "February 11, 2026", "description": "Interactive orbital simulation demonstrating 3D WebGL capabilities with realistic Earth and Moon rendering.", "tagline": "", "emoji": "\ud83c\udf0c"}, {"title": "Block Ops", "href": "./demos/block-ops.html", "model": "GLM 5.0", "release_date": "February 11, 2026", "description": "Call of Duty meets Roblox! Fast-paced FPS with blocky graphics, enemy AI, health system, and killstreaks.", "tagline": "", "emoji": "\ud83c\udf10"}, {"title": "Infinite Fractal Universe", "href": "./demos/fractal-universe.html", "model": "GLM 5.0", "release_date": "February 11, 2026", "description": "Zoom infinitely into procedurally generated fractal worlds. Each layer reveals new mathematical beauty.", "tagline": "", "emoji": "\ud83c\udf10"}, {"title": "AI Dream World", "href": "./demos/dream-world.html", "model": "GLM 5.0", "release_date": "February 11, 2026", "description": "Surreal floating islands, impossible stairs, and morphing objects. A dreamscape that shifts with mood.", "tagline": "", "emoji": "\ud83c\udf10"}, {"title": "Neural Network Visualizer", "href": "./demos/neural-network.html", "model": "GLM 5.0", "release_date": "February 11, 2026", "description": "Watch neurons pulse and signals flow through layers. Interactive AI \"thinking\" visualization.", "tagline": "", "emoji": "\ud83e\udde0"}, {"title": "Procedural Solar System", "href": "./demos/solar-system.html", "model": "GLM 5.0", "release_date": "February 11, 2026", "description": "Generate unique alien solar systems with weird planets, moons, and rings. Save your favorites!", "tagline": "", "emoji": "\ud83c\udf0c"}, {"title": "Sound Reactive Fluid", "href": "./demos/sound-fluid.html", "model": "GLM 5.0", "release_date": "February 11, 2026", "description": "Beautiful fluid simulation that responds to your microphone. Colors morph with sound waves.", "tagline": "", "emoji": "\ud83c\udfb5"}, {"title": "Quantum Particle Playground", "href": "./demos/quantum-playground.html", "model": "GLM 5.0", "release_date": "February 11, 2026", "description": "Interactive quantum concepts - superposition, entanglement, wave collapse when observed!", "tagline": "", "emoji": "\ud83c\udf10"}, {"title": "Time-Travel Earth", "href": "./demos/time-travel-earth.html", "model": "GLM 5.0", "release_date": "February 11, 2026", "description": "Timeline slider shows Earth through ages - dinosaurs, ice ages, future. Educational & stunning!", "tagline": "", "emoji": "\ud83c\udf0c"}, {"title": "AI Personality Chatroom", "href": "./demos/ai-chatroom.html", "model": "GLM 5.0", "release_date": "February 12, 2026", "description": "Multiple AI personalities (Sage, Artist, Scientist...) chatting with unique perspectives!", "tagline": "", "emoji": "\ud83e\udde0"}, {"title": "Breathing Universe", "href": "./demos/breathing-universe.html", "model": "GLM 5.0", "release_date": "February 11, 2026", "description": "Guided breathing exercises in 3D space. World expands on inhale, contracts on exhale.", "tagline": "", "emoji": "\ud83c\udf10"}, {"title": "Living Code Editor", "href": "./demos/living-code.html", "model": "GLM 5.0", "release_date": "February 11, 2026", "description": "Type code and watch it come alive visually. Variables float, functions pulse, loops spin!", "tagline": "", "emoji": "\ud83d\udee0\ufe0f"}, {"title": "ViralForge", "href": "./viral-forge/", "model": "SOLO 3", "release_date": "April 09, 2026", "description": "AI Campaign Generator", "tagline": "", "emoji": "\u26a1"}, {"title": "NEXUS 3D", "href": "./nexus-3d.html", "model": "Pony Alpha", "release_date": "February 11, 2026", "description": "Immersive 3D Experience", "tagline": "", "emoji": "\u25c6"}, {"title": "DESIGN LAB", "href": "./design-lab.html", "model": "Pony Alpha", "release_date": "February 11, 2026", "description": "10 Unique Landing Page Concepts", "tagline": "", "emoji": "\u25c8"}, {"title": "NEURAL CHAT", "href": "./neural-chat/", "model": "GLM 5.0", "release_date": "February 09, 2026", "description": "Futuristic AI Chat Interface", "tagline": "", "emoji": "\u2b21"}, {"title": "3D WEBSITE", "href": "./3d-website-demo/", "model": "GLM 5.0", "release_date": "February 09, 2026", "description": "Immersive WebGL Landing Page", "tagline": "", "emoji": "\u25c7"}, {"title": "TRAE AURORA", "href": "/tools/game/", "model": "GLM 4.7", "release_date": "July 20, 2026", "description": "Crystalline Christmas Experience", "tagline": "", "emoji": "\ud83c\udf84"}, {"title": "AETHERIA", "href": "/tools/aetheria/", "model": "GLM 4.7", "release_date": "July 20, 2026", "description": "Slayer's Hub Arena Game", "tagline": "", "emoji": "\ud83d\udcf1"}, {"title": "BREATHE & POP", "href": "/bubble-pop-game.html", "model": "GLM 4.7", "release_date": "July 20, 2026", "description": "ASMR Stress Relief Game", "tagline": "", "emoji": "\ud83e\udee7"}, {"title": "MEMORY GARDEN", "href": "/memory-garden.html", "model": "GLM 4.7", "release_date": "July 20, 2026", "description": "ASMR Memory Training", "tagline": "", "emoji": "\ud83c\udf38"}, {"title": "ECHO CHAMBER", "href": "./games/echo-chamber/", "model": "GLM 4.7", "release_date": "February 09, 2026", "description": "Time-Bending FPS Shooter", "tagline": "", "emoji": "\u23f3"}, {"title": "Snake Game", "href": "./games/snake-game/", "model": "GLM 4.7", "release_date": "February 09, 2026", "description": "Classic arcade game with a modern twist. Use arrow keys or WASD to control the snake.", "tagline": "", "emoji": "\ud83c\udfae"}, {"title": "PROMPTARCH", "href": "/tools/promptarch/", "model": "Productivity Tools", "release_date": "July 20, 2026", "description": "AI Prompt Architecture Tool", "tagline": "", "emoji": "\u26a1"}, {"title": "NANOJASONPRO", "href": "/tools/nanojason/", "model": "Productivity Tools", "release_date": "July 20, 2026", "description": "JSON Data Management", "tagline": "", "emoji": "\ud83d\udce6"}, {"title": "Aurora Gradient", "href": "./demos/aurora-gradient.html", "model": "GLM 5.0", "release_date": "March 17, 2026", "description": "Beautiful aurora borealis color gradients", "tagline": "", "emoji": "\ud83c\udfa8"}, {"title": "Brutalist Bloc", "href": "./demos/brutalist-bloc.html", "model": "GLM 5.0", "release_date": "February 11, 2026", "description": "Raw brutalist design aesthetic", "tagline": "", "emoji": "\ud83c\udf10"}, {"title": "Cyber Nexus", "href": "./demos/cyber-nexus.html", "model": "GLM 5.0", "release_date": "February 11, 2026", "description": "Cyberpunk inspired interface", "tagline": "", "emoji": "\ud83c\udf10"}, {"title": "Editorial Noir", "href": "./demos/editorial-noir.html", "model": "GLM 5.0", "release_date": "February 11, 2026", "description": "Dark editorial magazine style", "tagline": "", "emoji": "\ud83d\udee0\ufe0f"}, {"title": "Geometric", "href": "./demos/geometric.html", "model": "GLM 5.0", "release_date": "February 11, 2026", "description": "Geometric pattern designs", "tagline": "", "emoji": "\ud83c\udf10"}, {"title": "Glass Morphism", "href": "./demos/glass-morphism.html", "model": "GLM 5.0", "release_date": "March 17, 2026", "description": "Frosted glass UI effects", "tagline": "", "emoji": "\ud83c\udf10"}, {"title": "Gradient Wave", "href": "./demos/gradient-wave.html", "model": "GLM 5.0", "release_date": "March 17, 2026", "description": "Animated gradient waves", "tagline": "", "emoji": "\ud83c\udfa8"}, {"title": "Holographic", "href": "./demos/holographic.html", "model": "GLM 5.0", "release_date": "March 17, 2026", "description": "Holographic iridescent effects", "tagline": "", "emoji": "\ud83c\udf10"}, {"title": "Liquid Diamonds", "href": "./demos/liquid-diamonds.html", "model": "GLM 5.0", "release_date": "March 17, 2026", "description": "Liquid diamond animations", "tagline": "", "emoji": "\ud83c\udf10"}, {"title": "Luxury Noir", "href": "./demos/luxury-noir.html", "model": "GLM 5.0", "release_date": "February 11, 2026", "description": "Luxury dark theme design", "tagline": "", "emoji": "\ud83c\udf10"}, {"title": "Neon Pulse", "href": "./demos/neon-pulse.html", "model": "GLM 5.0", "release_date": "February 11, 2026", "description": "Neon glow animations", "tagline": "", "emoji": "\ud83c\udf10"}, {"title": "Obsidian Prestige", "href": "./demos/obsidian-prestige.html", "model": "GLM 5.0", "release_date": "February 11, 2026", "description": "Dark obsidian theme", "tagline": "", "emoji": "\ud83c\udf10"}, {"title": "Organic Flow", "href": "./demos/organic-flow.html", "model": "GLM 5.0", "release_date": "February 11, 2026", "description": "Natural organic animations", "tagline": "", "emoji": "\ud83c\udf10"}, {"title": "Retro Wave", "href": "./demos/retro-wave.html", "model": "GLM 5.0", "release_date": "February 11, 2026", "description": "80s synthwave aesthetic", "tagline": "", "emoji": "\ud83c\udfa8"}, {"title": "Zen Minimal", "href": "./demos/zen-minimal.html", "model": "GLM 5.0", "release_date": "March 17, 2026", "description": "Minimalist zen design", "tagline": "", "emoji": "\ud83c\udf10"}, {"title": "Void Architecture", "href": "./demos/void-architecture.html", "model": "GLM 5 Turbo", "release_date": "March 17, 2026", "description": "Fall through an infinite void. Text emerges from darkness as you scroll, with pulsing energy lines connecting floating sections.", "tagline": "", "emoji": "\ud83d\udee0\ufe0f"}, {"title": "Glitch Manifesto", "href": "./demos/glitch-manifesto.html", "model": "GLM 5 Turbo", "release_date": "March 17, 2026", "description": "A cyberpunk terminal aesthetic with CRT scanlines, VHS tracking artifacts, RGB splitting, and corrupted typography.", "tagline": "", "emoji": "\ud83d\ude80"}, {"title": "Chromatic Drift", "href": "./demos/chromatic-drift.html", "model": "GLM 5 Turbo", "release_date": "March 17, 2026", "description": "Travel through color dimensions. Each section bleeds into the next as floating shapes drift through shifting hues.", "tagline": "", "emoji": "\ud83d\ude80"}, {"title": "Paper Origami", "href": "./demos/paper-origami.html", "model": "GLM 5 Turbo", "release_date": "March 17, 2026", "description": "A tactile paper craft landing page with CSS 3D fold effects, layered paper panels, and origami-inspired animations.", "tagline": "", "emoji": "\ud83c\udfa8"}, {"title": "Magnetic Fields", "href": "./demos/magnetic-fields.html", "model": "GLM 5 Turbo", "release_date": "March 17, 2026", "description": "Interactive electromagnetic landscape. Iron filing particles follow your cursor. Content cards attract and repel.", "tagline": "", "emoji": "\ud83d\ude80"}, {"title": "Aurora Cathedral", "href": "./demos/aurora-cathedral.html", "model": "GLM 5 Turbo", "release_date": "March 17, 2026", "description": "Gothic cathedral meets northern lights. Stained glass, aurora ribbons, vaulted arches, and ethereal light beams.", "tagline": "", "emoji": "\ud83d\ude80"}, {"title": "Liquid Chrome", "href": "./demos/liquid-chrome.html", "model": "GLM 5 Turbo", "release_date": "March 17, 2026", "description": "Mercury and liquid metal surfaces. Flowing reflections, morphing blobs, and hyper-modern chrome aesthetics.", "tagline": "", "emoji": "\ud83d\ude80"}, {"title": "Neon Jungle", "href": "./demos/neon-jungle.html", "model": "GLM 5 Turbo", "release_date": "March 17, 2026", "description": "Cyberpunk rainforest with bioluminescent flora. Neon vines, digital creatures, and firefly particles.", "tagline": "", "emoji": "\ud83d\ude80"}, {"title": "Kinetic Typography", "href": "./demos/kinetic-typography.html", "model": "GLM 5 Turbo", "release_date": "March 17, 2026", "description": "Typography IS the art. Letters animate, morph, and compose the entire visual landscape. No images needed.", "tagline": "", "emoji": "\ud83d\ude80"}, {"title": "Obsidian Mirror", "href": "./demos/obsidian-mirror.html", "model": "GLM 5 Turbo", "release_date": "March 17, 2026", "description": "Volcanic glass surfaces with reflections. Sharp crystalline edges, lava cracks, and ember sparks.", "tagline": "", "emoji": "\ud83d\ude80"}, {"title": "Samurai Zen", "href": "./demos/samurai-zen.html", "model": "GLM 5 Turbo", "release_date": "March 17, 2026", "description": "Japanese ink wash meets modern minimalism. Brush strokes, cherry blossoms, ens\u014d circles, and zen gardens.", "tagline": "", "emoji": "\ud83d\ude80"}, {"title": "Deep Ocean", "href": "./demos/deep-ocean.html", "model": "GLM 5 Turbo", "release_date": "March 17, 2026", "description": "Bioluminescent deep sea world. Jellyfish, caustic light, bubbles, and the eerie beauty of the abyss.", "tagline": "", "emoji": "\ud83d\ude80"}, {"title": "Circuit Garden", "href": "./demos/circuit-garden.html", "model": "GLM 5 Turbo", "release_date": "March 17, 2026", "description": "Electronics meets nature. PCB traces grow like vines, chips bloom like flowers, data flows like water.", "tagline": "", "emoji": "\ud83d\ude80"}, {"title": "Cosmic Loom", "href": "./demos/cosmic-loom.html", "model": "GLM 5 Turbo", "release_date": "March 17, 2026", "description": "The universe as woven tapestry. Constellation threads, stellar fabric, and shooting stars connect everything.", "tagline": "", "emoji": "\ud83d\ude80"}, {"title": "Volcanic Glass", "href": "./demos/volcanic-glass.html", "model": "GLM 5 Turbo", "release_date": "March 17, 2026", "description": "Lava meets glass. Molten transitions alternate with frosted ice surfaces. Fire and ice in dramatic contrast.", "tagline": "", "emoji": "\ud83d\ude80"}, {"title": "Haute Noir", "href": "./demos/haute-noir.html", "model": "GLM 5 Turbo", "release_date": "March 17, 2026", "description": "Luxury dark fashion house. Where darkness meets elegance with gold accents, editorial typography, and cinematic minimalism.", "tagline": "", "emoji": "\ud83d\ude80"}, {"title": "Neon Couture", "href": "./demos/neon-couture.html", "model": "GLM 5 Turbo", "release_date": "March 17, 2026", "description": "Futuristic cyberpunk streetwear. Electric neon accents, grid patterns, and bold typography in a dark urban aesthetic.", "tagline": "", "emoji": "\ud83d\ude80"}, {"title": "Silk Road", "href": "./demos/silk-road.html", "model": "GLM 5 Turbo", "release_date": "March 17, 2026", "description": "Elegant silk and luxury fabric fashion. Warm cream and burgundy tones with serif typography and artisanal craftsmanship.", "tagline": "", "emoji": "\ud83d\ude80"}, {"title": "Urban Edge", "href": "./demos/urban-edge.html", "model": "GLM 5 Turbo", "release_date": "March 17, 2026", "description": "Athletic streetwear fusion. High contrast black and white with electric orange accents, bold type, and dynamic asymmetric layouts.", "tagline": "", "emoji": "\ud83d\ude80"}, {"title": "Ethereal Bloom", "href": "./demos/ethereal-bloom.html", "model": "GLM 5 Turbo", "release_date": "March 17, 2026", "description": "Sustainable nature-inspired fashion. Soft sage greens, dusty roses, and organic shapes celebrating earth-conscious design.", "tagline": "", "emoji": "\ud83d\ude80"}, {"title": "Gravity Painter", "href": "./games/gravity-painter.html", "model": "GLM 5 Turbo", "release_date": "March 17, 2026", "description": "Draw freehand shapes that become physics objects. Watch your art fall, bounce, and stack in a cascading physics painting.", "tagline": "", "emoji": "\ud83d\ude80"}, {"title": "Echo Navigator", "href": "./games/echo-navigator.html", "model": "GLM 5 Turbo", "release_date": "March 17, 2026", "description": "Navigate mazes in total darkness. Only a faint glow around you and your fading echo trail reveal the path. Procedurally generated.", "tagline": "", "emoji": "\ud83d\ude80"}, {"title": "Color Virus", "href": "./games/color-virus.html", "model": "GLM 5 Turbo", "release_date": "March 17, 2026", "description": "Territory control strategy. Infect adjacent cells to expand. Outsmart the AI opponent using shields and bombs to dominate the grid.", "tagline": "", "emoji": "\ud83d\ude80"}, {"title": "Rhythm Drops", "href": "./games/rhythm-drops.html", "model": "GLM 5 Turbo", "release_date": "March 17, 2026", "description": "Musical rhythm game with 4 lanes. Hit drops in time to create melodies. Web Audio API generates real notes. Build combos!", "tagline": "", "emoji": "\ud83c\udfb5"}, {"title": "Morph Match", "href": "./games/morph-match.html", "model": "GLM 5 Turbo", "release_date": "March 17, 2026", "description": "Memory game with a twist \u2014 the shapes on cards continuously morph between forms. Match pairs before they change again!", "tagline": "", "emoji": "\ud83d\ude80"}, {"title": "Orbit Catcher", "href": "./games/orbit-catcher.html", "model": "GLM 5 Turbo", "release_date": "March 17, 2026", "description": "Control a gravity well to catch falling stars. Stars orbit around you. Avoid black holes!", "tagline": "", "emoji": "\ud83d\ude80"}, {"title": "Word Storm", "href": "./games/word-storm.html", "model": "Perplexity AI", "release_date": "April 10, 2026", "description": "Letters rain down. Tap them to spell words before the screen floods. Longer words score more!", "tagline": "", "emoji": "\ud83c\udfae"}, {"title": "Pixel Defender", "href": "./games/pixel-defender.html", "model": "GLM 5 Turbo", "release_date": "March 17, 2026", "description": "Tower defense on a pixel grid. Place colored defenders to stop waves of enemy pixels.", "tagline": "", "emoji": "\ud83c\udfae"}, {"title": "Bubble Universe", "href": "./games/bubble-universe.html", "model": "GLM 5 Turbo", "release_date": "March 17, 2026", "description": "Pop bubbles to trigger chain reactions. Golden bubbles, rainbow bursts, and skull bombs!", "tagline": "", "emoji": "\ud83d\ude80"}, {"title": "Shadow Walker", "href": "./games/shadow-walker.html", "model": "GLM 5 Turbo", "release_date": "March 17, 2026", "description": "Platformer where your shadow becomes platforms. Position yourself to create paths from shadows.", "tagline": "", "emoji": "\ud83d\ude80"}, {"title": "CODE//RUSH", "href": "games/code-rush.html", "model": "Perplexity AI", "release_date": "April 10, 2026", "description": "Real code snippets \u2014 symbols, brackets, async, classes.", "tagline": "", "emoji": "\ud83d\udd0d"}, {"title": "QUOTE//SPRINT", "href": "games/quote-sprint.html", "model": "Perplexity AI", "release_date": "April 10, 2026", "description": "Famous quotes. Type with elegance under pressure.", "tagline": "", "emoji": "\ud83d\udd0d"}, {"title": "NUM//BLITZ", "href": "games/num-blitz.html", "model": "Perplexity AI", "release_date": "April 10, 2026", "description": "Numbers, IPs, math expressions. Train your number row.", "tagline": "", "emoji": "\ud83d\udd0d"}, {"title": "SYMBOL//RUSH", "href": "games/symbol-rush.html", "model": "Perplexity AI", "release_date": "April 10, 2026", "description": "Special chars, regex, URLs. The ultimate finger workout.", "tagline": "", "emoji": "\ud83d\udd0d"}, {"title": "ZEN//FLOW", "href": "games/zen-flow.html", "model": "Perplexity AI", "release_date": "April 10, 2026", "description": "Calm nature prose. Find your rhythm. Breathe. Type.", "tagline": "", "emoji": "\ud83d\udd0d"}, {"title": "SCI//TYPE", "href": "games/sci-type.html", "model": "Perplexity AI", "release_date": "April 10, 2026", "description": "Science and AI terminology. Full-speed vocabulary drill.", "tagline": "", "emoji": "\ud83d\udd0d"}, {"title": "SPEED//BURST", "href": "games/speed-burst.html", "model": "Perplexity AI", "release_date": "April 10, 2026", "description": "Short punchy bursts. Maximum velocity. Pure throughput.", "tagline": "", "emoji": "\u26a1"}, {"title": "DEV//LINGO", "href": "games/dev-lingo.html", "model": "Perplexity AI", "release_date": "April 10, 2026", "description": "Git, terminal, CLI syntax. Build terminal fluency.", "tagline": "", "emoji": "\ud83d\udd0d"}, {"title": "FOCUS//MODE", "href": "games/focus-mode.html", "model": "Perplexity AI", "release_date": "April 10, 2026", "description": "Long-form accuracy test. Precision beats speed here.", "tagline": "", "emoji": "\ud83d\udd0d"}];
+
+    // CSS styling gradients based on model
+    const gradients = {
+      'GLM 5.2': 'from-indigo-600/25 via-violet-600/15 to-fuchsia-600/25',
+      'GLM 5 Turbo': 'from-cyan-600/25 via-teal-600/15 to-emerald-600/25',
+      'GLM 5.0': 'from-rose-600/25 via-orange-600/15 to-amber-600/25',
+      'GLM 4.7': 'from-blue-600/25 via-sky-600/15 to-cyan-600/25',
+      'Perplexity AI': 'from-violet-600/25 via-purple-600/15 to-pink-600/25',
+      'SOLO 3': 'from-emerald-600/25 via-green-600/15 to-lime-600/25',
+      'Pony Alpha': 'from-fuchsia-600/25 via-pink-600/15 to-rose-600/25',
+      'Productivity Tools': 'from-slate-600/25 via-neutral-600/15 to-zinc-600/25'
+    };
+
+    const modelGroupDescs = {
+      'all': 'Showing all historical and current interactive projects from the playground.',
+      'GLM 5.2': 'The latest GLM 5.2 capability showcases, leveraging long-horizon planning, code interpreter, and advanced tool chaining.',
+      'GLM 5 Turbo': 'High-performance interactive design demos and games built in one-shot prompts using GLM-5-Turbo.',
+      'GLM 5.0': 'Earlier GLM 5.0 layouts, WebGL simulations, fractal explorers, and UI design concepts.',
+      'GLM 4.7': 'Pioneering games and tools built using GLM 4.7 models, including paper plane drawing physics and retro arcades.',
+      'Perplexity AI': 'Typing speed tests, ASMR rain rooms, sand simulations, and speed typing challanges generated by Perplexity AI.',
+      'SOLO 3': 'Automated campaign generator tools built with the SOLO 3 model pipeline.',
+      'Pony Alpha': 'Early experimental immersive 3D experiences and design labs.',
+      'Productivity Tools': 'Z.AI productivity scripts, format converters, and code helper micro-utilities.'
+    };
+
+    // DOM Elements
+    const gridContainer = document.getElementById('grid-container');
+    const emptyState = document.getElementById('empty-state');
+    const searchInput = document.getElementById('search-input');
+    const totalCountEl = document.getElementById('total-count');
+    const activeGroupTitle = document.getElementById('active-group-title');
+    const activeGroupDesc = document.getElementById('active-group-desc');
+    
+    let activeModelFilter = 'all';
+    let searchQuery = '';
+
+    // Initialize counts on tabs
+    function initCounts() {
+      totalCountEl.textContent = projects.length;
+      document.getElementById('count-all').textContent = projects.length;
+      
+      const counts = {
+        'GLM 5.2': 0, 'GLM 5 Turbo': 0, 'GLM 5.0': 0, 'GLM 4.7': 0, 
+        'Perplexity AI': 0, 'SOLO 3': 0, 'Pony Alpha': 0, 'Productivity Tools': 0
+      };
+      
+      projects.forEach(p => {
+        if (counts[p.model] !== undefined) {
+          counts[p.model]++;
+        }
+      });
+      
+      document.getElementById('count-glm52').textContent = counts['GLM 5.2'];
+      document.getElementById('count-glm5t').textContent = counts['GLM 5 Turbo'];
+      document.getElementById('count-glm50').textContent = counts['GLM 5.0'];
+      document.getElementById('count-glm47').textContent = counts['GLM 4.7'];
+      document.getElementById('count-perplexity').textContent = counts['Perplexity AI'];
+      document.getElementById('count-solo').textContent = counts['SOLO 3'];
+      document.getElementById('count-pony').textContent = counts['Pony Alpha'];
+      document.getElementById('count-productivity').textContent = counts['Productivity Tools'];
+    }
+
+    // Render cards
+    function renderProjects() {
+      // Filter list
+      const filtered = projects.filter(p => {
+        const matchesModel = (activeModelFilter === 'all' || p.model === activeModelFilter);
+        
+        const q = searchQuery.toLowerCase();
+        const matchesSearch = !q || 
+          p.title.toLowerCase().includes(q) || 
+          p.description.toLowerCase().includes(q) || 
+          p.model.toLowerCase().includes(q) ||
+          (p.tagline && p.tagline.toLowerCase().includes(q));
+          
+        return matchesModel && matchesSearch;
+      });
+
+      // Update headers
+      if (activeModelFilter === 'all') {
+        activeGroupTitle.textContent = searchQuery ? 'Search Results' : 'All Creations';
+        activeGroupDesc.textContent = searchQuery ? `Found ${filtered.length} matches for "${searchQuery}"` : modelGroupDescs['all'];
+      } else {
+        activeGroupTitle.textContent = searchQuery ? `Search Results in ${activeModelFilter}` : activeModelFilter;
+        activeGroupDesc.textContent = searchQuery ? `Found ${filtered.length} matches in ${activeModelFilter}` : modelGroupDescs[activeModelFilter];
+      }
+
+      // Check empty
+      if (filtered.length === 0) {
+        gridContainer.classList.add('hidden');
+        emptyState.classList.remove('hidden');
+        return;
+      }
+      
+      gridContainer.classList.remove('hidden');
+      emptyState.classList.add('hidden');
+
+      // Sort: Show GLM 5.2 first, then descending by date / model
+      const sorted = [...filtered].sort((a, b) => {
+        // Always put GLM 5.2 first
+        if (a.model === 'GLM 5.2' && b.model !== 'GLM 5.2') return -1;
+        if (a.model !== 'GLM 5.2' && b.model === 'GLM 5.2') return 1;
+        
+        // Otherwise stable alphabetical by title
+        return a.title.localeCompare(b.title);
+      });
+
+      // Map HTML
+      const cardsHtml = sorted.map((p, idx) => {
+        const gradient = gradients[p.model] || 'from-white/10 to-white/5';
+        const taglineHtml = p.tagline 
+          ? `<p class="text-[10px] font-bold tracking-wider text-indigo-400/80 mb-2 uppercase mono">${p.tagline}</p>` 
+          : '';
+          
+        const linkText = p.model === 'GLM 5.2' ? 'Launch Showcase' : 
+                         p.href.includes('game') ? 'Play Game' : 'Explore';
+
+        // Add index number for GLM 5.2
+        let idxBadge = '';
+        if (p.model === 'GLM 5.2') {
+          // find original index (01-20)
+          const match = p.href.match(/\/(\d{2})-/);
+          const num = match ? match[1] : (idx + 1).toString().padStart(2, '0');
+          idxBadge = `<span class="text-xs font-semibold text-white/30 mono">#${num}</span>`;
+        }
+
+        return `
+          <a href="${p.href}" class="group block relative overflow-hidden rounded-3xl glass card-glow transition-all duration-500 hover:-translate-y-1 fade-in" style="animation-delay: ${Math.min(idx * 0.03, 0.4)}s;">
+            <!-- Hover Gradient Background -->
+            <div class="absolute inset-0 bg-gradient-to-br ${gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+            
+            <div class="relative p-6 h-full flex flex-col justify-between min-h-[220px]">
+              <div>
+                <div class="flex items-center justify-between mb-4">
+                  <span class="text-3xl">${p.emoji}</span>
+                  <div class="flex items-center gap-2">
+                    ${idxBadge}
+                    <span class="px-2 py-0.5 bg-white/5 border border-white/10 rounded-md text-[9px] font-medium tracking-wide text-white/50 mono">${p.release_date}</span>
+                    <span class="px-2 py-0.5 bg-violet-500/20 border border-violet-500/30 rounded-md text-[9px] font-bold text-violet-300 mono">${p.model}</span>
+                  </div>
+                </div>
+                
+                <h4 class="text-lg font-black tracking-tight text-white group-hover:text-violet-200 transition-colors mb-1">${p.title}</h4>
+                ${taglineHtml}
+                <p class="text-xs text-white/50 leading-relaxed mb-6 line-clamp-3">${p.description}</p>
+              </div>
+              
+              <div class="flex items-center text-xs font-extrabold text-white/80 group-hover:text-white transition-colors">
+                <span>${linkText}</span>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" class="ml-1.5 transform group-hover:translate-x-1 transition-transform">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+              </div>
+            </div>
+          </a>
+        `;
+      }).join('');
+
+      gridContainer.innerHTML = cardsHtml;
+    }
+
+    // Set active tab styling
+    function updateTabStyles() {
+      const tabs = document.querySelectorAll('.filter-tab');
+      tabs.forEach(tab => {
+        const model = tab.getAttribute('data-model');
+        if (model === activeModelFilter) {
+          tab.className = "filter-tab px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300 bg-violet-600 text-white border border-violet-500/50 shadow-[0_0_15px_rgba(139,92,246,0.3)]";
+        } else {
+          tab.className = "filter-tab px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-300 bg-white/5 text-white/70 border border-white/5 hover:bg-white/10 hover:text-white";
+        }
+      });
+    }
+
+    // Event Listeners
+    document.getElementById('filter-tabs').addEventListener('click', (e) => {
+      const btn = e.target.closest('.filter-tab');
+      if (!btn) return;
+      
+      activeModelFilter = btn.getAttribute('data-model');
+      updateTabStyles();
+      renderProjects();
+    });
+
+    searchInput.addEventListener('input', (e) => {
+      searchQuery = e.target.value.trim();
+      renderProjects();
+    });
+
+    // Run Initializers
+    initCounts();
+    updateTabStyles();
+    renderProjects();
+  </script>
+</body>
+</html>

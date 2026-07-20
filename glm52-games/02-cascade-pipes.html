@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memory Matrix — Brain & ASMR Lab</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+*{font-family:'Inter',sans-serif}
+body{background:#000;color:#fff;overflow-x:hidden}
+.mono{font-family:'JetBrains Mono',monospace}
+.glass{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1)}
+.glass-strong{background:rgba(255,255,255,.08);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.15)}
+.orb{position:fixed;border-radius:9999px;filter:blur(80px);pointer-events:none;z-index:0}
+@keyframes pulse-glow{0%,100%{opacity:.45;transform:scale(1)}50%{opacity:.78;transform:scale(1.18)}}
+.orb1{width:520px;height:520px;background:radial-gradient(circle,#f59e0b,transparent 70%);top:-200px;left:-150px;animation:pulse-glow 9s ease-in-out infinite}
+.orb2{width:480px;height:480px;background:radial-gradient(circle,#ec4899,transparent 70%);bottom:-180px;right:-120px;animation:pulse-glow 11s ease-in-out infinite reverse}
+.gradient-text{background:linear-gradient(135deg,#fbbf24 0%,#fb7185 50%,#f472b6 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.dot-pill{display:inline-block;width:8px;height:8px;border-radius:9999px;background:#34d399;margin-right:8px;box-shadow:0 0 10px #34d399}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:9999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-size:13px;color:rgba(255,255,255,.7)}
+.btn{padding:10px 18px;border-radius:14px;font-weight:600;font-size:14px;transition:all .2s;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;cursor:pointer}
+.btn:hover{background:rgba(255,255,255,.12);transform:translateY(-1px)}
+.btn-primary{background:linear-gradient(135deg,#f59e0b,#ec4899);border-color:transparent}
+.btn-primary:hover{filter:brightness(1.15)}
+.grid-wrap{display:grid;gap:8px;width:100%;max-width:480px;margin:0 auto;aspect-ratio:1/1}
+.cell{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:14px;cursor:pointer;transition:all .15s ease;display:flex;align-items:center;justify-content:center;font-size:0;user-select:none;-webkit-tap-highlight-color:transparent}
+.cell:hover{background:rgba(255,255,255,.08)}
+.cell.lit{background:#fbbf24;box-shadow:0 0 30px rgba(251,191,36,.7),inset 0 0 20px rgba(255,255,255,.4);border-color:#fde68a;transform:scale(.96)}
+.cell.found{background:#22c55e;box-shadow:0 0 24px rgba(34,197,94,.6);border-color:#86efac}
+.cell.wrong{background:#ef4444;box-shadow:0 0 24px rgba(239,68,68,.6);border-color:#fca5a5;animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.cell.disabled{cursor:default}
+.status-banner{padding:14px 20px;border-radius:16px;text-align:center;font-weight:600;transition:all .3s}
+</style>
+</head>
+<body>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="relative z-10 max-w-5xl mx-auto px-4 md:px-6 py-6 md:py-10">
+  <nav class="flex items-center justify-between mb-8 gap-3">
+    <a href="../" class="glass inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm hover:bg-white/10 transition">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+      Playground
+    </a>
+    <span class="glass inline-flex items-center px-4 py-2 rounded-full text-xs mono whitespace-nowrap"><span class="dot-pill"></span>GLM 5.2 · Brain Lab · #02</span>
+  </nav>
+
+  <header class="mb-8">
+    <span class="glass inline-block px-3 py-1 rounded-full text-[11px] uppercase tracking-wider text-white/60 mb-4">◆ Working Memory</span>
+    <h1 class="text-6xl md:text-8xl font-black tracking-tighter gradient-text leading-none mb-3">Memory Matrix</h1>
+    <p class="text-white/40 text-lg">Watch the pattern light up, then tap it back from memory.</p>
+  </header>
+
+  <section class="glass-strong rounded-3xl p-6 md:p-8 mb-6">
+    <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+      <div class="flex items-center gap-4 text-sm">
+        <span class="mono text-white/60">Level <span id="lvl" class="text-white">1</span></span>
+        <span class="mono text-white/60">Grid <span id="gridLbl" class="text-white">3×3</span></span>
+        <span class="mono text-white/60">Best <span id="best" class="text-emerald-400">—</span></span>
+      </div>
+      <button id="startBtn" class="btn btn-primary">Start</button>
+    </div>
+
+    <div id="statusBanner" class="status-banner glass mb-5 text-white/70">Press Start to begin training.</div>
+
+    <div class="flex justify-center">
+      <div id="board" class="grid-wrap"></div>
+    </div>
+
+    <p id="msg" class="text-center text-white/60 text-sm mt-4 h-5 mono"></p>
+  </section>
+
+  <section class="glass rounded-3xl p-6 md:p-8 mb-6">
+    <h2 class="text-xl font-bold mb-3">Why this trains your brain</h2>
+    <div class="flex flex-wrap gap-2 mb-4">
+      <span class="chip">Working Memory</span>
+      <span class="chip">Visuospatial Sketchpad</span>
+      <span class="chip">Attention</span>
+      <span class="chip">Encoding</span>
+    </div>
+    <p class="text-white/60 text-sm leading-relaxed">Briefly holding a lit grid in mind and reproducing it loads the visuospatial sketchpad, the same buffer you use to recall where you left your keys. Forcing the grid to grow and the pattern to lengthen pushes that buffer past its comfort zone and grows capacity over time.</p>
+  </section>
+
+  <footer class="text-center text-white/30 text-xs mono py-4">Powered by Z.AI GLM 5.2 · Brain &amp; ASMR Lab</footer>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  // ---------- Audio ----------
+  var actx = null;
+  function audio(){
+    if(!actx){ try{ actx = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){ actx = null; } }
+    if(actx && actx.state === 'suspended'){ try{ actx.resume(); }catch(e){} }
+    return actx;
+  }
+  function blip(freq, dur, type, gain){
+    try{
+      var a = audio(); if(!a) return;
+      var o = a.createOscillator(); var g = a.createGain();
+      o.type = type || 'sine'; o.frequency.value = freq || 440;
+      o.connect(g); g.connect(a.destination);
+      var t = a.currentTime;
+      g.gain.setValueAtTime(gain || 0.08, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + (dur || 0.12));
+      o.start(t); o.stop(t + (dur || 0.12));
+    }catch(e){}
+  }
+  function clickSound(){ blip(660, 0.06, 'sine', 0.05); }
+  function litSound(){ blip(523, 0.18, 'triangle', 0.07); }
+  function successSound(){ [523,659,784,1046].forEach(function(f,i){ setTimeout(function(){blip(f,0.16,'triangle',0.08);}, i*80); }); }
+  function wrongSound(){ blip(180, 0.25, 'sawtooth', 0.07); setTimeout(function(){blip(140,0.25,'sawtooth',0.06);},120); }
+  function levelUpSound(){ blip(880, 0.1, 'triangle', 0.06); setTimeout(function(){blip(1175,0.14,'triangle',0.07);},100); }
+
+  // ---------- State ----------
+  var level = 1;
+  var gridSize = 3;
+  var k = 3;
+  var pattern = [];
+  var found = {};
+  var foundCount = 0;
+  var phase = 'idle'; // idle | showing | input | over
+  var cells = [];
+
+  function $(id){ return document.getElementById(id); }
+
+  function bestKey(){ return 'mm_best'; }
+  function loadBest(){ try{ var v = localStorage.getItem(bestKey()); return v ? parseInt(v,10) : null; }catch(e){ return null; } }
+  function saveBest(v){ try{ localStorage.setItem(bestKey(), String(v)); }catch(e){} }
+
+  function updateHUD(){
+    if($('lvl')) $('lvl').textContent = level;
+    if($('gridLbl')) $('gridLbl').textContent = gridSize + '×' + gridSize;
+    if($('best')){ var b = loadBest(); $('best').textContent = (b==null ? '—' : b); }
+  }
+
+  function setBanner(text, kind){
+    var b = $('statusBanner'); if(!b) return;
+    b.textContent = text;
+    b.className = 'status-banner mb-5 ';
+    if(kind === 'show'){ b.className += 'glass text-amber-300'; }
+    else if(kind === 'input'){ b.className += 'glass text-emerald-300'; }
+    else if(kind === 'over'){ b.className += 'glass text-rose-300'; }
+    else { b.className += 'glass text-white/70'; }
+  }
+
+  function configureLevel(){
+    gridSize = Math.min(6, 3 + Math.floor((level-1)/2));
+    k = Math.min(gridSize*gridSize - 1, level + 2);
+  }
+
+  function buildGrid(){
+    var board = $('board'); if(!board) return;
+    board.innerHTML = '';
+    board.style.gridTemplateColumns = 'repeat(' + gridSize + ', 1fr)';
+    cells = [];
+    for(var i=0;i<gridSize*gridSize;i++){
+      (function(idx){
+        var c = document.createElement('div');
+        c.className = 'cell disabled';
+        c.addEventListener('click', function(){ onCellClick(idx); });
+        c.addEventListener('touchstart', function(e){ e.preventDefault(); onCellClick(idx); }, {passive:false});
+        board.appendChild(c);
+        cells.push(c);
+      })(i);
+    }
+  }
+
+  function clearAllCells(){
+    for(var i=0;i<cells.length;i++){
+      cells[i].classList.remove('lit','found','wrong');
+    }
+  }
+
+  function genPattern(){
+    pattern = [];
+    var total = gridSize*gridSize;
+    var pool = [];
+    for(var i=0;i<total;i++) pool.push(i);
+    for(var j=0;j<k;j++){
+      var idx = Math.floor(Math.random()*pool.length);
+      pattern.push(pool[idx]);
+      pool.splice(idx,1);
+    }
+  }
+
+  function startLevel(){
+    configureLevel();
+    buildGrid();
+    updateHUD();
+    found = {}; foundCount = 0;
+    phase = 'showing';
+    setBanner('Watch the pattern…', 'show');
+    genPattern();
+    setTimeout(showPattern, 600);
+  }
+
+  function showPattern(){
+    var i = 0;
+    function step(){
+      if(i >= pattern.length){
+        setTimeout(function(){
+          clearAllCells();
+          phase = 'input';
+          setBanner('Your turn — tap the cells you saw', 'input');
+        }, 350);
+        return;
+      }
+      var idx = pattern[i];
+      if(cells[idx]){ cells[idx].classList.add('lit'); }
+      litSound();
+      setTimeout(function(){
+        if(cells[idx]) cells[idx].classList.remove('lit');
+        i++;
+        setTimeout(step, 220);
+      }, 700);
+    }
+    step();
+  }
+
+  function onCellClick(idx){
+    if(phase !== 'input') return;
+    audio();
+    if(found[idx]){ return; }
+    var isCorrect = pattern.indexOf(idx) >= 0;
+    if(isCorrect){
+      found[idx] = true;
+      foundCount++;
+      if(cells[idx]){ cells[idx].classList.add('found'); }
+      clickSound();
+      if(foundCount === pattern.length){
+        phase = 'between';
+        successSound();
+        setBanner('Correct! Next level loading…', 'input');
+        var best = loadBest();
+        if(best==null || level > best){ saveBest(level); }
+        updateHUD();
+        setTimeout(function(){
+          level++;
+          startLevel();
+        }, 1100);
+      }
+    } else {
+      if(cells[idx]){ cells[idx].classList.add('wrong'); }
+      wrongSound();
+      phase = 'over';
+      setBanner('Wrong cell! Game over. Reached Level ' + level + '.', 'over');
+      var b = loadBest();
+      if(b==null || level > b){ saveBest(level); }
+      updateHUD();
+      if($('startBtn')) $('startBtn').textContent = 'Play Again';
+      if($('startBtn')) $('startBtn').classList.remove('btn-primary');
+      if($('startBtn')) $('startBtn').classList.add('btn-primary');
+      setTimeout(function(){
+        if(cells[idx]) cells[idx].classList.remove('wrong');
+      }, 600);
+    }
+  }
+
+  function startGame(){
+    audio();
+    level = 1;
+    if($('startBtn')) $('startBtn').textContent = 'Restart';
+    startLevel();
+  }
+
+  function init(){
+    if($('startBtn')) $('startBtn').addEventListener('click', startGame);
+    configureLevel();
+    buildGrid();
+    updateHUD();
+  }
+
+  if(document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', init); }
+  else { init(); }
+})();
+</script>
+</body>
+</html>

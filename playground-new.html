@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Playground | AI Concept Showcase — By Model</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+    * { font-family: 'Inter', sans-serif; }
+    body { background: #000; }
+    .gradient-text { background: linear-gradient(135deg, #8b5cf6, #d946ef, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .glass { background: rgba(255,255,255,0.05); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.1); }
+    .card-glow:hover { box-shadow: 0 0 60px rgba(139, 92, 246, 0.3); transform: translateY(-4px); }
+    .fade-in { animation: fadeIn 0.8s ease-out forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+    html { scroll-behavior: smooth; scroll-padding-top: 90px; }
+
+    /* Filter buttons */
+    .filter-btn {
+      display: inline-flex; align-items: center;
+      padding: 8px 16px; border-radius: 9999px;
+      font-size: 13px; font-weight: 500;
+      color: rgba(255,255,255,0.5);
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      text-decoration: none; transition: all 0.25s ease; cursor: pointer;
+    }
+    .filter-btn:hover { color: rgba(255,255,255,0.85); background: rgba(255,255,255,0.08); }
+    .filter-btn.active { color: #fff; background: rgba(139,92,246,0.2); border-color: rgba(139,92,246,0.5); }
+
+    /* Model section sticky badge */
+    .model-badge {
+      position: relative;
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 10px 20px; border-radius: 14px;
+      font-weight: 700; font-size: 1.05rem; letter-spacing: -0.01em;
+    }
+
+    /* Card */
+    .proj-card {
+      display: flex; flex-direction: column;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.09);
+      border-radius: 16px; overflow: hidden;
+      transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+      text-decoration: none; color: inherit;
+    }
+    .proj-card:hover { border-color: rgba(139,92,246,0.5); background: rgba(255,255,255,0.07); transform: translateY(-4px); }
+    .proj-thumb {
+      aspect-ratio: 16/9; position: relative; overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 3rem;
+    }
+    .proj-thumb .glow { position: absolute; width: 140px; height: 140px; border-radius: 50%; filter: blur(45px); opacity: 0.5; }
+    .proj-body { padding: 16px; flex: 1; display: flex; flex-direction: column; }
+    .proj-title { font-size: 1rem; font-weight: 700; color: #fff; margin-bottom: 4px; display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .proj-desc { font-size: 0.8rem; color: rgba(255,255,255,0.45); line-height: 1.5; margin-bottom: 12px; flex: 1; }
+    .proj-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; }
+    .proj-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+    .tag { font-size: 0.65rem; padding: 3px 8px; border-radius: 6px; background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.6); }
+    .proj-date { font-size: 0.68rem; color: rgba(255,255,255,0.35); display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; }
+    .proj-link { font-size: 0.78rem; color: #67e8f9; display: inline-flex; align-items: center; gap: 4px; font-weight: 600; }
+    .proj-card:hover .proj-link { color: #a5f3fc; }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .nav { flex-wrap: wrap; gap: 10px; padding: 10px 15px; }
+      .nav-links { order: 3; width: 100%; justify-content: center; gap: 8px; }
+      .hero h1 { font-size: 3rem; }
+    }
+    @media (max-width: 768px) {
+      .hero h1 { font-size: 2.2rem; }
+      .grid-cards { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)) !important; }
+    }
+    @media (max-width: 480px) {
+      .hero h1 { font-size: 1.8rem; }
+      .grid-cards { grid-template-columns: 1fr !important; }
+      .filter-btn { padding: 6px 12px; font-size: 11px; }
+    }
+  </style>
+</head>
+<body class="text-white">
+
+  <!-- NAV -->
+  <nav class="nav sticky top-0 z-50 glass flex items-center justify-between px-6 py-3">
+    <a href="https://rommark.dev" class="flex items-center gap-2 px-3 py-1.5 rounded-full hover:bg-white/10 transition-colors text-sm font-medium">
+      <span class="text-lg">◆</span> rommark.dev
+    </a>
+    <div class="nav-links flex items-center gap-2" id="navFilters"></div>
+  </nav>
+
+  <!-- HERO -->
+  <header class="hero text-center px-6 pt-20 pb-12">
+    <div class="inline-flex items-center gap-2 px-4 py-2 glass rounded-full text-xs font-semibold uppercase tracking-widest text-white/60 mb-6">
+      <span class="text-lg">◆</span> AI Concept Showcase
+    </div>
+    <h1 class="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter mb-6 gradient-text">Playground</h1>
+    <p class="text-white/50 text-lg max-w-2xl mx-auto mb-8">
+      Unique concept ideas generated with different AI models. Where creativity meets code — organized by the model that built them.
+    </p>
+    <div class="flex flex-wrap justify-center gap-2 mb-8" id="modelFilters"></div>
+    <div class="inline-flex items-center gap-3 px-5 py-3 bg-amber-500/10 border border-amber-500/20 rounded-2xl max-w-2xl mx-auto">
+      <svg class="w-5 h-5 text-amber-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <p class="text-amber-200/90 text-sm text-left">
+        <strong class="text-amber-300">Demo Samples Only</strong> — These are demonstration concepts created in single prompts to showcase the design capabilities of various AI models. Not production code.
+      </p>
+    </div>
+  </header>
+
+  <!-- MAIN -->
+  <main class="max-w-7xl mx-auto px-6 pb-24" id="modelsContainer"></main>
+
+  <!-- FOOTER -->
+  <footer class="mt-12 text-center text-white/20 text-sm border-t border-white/10 py-8">
+    <p>Powered by creativity and AI models · Built with Z.AI GLM & friends</p>
+  </footer>
+
+  <script>
+    // ---- DATA: each project tagged with model + release date (from server deploy timestamps) ----
+    const MODELS = [
+      {
+        id: 'glm5', name: 'Z.AI GLM 5', color: '#a78bfa', glow: 'rgba(167,139,250,0.35)',
+        note: 'Flagship multimodal model — landing pages, 3D demos, games & tools.',
+        projects: [
+          { t:'TYPE//CORE', icon:'⌨️', c1:'#7c3aed', c2:'#0891b2', cat:'Tool', tags:['WPM Tracker','Typlexity'], date:'2026-04-10', url:'./typecore.html', desc:'Real-time typing speed test with live WPM, accuracy, consistency score and grade system. 30s/60s/120s modes.' },
+          { t:'Zen Garden', icon:'⛩️', c1:'#047857', c2:'#0f766e', cat:'ASMR', tags:['Perplexity'], date:'2026-04-10', url:'./zen-garden.html', desc:'Rake sand, place stones, draw ripples & cherry blossoms. Meditative ASMR canvas.' },
+          { t:'Rain Room', icon:'🌧️', c1:'#0ea5e9', c2:'#1e3a8a', cat:'ASMR', tags:['Perplexity'], date:'2026-04-10', url:'./rain-room.html', desc:'Falling rain simulation with ripples, streaks and intensity control.' },
+          { t:'Sand Art', icon:'🎨', c1:'#d97706', c2:'#be185d', cat:'Physics', tags:['Perplexity'], date:'2026-04-10', url:'./sand-art.html', desc:'Pour colored sand with real falling physics. Toggle gravity, mix colors.' },
+          { t:'Nova Strike', icon:'🚀', c1:'#dc2626', c2:'#7c3aed', cat:'Shooter', tags:['Perplexity'], date:'2026-04-10', url:'./nova-strike.html', desc:'Classic space shooter. Arrow keys move, Space shoots. Survive endless waves.' },
+          { t:'Bullet Storm', icon:'💥', c1:'#ef4444', c2:'#f59e0b', cat:'Bullet Hell', tags:['Perplexity'], date:'2026-04-10', url:'./bullet-storm.html', desc:'Bullet-hell dodge game. Move your mouse to survive insane patterns.' },
+          { t:'Void Walker', icon:'🌌', c1:'#4f46e5', c2:'#0891b2', cat:'Galaxy', tags:['Perplexity'], date:'2026-04-10', url:'./void-walker.html', desc:'3D warp-speed star field. Steer through nebulae, click to boost.' },
+          { t:'Planet Forge', icon:'🪐', c1:'#ea580c', c2:'#a855f7', cat:'Sandbox', tags:['Perplexity'], date:'2026-04-10', url:'./planet-forge.html', desc:'Build your own solar system. Place planets, watch them orbit.' },
+          { t:'Block Obby', icon:'🟦', c1:'#2563eb', c2:'#06b6d4', cat:'Platformer', tags:['Perplexity'], date:'2026-04-10', url:'./block-obby.html', desc:'Roblox-style obstacle course with 3 levels of moving platforms.' },
+          { t:'Gunfire Arena', icon:'🔫', c1:'#b91c1c', c2:'#7c3aed', cat:'Top-down', tags:['Perplexity'], date:'2026-04-10', url:'./gunfire-arena.html', desc:'Top-down shooter with walls for cover. WASD move, mouse aim.' },
+          { t:'Neon Rogue', icon:'🧙', c1:'#7c3aed', c2:'#db2777', cat:'RPG', tags:['Perplexity'], date:'2026-04-10', url:'./neon-rogue.html', desc:'Dungeon crawler roguelike. Fight, level up, collect loot.' },
+          { t:'Stellar Drift', icon:'✦', c1:'#6366f1', c2:'#0ea5e9', cat:'Arcade', tags:['Perplexity'], date:'2026-04-10', url:'./games/stellar-drift.html', desc:'Guide your ship through asteroid fields. Collect orbs, dodge rocks.' },
+          { t:'Neon Breakout', icon:'⬡', c1:'#a855f7', c2:'#ec4899', cat:'Breakout', tags:['Perplexity'], date:'2026-04-10', url:'./games/neon-breakout.html', desc:'Plasma Breakout with multi-HP bricks and ghost ball preview.' },
+          { t:'Void Maze', icon:'▓', c1:'#10b981', c2:'#0ea5e9', cat:'Maze', tags:['Perplexity'], date:'2026-04-10', url:'./games/void-maze.html', desc:'Navigate a glowing labyrinth in near-total darkness. Procedural.' },
+          { t:'Plasma Tetris', icon:'◈', c1:'#ec4899', c2:'#8b5cf6', cat:'Puzzle', tags:['Perplexity'], date:'2026-04-10', url:'./games/plasma-tetris.html', desc:'Classic Tetris with plasma glow, ghost piece, hard-drop.' },
+          { t:'Particle Surge', icon:'⚡', c1:'#f59e0b', c2:'#ef4444', cat:'Strategy', tags:['Perplexity'], date:'2026-04-10', url:'./games/particle-surge.html', desc:'Fire energy blasts into glowing nodes. Trigger chain reactions.' },
+          { t:'Paper Plane Rally', icon:'✈️', c1:'#0ea5e9', c2:'#6366f1', cat:'Physics', tags:['GLM 5'], date:'2026-03-03', url:'./paper-plane-rally.html', desc:'Draw your flight path, soar through notebook skies. 5 levels.' },
+          { t:'Hit the Ship!', icon:'⚓', c1:'#0891b2', c2:'#7c3aed', cat:'Turn-based', tags:['GLM 5'], date:'2026-03-03', url:'./hit-the-ship.html', desc:'Battleship-style game for 2-4 players with pencil-sketch visuals.' },
+          { t:'Galaxy Tour', icon:'🌌', c1:'#4f46e5', c2:'#7c3aed', cat:'WebGL 3D', tags:['Three.js'], date:'2026-02-11', url:'./demos/galaxy-tour.html', desc:'Procedural spiral galaxy with 80,000+ stars, nebulae, black holes.' },
+          { t:'Puzzle Master', icon:'🧩', c1:'#7c3aed', c2:'#db2777', cat:'Game', tags:['GLM 5'], date:'2026-02-12', url:'./demos/puzzle-game.html', desc:'30 topics of brain-teasing puzzles. Quiz, Match and more.' },
+          { t:'Earth & Moon 3D', icon:'🌍', c1:'#0891b2', c2:'#0ea5e9', cat:'WebGL 3D', tags:['Three.js'], date:'2026-02-11', url:'./demos/earth-moon-3d.html', desc:'Interactive orbital simulation with realistic Earth & Moon.' },
+          { t:'Block Ops', icon:'🎮', c1:'#b91c1c', c2:'#7c3aed', cat:'FPS', tags:['Roblox'], date:'2026-02-11', url:'./demos/block-ops.html', desc:'Call of Duty meets Roblox. Fast-paced FPS with blocky graphics.' },
+          { t:'Fractal Universe', icon:'🌌', c1:'#7c3aed', c2:'#0891b2', cat:'WebGL', tags:['Math'], date:'2026-02-11', url:'./demos/fractal-universe.html', desc:'Zoom infinitely into procedurally generated fractal worlds.' },
+          { t:'Dream World', icon:'🌙', c1:'#6366f1', c2:'#a855f7', cat:'3D', tags:['GLM 5'], date:'2026-02-11', url:'./demos/dream-world.html', desc:'Surreal floating islands and impossible stairs that shift with mood.' },
+          { t:'Neural Network', icon:'🧠', c1:'#10b981', c2:'#0891b2', cat:'AI', tags:['GLM 5'], date:'2026-02-11', url:'./demos/neural-network.html', desc:'Watch neurons pulse and signals flow through layers.' },
+          { t:'Solar System', icon:'🪐', c1:'#ea580c', c2:'#a855f7', cat:'Procedural', tags:['GLM 5'], date:'2026-02-11', url:'./demos/solar-system.html', desc:'Generate unique alien solar systems. Save your favorites.' },
+          { t:'Sound Fluid', icon:'🌊', c1:'#0ea5e9', c2:'#6366f1', cat:'Audio', tags:['GLM 5'], date:'2026-02-11', url:'./demos/sound-fluid.html', desc:'Fluid simulation that responds to your microphone.' },
+          { t:'Quantum Playground', icon:'⚛', c1:'#7c3aed', c2:'#db2777', cat:'Physics', tags:['GLM 5'], date:'2026-02-11', url:'./demos/quantum-playground.html', desc:'Superposition, entanglement, wave collapse when observed.' },
+          { t:'Time-Travel Earth', icon:'🌍', c1:'#0891b2', c2:'#10b981', cat:'History', tags:['GLM 5'], date:'2026-02-11', url:'./demos/time-travel-earth.html', desc:'Timeline slider shows Earth through ages — dinosaurs to future.' },
+          { t:'AI Chatroom', icon:'💬', c1:'#ec4899', c2:'#8b5cf6', cat:'Chat', tags:['GLM 5'], date:'2026-02-12', url:'./demos/ai-chatroom.html', desc:'Multiple AI personalities chatting with unique perspectives.' },
+          { t:'Breathing Universe', icon:'✨', c1:'#14b8a6', c2:'#0891b2', cat:'Wellness', tags:['GLM 5'], date:'2026-02-11', url:'./demos/breathing-universe.html', desc:'Guided breathing exercises in 3D space. Inhale expands, exhale contracts.' },
+          { t:'Living Code', icon:'✨', c1:'#84cc16', c2:'#0891b2', cat:'Code', tags:['GLM 5'], date:'2026-02-11', url:'./demos/living-code.html', desc:'Type code and watch it come alive visually.' },
+          { t:'NEXUS 3D', icon:'◆', c1:'#7c3aed', c2:'#ec4899', cat:'Featured', tags:['WebGL'], date:'2026-02-11', url:'./nexus-3d.html', desc:'Immersive 3D experience with interactive transforms and depth.' },
+          { t:'Design Lab', icon:'◈', c1:'#a855f7', c2:'#ec4899', cat:'New', tags:['10 Concepts'], date:'2026-02-11', url:'./design-lab.html', desc:'10 completely unique landing page design concepts.' },
+          { t:'NEURAL CHAT', icon:'⬡', c1:'#6366f1', c2:'#8b5cf6', cat:'New', tags:['AI Chat'], date:'2026-02-09', url:'./neural-chat/', desc:'Futuristic AI chat interface with neural network background.' },
+          { t:'3D WEBSITE', icon:'◇', c1:'#0891b2', c2:'#8b5cf6', cat:'WebGL', tags:['Three.js'], date:'2026-02-09', url:'./3d-website-demo/', desc:'Immersive WebGL landing page with particle systems.' },
+          { t:'ViralForge', icon:'⚡', c1:'#7c3aed', c2:'#ec4899', cat:'SOLO 3', tags:['Campaign'], date:'2026-04-09', url:'./viral-forge/', desc:'AI campaign generator from a URL and a few keywords.' },
+          { t:'BuzzForge', icon:'⚡', c1:'#8b5cf6', c2:'#06b6d4', cat:'AI Marketing', tags:['Social'], date:'2026-04-09', url:'./BuzzForge/', desc:'AI social media content generator for 8 platforms.' },
+          { t:'Designs Pack', icon:'🎨', c1:'#a855f7', c2:'#ec4899', cat:'UI Kits', tags:['8 Concepts'], date:'2026-04-10', url:'./designs/arcadia.html', desc:'8 production-grade landing page concepts (Arcadia, Driftless, Helix & more).' }
+        ]
+      },
+      {
+        id: 'glm47', name: 'GLM 4.7', color: '#22d3ee', glow: 'rgba(34,211,238,0.3)',
+        note: 'Earlier GLM release — games & relaxation apps.',
+        projects: [
+          { t:'Trae Aurora', icon:'🎄', c1:'#0891b2', c2:'#7c3aed', cat:'Christmas', tags:['Gemini 3 Pro'], date:'2026-02-09', url:'/tools/game/', desc:'Crystalline Christmas experience with Aurora Borealis engine.' },
+          { t:'Aetheria', icon:'⚔️', c1:'#b91c1c', c2:'#7c3aed', cat:'Arena', tags:['Gemini 3 Pro'], date:'2026-02-09', url:'/tools/aetheria/', desc:'Slayer\'s hub arena game with crosshair targeting and waves.' },
+          { t:'Breathe & Pop', icon:'🫧', c1:'#06b6d4', c2:'#0891b2', cat:'Relaxation', tags:['ASMR'], date:'2026-02-09', url:'/bubble-pop-game.html', desc:'Satisfying bubble-popping ASMR stress relief game.' },
+          { t:'Memory Garden', icon:'🌸', c1:'#ec4899', c2:'#8b5cf6', cat:'Brain', tags:['Training'], date:'2026-02-09', url:'/memory-garden.html', desc:'Calming memory card game with particle backgrounds.' }
+        ]
+      },
+      {
+        id: 'turbo', name: 'GLM-5-Turbo', color: '#f59e0b', glow: 'rgba(245,158,11,0.3)',
+        note: '20 radical concepts in single prompts — 15 landing pages + 5 browser games.',
+        projects: [
+          { t:'Void Architecture', icon:'◆', c1:'#7c3aed', c2:'#1e1b4b', cat:'Design', tags:['Dark'], date:'2026-03-17', url:'./demos/void-architecture.html', desc:'Fall through an infinite void. Text emerges from darkness.' },
+          { t:'Glitch Manifesto', icon:'⚠', c1:'#10b981', c2:'#064e3b', cat:'Cyberpunk', tags:['CRT'], date:'2026-03-17', url:'./demos/glitch-manifesto.html', desc:'Cyberpunk terminal with scanlines and VHS artifacts.' },
+          { t:'Chromatic Drift', icon:'🌈', c1:'#ec4899', c2:'#8b5cf6', cat:'Color', tags:['Fluid'], date:'2026-03-17', url:'./demos/chromatic-drift.html', desc:'Travel through color dimensions with shifting hues.' },
+          { t:'Paper Origami', icon:'🧢', c1:'#d97706', c2:'#92400e', cat:'Paper', tags:['Craft'], date:'2026-03-17', url:'./demos/paper-origami.html', desc:'Tactile paper craft landing page with CSS 3D folds.' },
+          { t:'Magnetic Fields', icon:'⚛', c1:'#0ea5e9', c2:'#6366f1', cat:'Interactive', tags:['Particles'], date:'2026-03-17', url:'./demos/magnetic-fields.html', desc:'Iron filing particles follow your cursor.' },
+          { t:'Aurora Cathedral', icon:'🏛', c1:'#4f46e5', c2:'#7c3aed', cat:'Gothic', tags:['Light'], date:'2026-03-17', url:'./demos/aurora-cathedral.html', desc:'Gothic cathedral meets northern lights.' },
+          { t:'Liquid Chrome', icon:'🧬', c1:'#94a3b8', c2:'#475569', cat:'Metallic', tags:['Chrome'], date:'2026-03-17', url:'./demos/liquid-chrome.html', desc:'Mercury and liquid metal surfaces with reflections.' },
+          { t:'Neon Jungle', icon:'🌿', c1:'#10b981', c2:'#22c55e', cat:'Bio', tags:['Luminescent'], date:'2026-03-17', url:'./demos/neon-jungle.html', desc:'Cyberpunk rainforest with bioluminescent flora.' },
+          { t:'Kinetic Typography', icon:'#', c1:'#d97706', c2:'#b45309', cat:'Type', tags:['Morph'], date:'2026-03-17', url:'./demos/kinetic-typography.html', desc:'Typography IS the art. Letters animate and compose.' },
+          { t:'Obsidian Mirror', icon:'💎', c1:'#ef4444', c2:'#7f1d1d', cat:'Volcanic', tags:['Glass'], date:'2026-03-17', url:'./demos/obsidian-mirror.html', desc:'Volcanic glass surfaces with reflections and ember sparks.' },
+          { t:'Samurai Zen', icon:'🗯', c1:'#ec4899', c2:'#be185d', cat:'Sumi-e', tags:['Minimal'], date:'2026-03-17', url:'./demos/samurai-zen.html', desc:'Japanese ink wash meets modern minimalism.' },
+          { t:'Deep Ocean', icon:'🐟', c1:'#0891b2', c2:'#155e75', cat:'Underwater', tags:['Bio'], date:'2026-03-17', url:'./demos/deep-ocean.html', desc:'Bioluminescent deep sea world with jellyfish.' },
+          { t:'Circuit Garden', icon:'🧩', c1:'#10b981', c2:'#047857', cat:'Bio-digital', tags:['PCB'], date:'2026-03-17', url:'./demos/circuit-garden.html', desc:'Electronics meets nature. PCB traces grow like vines.' },
+          { t:'Cosmic Loom', icon:'✨', c1:'#7c3aed', c2:'#a855f7', cat:'Cosmic', tags:['Stars'], date:'2026-03-17', url:'./demos/cosmic-loom.html', desc:'The universe as woven tapestry of constellation threads.' },
+          { t:'Volcanic Glass', icon:'🌋', c1:'#ea580c', c2:'#0891b2', cat:'Elemental', tags:['Fire/Ice'], date:'2026-03-17', url:'./demos/volcanic-glass.html', desc:'Lava meets glass. Fire and ice in dramatic contrast.' },
+          { t:'Haute Noir', icon:'👓', c1:'#d97706', c2:'#92400e', cat:'Fashion', tags:['Luxury'], date:'2026-03-17', url:'./demos/haute-noir.html', desc:'Luxury dark fashion house with gold accents.' },
+          { t:'Neon Couture', icon:'⚡', c1:'#ec4899', c2:'#8b5cf6', cat:'Fashion', tags:['Cyberpunk'], date:'2026-03-17', url:'./demos/neon-couture.html', desc:'Futuristic cyberpunk streetwear with electric neon.' },
+          { t:'Silk Road', icon:'🧬', c1:'#be123c', c2:'#7c2d12', cat:'Fashion', tags:['Silk'], date:'2026-03-17', url:'./demos/silk-road.html', desc:'Elegant silk and luxury fabric fashion.' },
+          { t:'Urban Edge', icon:'🏃', c1:'#ea580c', c2:'#1f2937', cat:'Fashion', tags:['Athletic'], date:'2026-03-17', url:'./demos/urban-edge.html', desc:'Athletic streetwear fusion with electric orange.' },
+          { t:'Ethereal Bloom', icon:'🌼', c1:'#65a30d', c2:'#be185d', cat:'Fashion', tags:['Sustainable'], date:'2026-03-17', url:'./demos/ethereal-bloom.html', desc:'Sustainable nature-inspired fashion with sage greens.' },
+          { t:'Gravity Painter', icon:'🎨', c1:'#0ea5e9', c2:'#6366f1', cat:'Game', tags:['Physics'], date:'2026-03-17', url:'./games/gravity-painter.html', desc:'Draw shapes that become physics objects. Watch them fall.' },
+          { t:'Echo Navigator', icon:'🕶', c1:'#14b8a6', c2:'#0d9488', cat:'Game', tags:['Maze'], date:'2026-03-17', url:'./games/echo-navigator.html', desc:'Navigate mazes in total darkness with fading echo trail.' },
+          { t:'Color Virus', icon:'🦠', c1:'#ef4444', c2:'#b91c1c', cat:'Game', tags:['Strategy'], date:'2026-03-17', url:'./games/color-virus.html', desc:'Territory control. Infect cells to dominate the grid.' },
+          { t:'Rhythm Drops', icon:'🎵', c1:'#f59e0b', c2:'#d97706', cat:'Game', tags:['Music'], date:'2026-03-17', url:'./games/rhythm-drops.html', desc:'Musical rhythm game with 4 lanes. Build combos!' },
+          { t:'Morph Match', icon:'🃏', c1:'#d946ef', c2:'#a855f7', cat:'Game', tags:['Memory'], date:'2026-03-17', url:'./games/morph-match.html', desc:'Memory game where shapes continuously morph.' },
+          { t:'Orbit Catcher', icon:'🌟', c1:'#0ea5e9', c2:'#6366f1', cat:'Game', tags:['Gravity'], date:'2026-03-17', url:'./games/orbit-catcher.html', desc:'Control a gravity well to catch falling stars.' },
+          { t:'Word Storm', icon:'#', c1:'#10b981', c2:'#047857', cat:'Game', tags:['Word'], date:'2026-03-17', url:'./games/word-storm.html', desc:'Letters rain down. Spell words before the screen floods.' }
+        ]
+      },
+      {
+        id: 'multimodel', name: 'Multi-Model & Tools', color: '#34d399', glow: 'rgba(52,211,153,0.3)',
+        note: 'Developer tools and apps built across multiple models.',
+        projects: [
+          { t:'PromptArch', icon:'⚡', c1:'#7c3aed', c2:'#ec4899', cat:'Dev Tool', tags:['Prompt Eng'], date:'2026-02-09', url:'/tools/promptarch/', desc:'Advanced prompt engineering and architecture platform.' },
+          { t:'NanoJasonPro', icon:'📦', c1:'#0891b2', c2:'#0ea5e9', cat:'Dev Tool', tags:['JSON'], date:'2025-12-27', url:'/tools/nanojason/', desc:'JSON manipulation and visualization for complex data.' },
+          { t:'Echo Chamber', icon:'🐍', c1:'#6366f1', c2:'#8b5cf6', cat:'Unity FPS', tags:['Time Echo'], date:'2026-02-09', url:'./games/echo-chamber/', desc:'Time-bending FPS where your past becomes your ally.' },
+          { t:'Snake Game', icon:'🐍', c1:'#10b981', c2:'#0891b2', cat:'HTML5', tags:['Canvas'], date:'2026-02-09', url:'./games/snake-game/', desc:'Classic arcade snake with a modern twist.' }
+        ]
+      },
+      {
+        id: 'more', name: 'More Experiments', color: '#a78bfa', glow: 'rgba(167,139,250,0.25)',
+        note: 'Additional UI/design studies and typing challenges.',
+        projects: [
+          { t:'Aurora Gradient', icon:'🌌', c1:'#7c3aed', c2:'#0891b2', cat:'Design', tags:['UI'], date:'2026-03-17', url:'./demos/aurora-gradient.html', desc:'Beautiful aurora borealis color gradients.' },
+          { t:'Brutalist Bloc', icon:'🧱', c1:'#7c3aed', c2:'#1f2937', cat:'Design', tags:['UI'], date:'2026-02-11', url:'./demos/brutalist-bloc.html', desc:'Raw brutalist design aesthetic.' },
+          { t:'Cyber Nexus', icon:'🌐', c1:'#7c3aed', c2:'#0891b2', cat:'Design', tags:['UI'], date:'2026-02-11', url:'./demos/cyber-nexus.html', desc:'Cyberpunk inspired interface.' },
+          { t:'Editorial Noir', icon:'📰', c1:'#7c3aed', c2:'#1f2937', cat:'Design', tags:['UI'], date:'2026-02-11', url:'./demos/editorial-noir.html', desc:'Dark editorial magazine style.' },
+          { t:'Geometric', icon:'🔷', c1:'#7c3aed', c2:'#0ea5e9', cat:'Design', tags:['UI'], date:'2026-02-11', url:'./demos/geometric.html', desc:'Geometric pattern designs.' },
+          { t:'Glass Morphism', icon:'🪟', c1:'#7c3aed', c2:'#0891b2', cat:'Design', tags:['UI'], date:'2026-03-17', url:'./demos/glass-morphism.html', desc:'Frosted glass UI effects.' },
+          { t:'Gradient Wave', icon:'🌊', c1:'#7c3aed', c2:'#0ea5e9', cat:'Design', tags:['UI'], date:'2026-03-17', url:'./demos/gradient-wave.html', desc:'Animated gradient waves.' },
+          { t:'Holographic', icon:'✨', c1:'#7c3aed', c2:'#ec4899', cat:'Design', tags:['UI'], date:'2026-03-17', url:'./demos/holographic.html', desc:'Holographic iridescent effects.' },
+          { t:'Liquid Diamonds', icon:'💎', c1:'#7c3aed', c2:'#0891b2', cat:'Design', tags:['UI'], date:'2026-03-17', url:'./demos/liquid-diamonds.html', desc:'Liquid diamond animations.' },
+          { t:'Luxury Noir', icon:'🖤', c1:'#7c3aed', c2:'#1f2937', cat:'Design', tags:['UI'], date:'2026-02-11', url:'./demos/luxury-noir.html', desc:'Luxury dark theme design.' },
+          { t:'Neon Pulse', icon:'💜', c1:'#7c3aed', c2:'#ec4899', cat:'Design', tags:['UI'], date:'2026-02-11', url:'./demos/neon-pulse.html', desc:'Neon glow animations.' },
+          { t:'Obsidian Prestige', icon:'⚫', c1:'#7c3aed', c2:'#1f2937', cat:'Design', tags:['UI'], date:'2026-02-11', url:'./demos/obsidian-prestige.html', desc:'Dark obsidian theme.' },
+          { t:'Organic Flow', icon:'🌿', c1:'#7c3aed', c2:'#10b981', cat:'Design', tags:['UI'], date:'2026-02-11', url:'./demos/organic-flow.html', desc:'Natural organic animations.' },
+          { t:'Retro Wave', icon:'📼', c1:'#7c3aed', c2:'#ec4899', cat:'Design', tags:['UI'], date:'2026-02-11', url:'./demos/retro-wave.html', desc:'80s synthwave aesthetic.' },
+          { t:'Zen Minimal', icon:'🧘', c1:'#7c3aed', c2:'#10b981', cat:'Design', tags:['UI'], date:'2026-03-17', url:'./demos/zen-minimal.html', desc:'Minimalist zen design.' },
+          { t:'Code Rush', icon:'⌨', c1:'#34d399', c2:'#0891b2', cat:'Type', tags:['Speed'], date:'2026-03-17', url:'./games/code-rush.html', desc:'Real code snippets — symbols, brackets, async, classes.' },
+          { t:'Quote Sprint', icon:'❝', c1:'#a78bfa', c2:'#7c3aed', cat:'Type', tags:['Speed'], date:'2026-03-17', url:'./games/quote-sprint.html', desc:'Famous quotes. Type with elegance under pressure.' },
+          { t:'Num Blitz', icon:'#', c1:'#22d3ee', c2:'#0891b2', cat:'Type', tags:['Speed'], date:'2026-03-17', url:'./games/num-blitz.html', desc:'Numbers, IPs, math expressions. Train your number row.' },
+          { t:'Symbol Rush', icon:'@', c1:'#f43f5e', c2:'#be123c', cat:'Type', tags:['Speed'], date:'2026-03-17', url:'./games/symbol-rush.html', desc:'Special chars, regex, URLs. Ultimate finger workout.' },
+          { t:'Zen Flow', icon:'✦', c1:'#10b981', c2:'#047857', cat:'Type', tags:['Speed'], date:'2026-03-17', url:'./games/zen-flow.html', desc:'Calm nature prose. Find your rhythm. Breathe. Type.' },
+          { t:'Sci Type', icon:'⚛', c1:'#6366f1', c2:'#4f46e5', cat:'Type', tags:['Speed'], date:'2026-03-17', url:'./games/sci-type.html', desc:'Science and AI terminology. Full-speed drill.' },
+          { t:'Speed Burst', icon:'⚡', c1:'#ef4444', c2:'#b91c1c', cat:'Type', tags:['Speed'], date:'2026-03-17', url:'./games/speed-burst.html', desc:'Short punchy bursts. Maximum velocity.' },
+          { t:'Dev Lingo', icon:'$', c1:'#0ea5e9', c2:'#0369a1', cat:'Type', tags:['Speed'], date:'2026-03-17', url:'./games/dev-lingo.html', desc:'Git, terminal, CLI syntax. Build terminal fluency.' },
+          { t:'Focus Mode', icon:'◉', c1:'#84cc16', c2:'#4d7c0f', cat:'Type', tags:['Speed'], date:'2026-03-17', url:'./games/focus-mode.html', desc:'Long-form accuracy test. Precision beats speed.' },
+          { t:'Word Storm (typing)', icon:'⚡', c1:'#f59e0b', c2:'#d97706', cat:'Type', tags:['Speed'], date:'2026-03-17', url:'./games/word-storm.html', desc:'200 most common words. Pure speed. No punctuation.' },
+          { t:'Pixel Defender', icon:'🎮', c1:'#ef4444', c2:'#7c3aed', cat:'Game', tags:['Arcade'], date:'2026-03-17', url:'./games/pixel-defender.html', desc:'Defend your base from pixel invaders.' },
+          { t:'Bubble Universe', icon:'🌟', c1:'#ec4899', c2:'#8b5cf6', cat:'Game', tags:['Physics'], date:'2026-03-17', url:'./games/bubble-universe.html', desc:'Pop bubbles in an expanding cosmic field.' },
+          { t:'Shadow Walker', icon:'🌑', c1:'#7c3aed', c2:'#1e1b4b', cat:'Game', tags:['Stealth'], date:'2026-03-17', url:'./games/shadow-walker.html', desc:'Sneak through shadows, avoid the light.' }
+        ]
+      }
+    ];
+
+    // ---- RENDER ----
+    const fmtDate = (iso) => {
+      const d = new Date(iso + 'T00:00:00Z');
+      return d.toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric', timeZone:'UTC' });
+    };
+
+    const cardHTML = (p) => `
+      <a href="${p.url}" class="proj-card fade-in">
+        <div class="proj-thumb" style="background:linear-gradient(135deg, ${p.c1}40, ${p.c2}30);">
+          <div class="glow" style="background:radial-gradient(circle, ${p.c1}, transparent 70%);"></div>
+          <span>${p.icon}</span>
+        </div>
+        <div class="proj-body">
+          <div class="proj-title">
+            <span>${p.t}</span>
+            <span class="tag" style="background:${p.c1}22;color:${p.c1}">${p.cat}</span>
+          </div>
+          <p class="proj-desc">${p.desc}</p>
+          <div class="proj-meta">
+            <div class="proj-tags">${p.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+          </div>
+          <div class="proj-meta" style="margin-top:10px">
+            <span class="proj-date">📅 ${fmtDate(p.date)}</span>
+            <span class="proj-link">Open →</span>
+          </div>
+        </div>
+      </a>`;
+
+    const container = document.getElementById('modelsContainer');
+    MODELS.forEach((m, i) => {
+      const sec = document.createElement('section');
+      sec.id = 'model-' + m.id;
+      sec.className = 'mb-20 fade-in';
+      sec.style.animationDelay = (0.1 * i) + 's';
+      sec.innerHTML = `
+        <div class="flex items-center gap-4 mb-3">
+          <div class="model-badge" style="background:${m.glow};border:1px solid ${m.color}55;">
+            <span class="w-3 h-3 rounded-full" style="background:${m.color}"></span>
+            <span style="color:${m.color}">${m.name}</span>
+            <span class="text-white/40 text-sm font-normal">· ${m.projects.length} projects</span>
+          </div>
+        </div>
+        <p class="text-white/40 text-sm mb-6 max-w-2xl">${m.note}</p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 grid-cards">
+          ${m.projects.map(cardHTML).join('')}
+        </div>`;
+      container.appendChild(sec);
+    });
+
+    // ---- NAV + FILTER CHIPS ----
+    const navFilters = document.getElementById('navFilters');
+    const modelFilters = document.getElementById('modelFilters');
+    MODELS.forEach((m) => {
+      navFilters.insertAdjacentHTML('beforeend',
+        `<a href="#model-${m.id}" class="filter-btn" data-model="model-${m.id}">${m.name}</a>`);
+      modelFilters.insertAdjacentHTML('beforeend',
+        `<a href="#model-${m.id}" class="filter-btn" data-model="model-${m.id}">
+           <span class="w-2 h-2 rounded-full inline-block mr-1.5" style="background:${m.color}"></span>${m.name}
+         </a>`);
+    });
+
+    // ---- Scroll-spy ----
+    const sections = MODELS.map(m => document.getElementById('model-' + m.id));
+    const btns = document.querySelectorAll('.filter-btn');
+    function updateActive() {
+      let current = sections[0]?.id;
+      const y = window.scrollY + 200;
+      sections.forEach(s => { if (s.offsetTop <= y) current = s.id; });
+      btns.forEach(b => b.classList.toggle('active', b.dataset.model === current));
+    }
+    window.addEventListener('scroll', updateActive, { passive: true });
+    updateActive();
+  </script>
+</body>
+</html>

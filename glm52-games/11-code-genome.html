@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Pop It Galaxy — Brain & ASMR Lab</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+  *{font-family:'Inter',sans-serif;}
+  body{background:#000;color:#fff;margin:0;overflow-x:hidden;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+  .glass{background:rgba(255,255,255,0.05);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.08);}
+  .glass-strong{background:rgba(255,255,255,0.08);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.12);}
+  .orb{position:fixed;border-radius:50%;filter:blur(80px);opacity:0.35;pointer-events:none;z-index:0;animation:pulseGlow 9s ease-in-out infinite;}
+  .orb-a{width:520px;height:520px;background:radial-gradient(circle,#14b8a6,#0d9488);top:-150px;left:-120px;}
+  .orb-b{width:560px;height:560px;background:radial-gradient(circle,#7c3aed,#4f46e5);bottom:-180px;right:-140px;animation-delay:-4.5s;}
+  @keyframes pulseGlow{0%,100%{transform:scale(1);opacity:0.35;}50%{transform:scale(1.12);opacity:0.5;}}
+  .grad-text{background:linear-gradient(120deg,#5eead4,#a78bfa 55%,#818cf8);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .pill{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:#cbd5e1;}
+  .dot{width:8px;height:8px;border-radius:50%;background:#5eead4;box-shadow:0 0 8px #5eead4;}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:#fff;font-weight:600;font-size:13px;cursor:pointer;transition:all .18s ease;user-select:none;}
+  .btn:hover{background:rgba(255,255,255,0.12);transform:translateY(-1px);}
+  .btn:active{transform:translateY(0) scale(0.97);}
+  .btn-primary{background:linear-gradient(120deg,#0d9488,#6366f1);border-color:transparent;}
+  .btn-primary:hover{filter:brightness(1.15);}
+  .chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);font-size:12px;color:#cbd5e1;}
+  .chip .cdot{width:6px;height:6px;border-radius:50%;background:#a78bfa;}
+  .seg{display:inline-flex;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:3px;}
+  .seg button{padding:7px 12px;border-radius:9px;font-size:12px;font-weight:600;color:#94a3b8;background:transparent;border:none;cursor:pointer;transition:all .15s;}
+  .seg button.active{background:rgba(94,234,212,0.18);color:#5eead4;}
+  #grid{display:grid;gap:8px;width:100%;max-width:520px;margin:0 auto;touch-action:none;}
+  .bubble{position:relative;aspect-ratio:1;border-radius:50%;cursor:pointer;transition:transform .12s cubic-bezier(.34,1.56,.64,1), box-shadow .2s, background .2s;user-select:none;-webkit-tap-highlight-color:transparent;}
+  .bubble::after{content:'';position:absolute;top:14%;left:18%;width:38%;height:30%;border-radius:50%;background:rgba(255,255,255,0.45);filter:blur(2px);opacity:.85;transition:opacity .2s;}
+  .bubble.in{transform:scale(0.78);box-shadow:inset 0 6px 14px rgba(0,0,0,0.45), inset 0 -3px 8px rgba(255,255,255,0.12);}
+  .bubble.in::after{opacity:.18;}
+  .bubble.out{box-shadow:0 8px 18px rgba(0,0,0,0.4), inset 0 -6px 12px rgba(0,0,0,0.25), inset 0 6px 10px rgba(255,255,255,0.35);}
+  .bubble:active{transform:scale(0.7);}
+  .wave-flash{animation:waveFlash .5s ease;}
+  @keyframes waveFlash{0%{filter:brightness(1.6);}100%{filter:brightness(1);}}
+  .mute-btn{position:fixed;top:16px;right:16px;z-index:50;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#5eead4;}
+  .mute-btn:hover{background:rgba(255,255,255,0.14);}
+  .stat{font-family:'JetBrains Mono',monospace;font-size:13px;color:#94a3b8;}
+  .stat b{color:#5eead4;}
+</style>
+</head>
+<body class="min-h-screen relative">
+  <div class="orb orb-a"></div>
+  <div class="orb orb-b"></div>
+
+  <button id="muteBtn" class="mute-btn" title="Mute / Unmute" aria-label="Mute toggle">
+    <svg id="muteIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+  </button>
+
+  <div class="relative z-10 max-w-5xl mx-auto px-4 md:px-6 py-6 md:py-10">
+    <nav class="flex items-center justify-between mb-8">
+      <a href="../" class="btn">← Playground</a>
+      <div class="pill"><span class="dot"></span> GLM 5.2 · ASMR Lab · #11</div>
+    </nav>
+
+    <header class="mb-8">
+      <div class="pill mb-3">◆ Tactile Pop</div>
+      <h1 class="text-4xl md:text-6xl font-black tracking-tight grad-text leading-none">Pop It Galaxy</h1>
+      <p class="mt-4 text-slate-300/80 max-w-2xl text-sm md:text-base">A silicone bubble field that pops and pushes with every touch. Drag for trail-pops, cycle color themes, or let the auto-demo ripple waves across the galaxy. Pure tactile relief.</p>
+    </header>
+
+    <section class="glass-strong rounded-3xl p-6 md:p-8 mb-6">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+        <div class="flex items-center gap-2 flex-wrap">
+          <button id="popAllBtn" class="btn btn-primary">Pop All</button>
+          <button id="resetBtn" class="btn">Reset</button>
+          <button id="autoBtn" class="btn">Auto Waves: Off</button>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap">
+          <div class="seg" id="sizeSeg">
+            <button data-size="5">5×5</button>
+            <button data-size="6" class="active">6×6</button>
+            <button data-size="8">8×8</button>
+          </div>
+          <button id="themeBtn" class="btn">Theme</button>
+        </div>
+      </div>
+
+      <div id="gridWrap" class="flex flex-col items-center">
+        <div id="grid"></div>
+        <div class="flex items-center gap-6 mt-6 stat">
+          <div>Popped: <b id="poppedCount">0</b></div>
+          <div>Remaining: <b id="remainCount">36</b></div>
+          <div>Pops: <b id="totalPops">0</b></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="glass rounded-3xl p-6 md:p-8 mb-6">
+      <h2 class="text-xl font-bold mb-3">Why this feels good</h2>
+      <div class="flex flex-wrap gap-2 mb-3">
+        <span class="chip"><span class="cdot"></span> Tactile Feedback</span>
+        <span class="chip"><span class="cdot"></span> Visual Order</span>
+        <span class="chip"><span class="cdot"></span> Auditory Tingles</span>
+        <span class="chip"><span class="cdot"></span> Repetitive Motion</span>
+      </div>
+      <p class="text-slate-300/80 text-sm">Each pop delivers a short, soft noise burst with a tiny pitch cue that the brain reads as physical release. Repeating the action settles the nervous system by giving the hands a low-stakes, predictable loop to occupy.</p>
+    </section>
+
+    <footer class="text-center text-xs text-slate-500 pt-4 pb-2">Powered by Z.AI GLM 5.2 · Brain &amp; ASMR Lab</footer>
+  </div>
+
+<script>
+(function(){
+  'use strict';
+  // ---- Audio ----
+  var AC=null, muted=false;
+  function audioCtx(){
+    if(!AC){
+      try{ AC = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ AC=null; }
+    }
+    if(AC && AC.state==='suspended'){ try{ AC.resume(); }catch(e){} }
+    return AC;
+  }
+  function popSound(){
+    if(muted) return;
+    var ctx=audioCtx(); if(!ctx) return;
+    try{
+      var now=ctx.currentTime;
+      // noise burst
+      var dur=0.09;
+      var buf=ctx.createBuffer(1, Math.floor(ctx.sampleRate*dur), ctx.sampleRate);
+      var d=buf.getChannelData(0);
+      for(var i=0;i<d.length;i++){ d[i]=(Math.random()*2-1)*Math.pow(1-(i/d.length),2.2); }
+      var src=ctx.createBufferSource(); src.buffer=buf;
+      var bp=ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=900+Math.random()*400; bp.Q.value=1.4;
+      var g=ctx.createGain(); g.gain.setValueAtTime(0.0001,now); g.gain.exponentialRampToValueAtTime(0.32,now+0.005); g.gain.exponentialRampToValueAtTime(0.0001,now+dur);
+      src.connect(bp); bp.connect(g); g.connect(ctx.destination);
+      src.start(now); src.stop(now+dur);
+      // tiny pitch tick
+      var osc=ctx.createOscillator(); osc.type='sine'; osc.frequency.setValueAtTime(420+Math.random()*120,now); osc.frequency.exponentialRampToValueAtTime(180,now+0.06);
+      var og=ctx.createGain(); og.gain.setValueAtTime(0.0001,now); og.gain.exponentialRampToValueAtTime(0.12,now+0.004); og.gain.exponentialRampToValueAtTime(0.0001,now+0.07);
+      osc.connect(og); og.connect(ctx.destination);
+      osc.start(now); osc.stop(now+0.08);
+    }catch(e){}
+  }
+  function chimeSound(){
+    if(muted) return;
+    var ctx=audioCtx(); if(!ctx) return;
+    try{
+      var now=ctx.currentTime, freqs=[523.25,659.25,783.99,1046.5];
+      freqs.forEach(function(f,idx){
+        var o=ctx.createOscillator(); o.type='sine'; o.frequency.value=f;
+        var g=ctx.createGain(); var t=now+idx*0.07;
+        g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.14,t+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t+0.5);
+        o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t+0.55);
+      });
+    }catch(e){}
+  }
+
+  // ---- Game state ----
+  var SIZE=6, THEME=0;
+  var themes=[
+    {name:'Aurora', colors:['#f472b6','#a78bfa','#38bdf8','#34d399','#facc15','#fb923c']},
+    {name:'Lagoon', colors:['#22d3ee','#2dd4bf','#60a5fa','#818cf8','#c084fc','#5eead4']},
+    {name:'Sunset', colors:['#fb7185','#fbbf24','#fb923c','#f43f5e','#fca5a5','#fde68a']},
+    {name:'Mint',   colors:['#6ee7b7','#34d399','#10b981','#5eead4','#a7f3d0','#67e8f9']}
+  ];
+  var states=[]; // true = popped-in
+  var totalPops=0;
+
+  var grid=document.getElementById('grid');
+  var poppedCountEl=document.getElementById('poppedCount');
+  var remainCountEl=document.getElementById('remainCount');
+  var totalPopsEl=document.getElementById('totalPops');
+  var popAllBtn=document.getElementById('popAllBtn');
+  var resetBtn=document.getElementById('resetBtn');
+  var autoBtn=document.getElementById('autoBtn');
+  var themeBtn=document.getElementById('themeBtn');
+  var sizeSeg=document.getElementById('sizeSeg');
+  var muteBtn=document.getElementById('muteBtn');
+  var muteIcon=document.getElementById('muteIcon');
+
+  function colorFor(r,c){
+    var t=themes[THEME];
+    return t.colors[(r*t.colors.length+c)%t.colors.length];
+  }
+  function buildGrid(){
+    grid.innerHTML='';
+    grid.style.gridTemplateColumns='repeat('+SIZE+',1fr)';
+    states=[];
+    for(var r=0;r<SIZE;r++){
+      states[r]=[];
+      for(var c=0;c<SIZE;c++){
+        states[r][c]=false; // popped-out default
+        var b=document.createElement('div');
+        b.className='bubble out';
+        b.style.background='radial-gradient(circle at 35% 30%, '+lighten(colorFor(r,c))+' 0%, '+colorFor(r,c)+' 55%, '+darken(colorFor(r,c))+' 100%)';
+        b.dataset.r=r; b.dataset.c=c;
+        grid.appendChild(b);
+        states[r][c]=false;
+      }
+    }
+    updateCounts();
+  }
+  function lighten(hex){
+    return shade(hex,40);
+  }
+  function darken(hex){
+    return shade(hex,-40);
+  }
+  function shade(hex,p){
+    var c=hexToRgb(hex);
+    var r=Math.max(0,Math.min(255,c.r+p));
+    var g=Math.max(0,Math.min(255,c.g+p));
+    var b=Math.max(0,Math.min(255,c.b+p));
+    return '#'+[r,g,b].map(function(x){return ('0'+Math.round(x).toString(16)).slice(-2);}).join('');
+  }
+  function hexToRgb(hex){
+    var h=hex.replace('#','');
+    return {r:parseInt(h.substr(0,2),16),g:parseInt(h.substr(2,2),16),b:parseInt(h.substr(4,2),16)};
+  }
+  function bubbleAt(r,c){
+    if(r<0||c<0||r>=SIZE||c>=SIZE) return null;
+    return grid.children[r*SIZE+c];
+  }
+  function setIn(r,c,inState, silent){
+    var b=bubbleAt(r,c);
+    if(!b) return;
+    var cur=states[r][c];
+    if(cur===inState) return;
+    states[r][c]=inState;
+    if(inState){ b.classList.add('in'); b.classList.remove('out'); }
+    else { b.classList.remove('in'); b.classList.add('out'); }
+    if(!silent) popSound();
+    totalPops++; updateCounts();
+  }
+  function toggle(r,c, silent){
+    setIn(r,c,!states[r][c], silent);
+  }
+  function updateCounts(){
+    var poppedIn=0;
+    for(var r=0;r<SIZE;r++) for(var c=0;c<SIZE;c++) if(states[r][c]) poppedIn++;
+    if(poppedCountEl) poppedCountEl.textContent=poppedIn;
+    if(remainCountEl) remainCountEl.textContent=(SIZE*SIZE-poppedIn);
+    if(totalPopsEl) totalPopsEl.textContent=totalPops;
+  }
+  function popAll(){
+    audioCtx();
+    for(var r=0;r<SIZE;r++) for(var c=0;c<SIZE;c++){
+      if(!states[r][c]){
+        (function(rr,cc){ setTimeout(function(){ setIn(rr,cc,true,false); bubbleAt(rr,cc)&&bubbleAt(rr,cc).classList.add('wave-flash'); setTimeout(function(){bubbleAt(rr,cc)&&bubbleAt(rr,cc).classList.remove('wave-flash');},500); }, (rr+cc)*35); })(r,c);
+      }
+    }
+  }
+  function reset(){
+    for(var r=0;r<SIZE;r++) for(var c=0;c<SIZE;c++) setIn(r,c,false,true);
+    updateCounts();
+  }
+
+  // ---- Input (mouse+touch+drag) ----
+  var dragging=false, lastCell=null;
+  function cellFromPoint(x,y){
+    var el=document.elementFromPoint(x,y);
+    if(el && el.classList.contains('bubble')) return el;
+    return null;
+  }
+  function handleStart(x,y){
+    audioCtx();
+    dragging=true;
+    var b=cellFromPoint(x,y);
+    if(b){
+      var r=+b.dataset.r, c=+b.dataset.c;
+      toggle(r,c,false);
+      lastCell=r+','+c;
+    }
+  }
+  function handleMove(x,y){
+    if(!dragging) return;
+    var b=cellFromPoint(x,y);
+    if(b){
+      var r=+b.dataset.r, c=+b.dataset.c;
+      var key=r+','+c;
+      if(key!==lastCell){
+        if(!states[r][c]){ setIn(r,c,true,false); }
+        lastCell=key;
+      }
+    }
+  }
+  function handleEnd(){ dragging=false; lastCell=null; }
+
+  grid.addEventListener('mousedown', function(e){ e.preventDefault(); handleStart(e.clientX,e.clientY); });
+  window.addEventListener('mousemove', function(e){ if(dragging) handleMove(e.clientX,e.clientY); });
+  window.addEventListener('mouseup', handleEnd);
+  grid.addEventListener('touchstart', function(e){ e.preventDefault(); var t=e.touches[0]; handleStart(t.clientX,t.clientY); }, {passive:false});
+  grid.addEventListener('touchmove', function(e){ e.preventDefault(); var t=e.touches[0]; handleMove(t.clientX,t.clientY); }, {passive:false});
+  grid.addEventListener('touchend', handleEnd);
+  grid.addEventListener('touchcancel', handleEnd);
+
+  // ---- Buttons ----
+  popAllBtn && popAllBtn.addEventListener('click', function(){ audioCtx(); popAll(); });
+  resetBtn && resetBtn.addEventListener('click', function(){ audioCtx(); reset(); });
+  themeBtn && themeBtn.addEventListener('click', function(){
+    THEME=(THEME+1)%themes.length;
+    buildGrid();
+    audioCtx(); popSound();
+  });
+  sizeSeg && sizeSeg.addEventListener('click', function(e){
+    var b=e.target.closest('button'); if(!b) return;
+    SIZE=+b.dataset.size;
+    Array.prototype.forEach.call(sizeSeg.querySelectorAll('button'),function(x){x.classList.remove('active');});
+    b.classList.add('active');
+    buildGrid();
+  });
+
+  // ---- Auto waves demo ----
+  var autoOn=false, autoTimer=null;
+  function autoStep(){
+    if(!autoOn) return;
+    // Diagonal wave toggling
+    var phase = Math.floor(Date.now()/220) % (SIZE*2);
+    for(var r=0;r<SIZE;r++) for(var c=0;c<SIZE;c++){
+      if((r+c)% (SIZE*2) === phase){
+        if(Math.random()<0.5){ toggle(r,c,true); }
+      }
+    }
+  }
+  autoBtn && autoBtn.addEventListener('click', function(){
+    audioCtx();
+    autoOn=!autoOn;
+    autoBtn.textContent='Auto Waves: '+(autoOn?'On':'Off');
+    if(autoOn){
+      autoTimer=setInterval(autoStep, 220);
+    } else {
+      clearInterval(autoTimer); autoTimer=null;
+    }
+  });
+
+  // ---- Mute ----
+  muteBtn && muteBtn.addEventListener('click', function(){
+    muted=!muted;
+    if(muted){
+      muteIcon.innerHTML='<path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>';
+    } else {
+      muteIcon.innerHTML='<path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>';
+      audioCtx();
+    }
+  });
+
+  // ---- Init ----
+  buildGrid();
+})();
+</script>
+</body>
+</html>

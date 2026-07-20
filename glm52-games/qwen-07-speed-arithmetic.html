@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Speed Arithmetic — Qwen 3.7 MAX Brain Lab</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+*{font-family:'Inter',sans-serif;box-sizing:border-box}
+body{background:#000;color:#fff;margin:0;overflow-x:hidden}
+.mono{font-family:'JetBrains Mono',monospace}
+.glass{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1)}
+.glass-strong{background:rgba(255,255,255,.08);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.15)}
+.orb{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0}
+@keyframes pulse-glow{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:.65;transform:scale(1.12)}}
+.orb1{width:520px;height:520px;background:radial-gradient(circle,#f97316,transparent 70%);top:-180px;left:-140px;animation:pulse-glow 9s ease-in-out infinite}
+.orb2{width:480px;height:480px;background:radial-gradient(circle,#a855f7,transparent 70%);bottom:-160px;right:-110px;animation:pulse-glow 11s ease-in-out infinite reverse}
+.gradient-text{background:linear-gradient(135deg,#f97316 0%,#f59e0b 40%,#a855f7 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.dot-pill{display:inline-block;width:8px;height:8px;border-radius:50%;background:#f97316;margin-right:8px;box-shadow:0 0 10px #f97316}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:9999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-size:13px;color:rgba(255,255,255,.7)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);color:#fff;font-weight:600;font-size:13px;cursor:pointer;transition:all .18s;user-select:none}
+.btn:hover{background:rgba(255,255,255,.12);transform:translateY(-1px)}
+.btn:active{transform:translateY(0) scale(.97)}
+.btn-primary{background:linear-gradient(135deg,#f97316,#a855f7);border-color:transparent}
+.btn-primary:hover{filter:brightness(1.15)}
+.btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.mute-btn{position:fixed;top:16px;right:16px;z-index:50;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#f97316}
+.mute-btn:hover{background:rgba(255,255,255,.14)}
+#problem{text-align:center;font-size:clamp(36px,10vw,72px);font-weight:900;font-family:'JetBrains Mono',monospace;color:#f97316;min-height:90px;display:flex;align-items:center;justify-content:center;margin:8px 0}
+#answerInput{width:100%;max-width:300px;margin:0 auto;display:block;text-align:center;font-size:36px;font-weight:800;font-family:'JetBrains Mono',monospace;background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.15);border-radius:16px;padding:14px;color:#fff;outline:none;transition:border-color .2s}
+#answerInput:focus{border-color:#f97316}
+#answerInput.correct{border-color:#34d399;color:#34d399}
+#answerInput.wrong{border-color:#ef4444;color:#ef4444}
+.progress-bar{width:100%;height:6px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;margin:12px 0}
+.progress-fill{height:100%;background:linear-gradient(90deg,#f97316,#a855f7);border-radius:3px;transition:width .3s}
+.stat-row{display:flex;justify-content:center;gap:24px;flex-wrap:wrap;margin-top:8px}
+.stat-item{text-align:center}
+.stat-item .val{font-size:20px;font-weight:800;font-family:'JetBrains Mono',monospace}
+.stat-item .label{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:rgba(255,255,255,.4)}
+.seg{display:inline-flex;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:3px}
+.seg button{padding:7px 14px;border-radius:9px;font-size:12px;font-weight:600;color:#94a3b8;background:transparent;border:none;cursor:pointer;transition:all .15s}
+.seg button.active{background:rgba(249,115,22,.2);color:#f97316}
+.win-flash{animation:win-pulse 1.6s ease-out}
+@keyframes win-pulse{0%{box-shadow:0 0 0 rgba(52,211,153,0)}50%{box-shadow:0 0 60px rgba(52,211,153,.55)}100%{box-shadow:0 0 0 rgba(52,211,153,0)}}
+</style>
+</head>
+<body>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<button id="muteBtn" class="mute-btn" title="Mute" aria-label="Mute toggle">
+  <svg id="muteIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+</button>
+<div class="relative z-10 max-w-4xl mx-auto px-4 md:px-6 py-6 md:py-10">
+  <nav class="flex items-center justify-between mb-8 gap-3">
+    <a href="../" class="glass inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm hover:bg-white/10 transition">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+      Playground
+    </a>
+    <span class="glass inline-flex items-center px-4 py-2 rounded-full text-xs mono whitespace-nowrap"><span class="dot-pill"></span>Qwen 3.7 MAX · Brain Lab · #07</span>
+  </nav>
+  <header class="mb-8">
+    <span class="glass inline-block px-3 py-1 rounded-full text-[11px] uppercase tracking-wider text-white/60 mb-4">◆ Mental Math</span>
+    <h1 class="text-5xl md:text-7xl font-black tracking-tighter gradient-text leading-none mb-3">Speed Arithmetic</h1>
+    <p class="text-white/40 text-lg">Solve as many problems as you can in 60 seconds — speed and accuracy under pressure.</p>
+  </header>
+  <section class="glass-strong rounded-3xl p-6 md:p-8 mb-6">
+    <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+      <div class="flex items-center gap-4 text-sm">
+        <span class="mono text-white/60">Time <span id="timeLeft" class="text-white">60</span>s</span>
+        <span class="mono text-white/60">Solved <span id="solved" class="text-white">0</span></span>
+        <span class="mono text-white/60">Best <span id="best" class="text-emerald-400">—</span></span>
+      </div>
+      <div class="flex gap-2 flex-wrap items-center">
+        <div class="seg" id="diffSeg">
+          <button data-d="easy" class="active">Easy</button>
+          <button data-d="medium">Medium</button>
+          <button data-d="hard">Hard</button>
+        </div>
+        <button id="startBtn" class="btn btn-primary">Start 60s</button>
+      </div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progBar" style="width:100%"></div></div>
+    <div id="problem">—</div>
+    <input id="answerInput" type="text" inputmode="numeric" maxlength="8" placeholder="Answer…" autocomplete="off" disabled>
+    <div class="stat-row">
+      <div class="stat-item"><div class="val text-emerald-400" id="correctCount">0</div><div class="label">Correct</div></div>
+      <div class="stat-item"><div class="val text-red-400" id="wrongCount">0</div><div class="label">Wrong</div></div>
+      <div class="stat-item"><div class="val text-amber-400" id="avgTime">—</div><div class="label">Avg (s)</div></div>
+    </div>
+    <p id="msg" class="text-center text-white/60 text-sm mt-4 h-5 mono"></p>
+  </section>
+  <section class="glass rounded-3xl p-6 md:p-8 mb-6">
+    <h2 class="text-xl font-bold mb-3">Why this trains your brain</h2>
+    <div class="flex flex-wrap gap-2 mb-4">
+      <span class="chip">Processing Speed</span>
+      <span class="chip">Mental Arithmetic</span>
+      <span class="chip">Working Memory</span>
+      <span class="chip">Focus Under Pressure</span>
+    </div>
+    <p class="text-white/60 text-sm leading-relaxed">Speed math combines retrieval of arithmetic facts from long-term memory with rapid execution in working memory. The time pressure forces automaticity — the transition from effortful calculation to instant recall. This is the same cognitive fluency that underpins reading speed and fluid reasoning.</p>
+  </section>
+  <footer class="text-center text-white/30 text-xs mono py-4">Powered by Qwen 3.7 MAX · Brain Challenge Lab</footer>
+</div>
+<script>
+(function(){
+  'use strict';
+  var AC=null, muted=false;
+  function audio(){ if(!AC){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ AC=null; } } if(AC&&AC.state==='suspended'){ try{ AC.resume(); }catch(e){} } return AC; }
+  function blip(freq,dur,type,gain){
+    if(muted) return;
+    try{ var a=audio(); if(!a) return; var o=a.createOscillator(),g=a.createGain(); o.type=type||'sine'; o.frequency.value=freq||440; o.connect(g); g.connect(a.destination); var t=a.currentTime; g.gain.setValueAtTime(gain||0.06,t); g.gain.exponentialRampToValueAtTime(0.0001,t+(dur||0.1)); o.start(t); o.stop(t+(dur||0.1)); }catch(e){}
+  }
+  function correctSound(){ blip(660,0.08,'sine',0.05); }
+  function wrongSound(){ blip(160,0.15,'sawtooth',0.04); }
+  function winSound(){ [523,659,784,1046,1318].forEach(function(f,i){ setTimeout(function(){ blip(f,0.2,'triangle',0.08); },i*90); }); }
+
+  var DIFF='easy';
+  var GAME_TIME=60;
+  var timeLeft=GAME_TIME, solved=0, correct=0, wrong=0;
+  var currentAnswer=0;
+  var running=false;
+  var timerInterval=null;
+  var problemStart=0;
+  var totalTime=0;
+  var problemEl=document.getElementById('problem');
+  var answerEl=document.getElementById('answerInput');
+  var startBtn=document.getElementById('startBtn');
+  var diffSeg=document.getElementById('diffSeg');
+  var progBar=document.getElementById('progBar');
+  function $(id){ return document.getElementById(id); }
+
+  function bestKey(){ return 'qw_speedmath_best_'+DIFF; }
+  function loadBest(){ try{ var v=localStorage.getItem(bestKey()); return v?parseInt(v,10):null; }catch(e){ return null; } }
+  function saveBest(v){ try{ localStorage.setItem(bestKey(),String(v)); }catch(e){} }
+
+  function updateHUD(){
+    if($('timeLeft')) $('timeLeft').textContent=timeLeft;
+    if($('solved')) $('solved').textContent=solved;
+    var b=loadBest();
+    if($('best')) $('best').textContent=(b==null?'—':b);
+    if($('correctCount')) $('correctCount').textContent=correct;
+    if($('wrongCount')) $('wrongCount').textContent=wrong;
+    if($('avgTime')) $('avgTime').textContent=solved>0?(totalTime/solved/1000).toFixed(1)+'s':'—';
+    if(progBar) progBar.style.width=(timeLeft/GAME_TIME*100)+'%';
+  }
+  function flashMsg(t){ var m=$('msg'); if(m) m.textContent=t; }
+
+  function randInt(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+
+  function generateProblem(){
+    var a,b,op,ans,text;
+    if(DIFF==='easy'){
+      a=randInt(2,20); b=randInt(2,20);
+      op=Math.random()<0.5?'+':'-';
+      if(op==='-'&&b>a){ var t=a; a=b; b=t; }
+      ans=op==='+'?a+b:a-b;
+      text=a+' '+op+' '+b;
+    } else if(DIFF==='medium'){
+      var ops=['+','-','×'];
+      op=ops[Math.floor(Math.random()*ops.length)];
+      if(op==='×'){ a=randInt(2,12); b=randInt(2,12); ans=a*b; }
+      else { a=randInt(10,99); b=randInt(10,99); if(op==='-'&&b>a){ var t2=a; a=b; b=t2; } ans=op==='+'?a+b:a-b; }
+      text=a+' '+op+' '+b;
+    } else {
+      var ops2=['+','-','×','÷'];
+      op=ops2[Math.floor(Math.random()*ops2.length)];
+      if(op==='×'){ a=randInt(5,25); b=randInt(2,15); ans=a*b; }
+      else if(op==='÷'){ b=randInt(2,12); ans=randInt(2,15); a=b*ans; }
+      else { a=randInt(50,200); b=randInt(50,200); if(op==='-'&&b>a){ var t3=a; a=b; b=t3; } ans=op==='+'?a+b:a-b; }
+      text=a+' '+op+' '+b;
+    }
+    if(problemEl) problemEl.textContent=text+' = ?';
+    currentAnswer=ans;
+    problemStart=Date.now();
+  }
+
+  function checkAnswer(){
+    if(!running) return;
+    var val=answerEl.value.replace(/\s/g,'');
+    if(val==='') return;
+    var num=parseInt(val,10);
+    var elapsed=Date.now()-problemStart;
+    totalTime+=elapsed;
+    solved++;
+    if(num===currentAnswer){
+      correct++;
+      answerEl.className='correct';
+      correctSound();
+    } else {
+      wrong++;
+      answerEl.className='wrong';
+      wrongSound();
+    }
+    answerEl.value='';
+    updateHUD();
+    setTimeout(function(){ answerEl.className=''; generateProblem(); answerEl.focus(); },200);
+  }
+
+  function startGame(){
+    audio();
+    running=true;
+    timeLeft=GAME_TIME; solved=0; correct=0; wrong=0; totalTime=0;
+    startBtn.disabled=true;
+    diffSeg.querySelectorAll('button').forEach(function(b){ b.disabled=true; });
+    answerEl.disabled=false;
+    answerEl.value='';
+    generateProblem();
+    answerEl.focus();
+    updateHUD();
+    flashMsg('Go! Type your answer and press Enter');
+    timerInterval=setInterval(function(){
+      timeLeft--;
+      updateHUD();
+      if(timeLeft<=0) endGame();
+    },1000);
+  }
+
+  function endGame(){
+    running=false;
+    clearInterval(timerInterval);
+    answerEl.disabled=true;
+    startBtn.disabled=false;
+    diffSeg.querySelectorAll('button').forEach(function(b){ b.disabled=false; });
+    if(problemEl) problemEl.textContent='—';
+    winSound();
+    var sec=document.querySelector('section.glass-strong');
+    if(sec){ sec.classList.add('win-flash'); setTimeout(function(){ sec.classList.remove('win-flash'); },1600); }
+    var b=loadBest();
+    if(b==null||correct>b){ saveBest(correct); flashMsg('Round done! '+correct+' correct — new best!'); }
+    else { flashMsg('Round done! '+correct+' correct (best: '+b+')'); }
+    updateHUD();
+  }
+
+  answerEl.addEventListener('keydown',function(e){
+    if(e.key==='Enter'){ checkAnswer(); e.preventDefault(); }
+  });
+  if(startBtn) startBtn.addEventListener('click',function(){ startGame(); });
+  if(diffSeg) diffSeg.addEventListener('click',function(e){
+    var b=e.target.closest('button'); if(!b||running) return;
+    DIFF=b.dataset.d;
+    diffSeg.querySelectorAll('button').forEach(function(x){ x.classList.remove('active'); });
+    b.classList.add('active');
+    updateHUD();
+  });
+
+  var muteBtn=$('muteBtn'), muteIcon=$('muteIcon');
+  if(muteBtn) muteBtn.addEventListener('click',function(){
+    muted=!muted;
+    if(muted){ muteIcon.innerHTML='<path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>'; }
+    else { muteIcon.innerHTML='<path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>'; audio(); }
+  });
+
+  function init(){ updateHUD(); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init);
+  else init();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <radialGradient id="bg6" cx="50%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0a0f1a"/>
+    </radialGradient>
+    <linearGradient id="house6" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#475569"/>
+      <stop offset="100%" stop-color="#334155"/>
+    </linearGradient>
+    <linearGradient id="panel6" x1="0.1" y1="0" x2="0.9" y2="1">
+      <stop offset="0%" stop-color="#1a3a5c"/>
+      <stop offset="100%" stop-color="#081626"/>
+    </linearGradient>
+    <filter id="shadow6">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#000000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg6)"/>
+  <ellipse cx="200" cy="350" rx="130" ry="14" fill="#000000" opacity="0.25"/>
+  <!-- House -->
+  <g filter="url(#shadow6)">
+    <path d="M110 210 L200 130 L290 210 L290 300 L110 300 Z" fill="url(#house6)" stroke="#475569" stroke-width="3"/>
+    <!-- Roof with panels -->
+    <path d="M110 210 L200 130 L290 210 Z" fill="#1e293b"/>
+    <g transform="translate(118,135)">
+      <rect x="0" y="0" width="164" height="62" rx="4" fill="url(#panel6)" stroke="#f97316" stroke-width="1.5"/>
+      <g stroke="#f97316" stroke-width="0.8" opacity="0.5">
+        <line x1="41" y1="0" x2="41" y2="62"/>
+        <line x1="82" y1="0" x2="82" y2="62"/>
+        <line x1="123" y1="0" x2="123" y2="62"/>
+        <line x1="0" y1="31" x2="164" y2="31"/>
+      </g>
+    </g>
+    <!-- Inverter box -->
+    <rect x="135" y="245" width="36" height="40" rx="4" fill="#cbd5e1" stroke="#94a3b8" stroke-width="1"/>
+    <!-- Battery -->
+    <rect x="195" y="245" width="48" height="40" rx="4" fill="#f8fafc" stroke="#94a3b8" stroke-width="1"/>
+    <circle cx="219" cy="265" r="3" fill="#10b981"/>
+    <!-- Door -->
+    <rect x="250" y="240" width="30" height="60" rx="3" fill="#334155"/>
+  </g>
+  <!-- Sun -->
+  <circle cx="330" cy="70" r="28" fill="#f97316" opacity="0.2"/>
+  <circle cx="330" cy="70" r="16" fill="#fbbf24" opacity="0.3"/>
+  <text x="200" y="375" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#e2e8f0" text-anchor="middle">Полная система 5кВт</text>
+</svg>

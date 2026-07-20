@@ -1,0 +1,290 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ============================================================
+   SUNSTORE — "Zero Noise" Design System
+   A restrained, Apple-inspired dark retail language:
+   pure black canvas, white type, muted grays, hairline rules,
+   and a single warm solar accent used sparingly.
+   ============================================================ */
+
+:root {
+  /* Canvas & surfaces */
+  --bg: #000000;
+  --surface: #0a0a0a;
+  --surface-2: #121212;
+  --surface-3: #1a1a1a;
+
+  /* Hairline rules */
+  --hairline: rgba(255, 255, 255, 0.08);
+  --hairline-strong: rgba(255, 255, 255, 0.16);
+
+  /* Ink (text) — Apple grays */
+  --ink: #f5f5f7;
+  --ink-2: #a1a1a6;
+  --ink-3: #86868b;
+  --ink-4: #6e6e73;
+
+  /* Single brand accent (solar amber) — used sparingly */
+  --accent: #f59e0b;
+  --accent-strong: #fbbf24;
+  --accent-soft: rgba(245, 158, 11, 0.12);
+
+  /* Functional */
+  --success: #30d158;
+  --danger: #ff453a;
+  --info: #0a84ff;
+
+  /* Radii — Apple-like, restrained */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 18px;
+  --r-xl: 24px;
+  --r-full: 9999px;
+
+  /* Motion — subtle, quick */
+  --ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --dur: 0.18s;
+  --dur-slow: 0.32s;
+
+  /* Type scale */
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+@layer base {
+  * {
+    border-color: var(--hairline);
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: #000;
+  }
+
+  /* Quiet scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--bg);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #2a2a2a;
+    border-radius: var(--r-full);
+    border: 2px solid var(--bg);
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #3a3a3a;
+  }
+
+  h1, h2, h3, h4 {
+    letter-spacing: -0.02em;
+  }
+}
+
+@layer components {
+  /* ---------- Layout ---------- */
+  .container-ss {
+    @apply mx-auto w-full max-w-6xl px-6;
+  }
+  .section-pad {
+    @apply py-20 md:py-28;
+  }
+
+  /* ---------- Typography ---------- */
+  .eyebrow-ss {
+    @apply text-[11px] font-semibold uppercase tracking-[0.22em] text-[color:var(--ink-3)];
+  }
+  .h-display {
+    @apply font-semibold tracking-[-0.03em] text-[color:var(--ink)];
+  }
+  .lede-ss {
+    @apply text-lg leading-relaxed text-[color:var(--ink-2)];
+  }
+  .price-ss {
+    font-variant-numeric: tabular-nums;
+    @apply font-semibold tracking-tight text-[color:var(--ink)];
+  }
+  .muted-ss {
+    @apply text-[color:var(--ink-3)];
+  }
+
+  /* ---------- Buttons ---------- */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-full font-medium transition-all duration-200 select-none whitespace-nowrap;
+    @apply text-sm px-5 h-10;
+  }
+  .btn:active {
+    transform: scale(0.98);
+  }
+  .btn-primary {
+    @apply btn bg-white text-black hover:bg-[#e8e8ed];
+  }
+  .btn-accent {
+    @apply btn bg-[color:var(--accent)] text-black hover:bg-[color:var(--accent-strong)];
+  }
+  .btn-ghost {
+    @apply btn border border-[color:var(--hairline-strong)] text-[color:var(--ink)] hover:border-white/40 hover:bg-white/[0.04];
+  }
+  .btn-quiet {
+    @apply btn text-[color:var(--ink-2)] hover:text-white hover:bg-white/[0.06];
+  }
+  .btn-danger {
+    @apply btn border border-[color:var(--hairline-strong)] text-[color:var(--danger)] hover:bg-[color:var(--danger)]/10;
+  }
+  .btn-lg {
+    @apply text-base px-7 h-12;
+  }
+  .btn-sm {
+    @apply text-xs px-4 h-8;
+  }
+  .btn[disabled],
+  .btn:disabled {
+    @apply opacity-40 pointer-events-none;
+  }
+
+  /* ---------- Surfaces ---------- */
+  .card-ss {
+    @apply rounded-[18px] bg-[color:var(--surface)] border border-[color:var(--hairline)];
+    transition: border-color var(--dur) var(--ease), transform var(--dur) var(--ease), background var(--dur) var(--ease);
+  }
+  .card-ss-hover:hover {
+    border-color: var(--hairline-strong);
+    background: var(--surface-2);
+    transform: translateY(-2px);
+  }
+  .divider-ss {
+    @apply h-px w-full bg-[color:var(--hairline)];
+  }
+
+  /* ---------- Badges (monochrome, no gradient noise) ---------- */
+  .badge-ss {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-[color:var(--hairline-strong)] px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[color:var(--ink-2)];
+  }
+  .badge-accent {
+    @apply badge-ss border-[color:var(--accent)]/40 text-[color:var(--accent)];
+  }
+  .badge-success {
+    @apply badge-ss border-[color:var(--success)]/40 text-[color:var(--success)];
+  }
+  .badge-danger {
+    @apply badge-ss border-[color:var(--danger)]/40 text-[color:var(--danger)];
+  }
+
+  /* ---------- Forms ---------- */
+  .label-ss {
+    @apply block text-xs font-medium uppercase tracking-[0.14em] text-[color:var(--ink-3)] mb-2;
+  }
+  .input-ss {
+    @apply w-full h-11 rounded-[var(--r-md)] bg-white/[0.04] border border-[color:var(--hairline)] px-4 text-sm text-[color:var(--ink)] placeholder:text-[color:var(--ink-4)] transition-colors duration-200;
+  }
+  .input-ss:focus {
+    @apply outline-none border-white/40 bg-white/[0.06];
+  }
+  .select-ss {
+    @apply input-ss appearance-none cursor-pointer;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%2386868b' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    padding-right: 36px;
+  }
+  .toggle-ss {
+    @apply relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 cursor-pointer;
+    background: #2a2a2a;
+  }
+  .toggle-ss[data-on='true'] {
+    background: var(--success);
+  }
+  .toggle-ss::after {
+    content: '';
+    @apply absolute h-5 w-5 rounded-full bg-white transition-transform duration-200;
+    transform: translateX(2px);
+  }
+  .toggle-ss[data-on='true']::after {
+    transform: translateX(22px);
+  }
+
+  /* ---------- Navigation ---------- */
+  .nav-link {
+    @apply text-sm text-[color:var(--ink-2)] transition-colors duration-200 hover:text-white;
+  }
+  .nav-link-active {
+    @apply text-white;
+  }
+
+  /* ---------- Tables (admin) ---------- */
+  .table-ss {
+    @apply w-full text-sm;
+  }
+  .table-ss thead th {
+    @apply text-left text-[11px] font-semibold uppercase tracking-[0.14em] text-[color:var(--ink-3)] px-4 py-3 border-b border-[color:var(--hairline)];
+  }
+  .table-ss tbody td {
+    @apply px-4 py-3.5 border-b border-[color:var(--hairline)] text-[color:var(--ink-2)] align-middle;
+  }
+  .table-ss tbody tr {
+    transition: background var(--dur) var(--ease);
+  }
+  .table-ss tbody tr:hover {
+    background: rgba(255, 255, 255, 0.02);
+  }
+
+  /* ---------- Brand mark ---------- */
+  .brand-mark {
+    @apply inline-flex items-center gap-2 font-semibold tracking-tight text-[color:var(--ink)];
+  }
+  .brand-mark .brand-dot {
+    @apply inline-block w-1.5 h-1.5 rounded-full bg-[color:var(--accent)];
+  }
+
+  /* ---------- Feedback ---------- */
+  .toast {
+    @apply fixed bottom-6 left-1/2 z-50 -translate-x-1/2 rounded-full bg-[color:var(--surface-3)] border border-[color:var(--hairline-strong)] px-5 py-2.5 text-sm text-[color:var(--ink)] shadow-2xl;
+    animation: ss-toast-in var(--dur-slow) var(--ease);
+  }
+  .spinner-ss {
+    @apply inline-block h-5 w-5 rounded-full border-2 border-white/20 border-t-white animate-spin;
+  }
+}
+
+@keyframes ss-toast-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 8px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+@keyframes ss-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-up {
+  animation: ss-fade-up 0.5s var(--ease) both;
+}

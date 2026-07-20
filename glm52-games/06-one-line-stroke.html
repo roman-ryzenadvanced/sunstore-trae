@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>GLM 5.2 · One Line Stroke</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--g:rgba(34,211,238,.12);--gb:rgba(34,211,238,.25);--a:#22d3ee;--r:rgba(239,68,68,.15);--rb:rgba(239,68,68,.3);--s:rgba(148,163,184,.08)}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow-x:hidden}
+body{font-family:'Inter',system-ui,sans-serif;background:#000;color:#e2e8f0}
+.mono{font-family:'JetBrains Mono',monospace}
+.glass{background:rgba(15,23,42,.7);backdrop-filter:blur(20px);border:1px solid rgba(34,211,238,.1)}
+.glass-strong{background:rgba(15,23,42,.85);backdrop-filter:blur(24px);border:1px solid rgba(34,211,238,.15)}
+.orb{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0}
+.orb-1{width:400px;height:400px;top:-10%;left:-10%;background:radial-gradient(circle,rgba(34,211,238,.08),transparent 70%);animation:f1 20s ease-in-out infinite}
+.orb-2{width:350px;height:350px;bottom:-10%;right:-10%;background:radial-gradient(circle,rgba(139,92,246,.06),transparent 70%);animation:f2 25s ease-in-out infinite}
+@keyframes f1{0%,100%{transform:translate(0,0)}50%{transform:translate(60px,40px)}}
+@keyframes f2{0%,100%{transform:translate(0,0)}50%{transform:translate(-50px,-30px)}}
+.btn{transition:all .15s ease}.btn:hover{transform:translateY(-1px)}.btn:active{transform:translateY(0) scale(.98)}
+.btn-glow{box-shadow:0 0 20px rgba(34,211,238,.15)}.btn-glow:hover{box-shadow:0 0 30px rgba(34,211,238,.25)}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.chip-cyan{background:rgba(34,211,238,.12);color:#22d3ee;border:1px solid rgba(34,211,238,.2)}
+.chip-rose{background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.2)}
+.chip-emerald{background:rgba(52,211,153,.12);color:#34d399;border:1px solid rgba(52,211,153,.2)}
+.h1-grad{background:linear-gradient(135deg,#22d3ee 0%,#a78bfa 50%,#f472b6 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+canvas{touch-action:none}
+</style>
+</head>
+<body class="min-h-screen relative">
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<nav class="glass-strong sticky top-0 z-50 border-b border-l-0 border-r-0 border-t-0">
+<div class="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+<a href="/" class="flex items-center gap-2.5 btn">
+<div class="w-8 h-8 rounded-lg flex items-center justify-center mono text-xs font-bold" style="background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.2);color:#22d3ee">R</div>
+<span class="text-sm font-semibold text-slate-300">rommark<span class="text-cyan-400">.dev</span></span>
+</a>
+<div class="flex items-center gap-2">
+<a href="/playground/" class="btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white" style="background:var(--s)">&#8592; Playground</a>
+<button id="mute-btn" class="btn px-2.5 py-1.5 rounded-lg text-xs glass" title="Toggle sound">&#128266;</button>
+</div>
+</div>
+</nav>
+<main class="relative z-10 max-w-2xl mx-auto px-4 pt-5 pb-20">
+<div class="flex items-center gap-2 mb-3">
+<span class="chip chip-cyan">GLM 5.2</span>
+<span class="chip chip-emerald">Brain</span>
+</div>
+<h1 class="text-2xl font-extrabold h1-grad leading-tight tracking-tight mb-1">One Line Stroke</h1>
+<p class="text-slate-500 text-xs mb-5 max-w-lg">Draw the graph in one continuous stroke — no lifting, no retracing.</p>
+<div class="flex items-center gap-2 mb-4 flex-wrap">
+<button id="btn-start" class="btn btn-glow px-5 py-2.5 rounded-xl text-sm font-bold text-black" style="background:linear-gradient(135deg,#22d3ee,#06b6d4)">&#9654; Start</button>
+<button id="btn-reset" class="btn glass px-4 py-2.5 rounded-xl text-sm font-semibold text-slate-400 hidden">Reset</button>
+<div class="flex-1"></div>
+<div id="level-display" class="chip chip-cyan hidden mono">LEVEL 1</div>
+<div id="moves-display" class="chip chip-emerald hidden mono">0 EDGES</div>
+</div>
+<div id="status-bar" class="glass rounded-xl px-4 py-3 mb-4">
+<div class="flex items-center gap-2">
+<div id="status-dot" class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse flex-shrink-0"></div>
+<span id="status-text" class="text-xs text-slate-400">Ready when you are.</span>
+</div>
+</div>
+<div id="game-screen" class="hidden">
+<div class="glass-strong rounded-2xl overflow-hidden mb-4">
+<canvas id="cv" width="600" height="450" class="w-full block cursor-pointer" style="aspect-ratio:600/450"></canvas>
+</div>
+<div id="progress-wrap" class="glass rounded-xl px-4 py-3 mb-4">
+<div class="flex justify-between mb-2">
+<span class="text-xs font-semibold text-slate-400">Progress</span>
+<span id="progress-text" class="text-xs font-bold text-cyan-400 mono">0 / 0</span>
+</div>
+<div class="w-full h-1.5 rounded-full" style="background:rgba(34,211,238,.08)">
+<div id="progress-bar" class="h-full rounded-full transition-all duration-300" style="width:0%;background:linear-gradient(90deg,#22d3ee,#06b6d4)"></div>
+</div>
+</div>
+</div>
+<div id="complete-screen" class="hidden">
+<div class="glass-strong rounded-2xl p-5 text-center mb-4" style="border-color:rgba(52,211,153,.2)">
+<div class="text-3xl font-extrabold mb-1" style="background:linear-gradient(135deg,#34d399,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Complete!</div>
+<p id="complete-msg" class="text-xs text-slate-400 mono mb-3"></p>
+<button id="btn-next" class="btn px-6 py-2.5 rounded-xl text-sm font-bold text-black" style="background:linear-gradient(135deg,#22d3ee,#06b6d4)">Next Level &#8594;</button>
+</div>
+</div>
+<div class="glass rounded-xl p-4 mt-4">
+<p class="text-xs font-bold text-slate-300 mb-2">How to Play</p>
+<ul class="text-xs text-slate-500 space-y-1">
+<li>&#8226; Click a highlighted node to start</li>
+<li>&#8226; Click connected nodes to draw edges</li>
+<li>&#8226; Cover every edge exactly once</li>
+</ul>
+</div>
+</main>
+<footer class="relative z-10 max-w-2xl mx-auto px-4 pb-8">
+<div class="glass rounded-xl p-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+<p class="text-xs text-slate-500">Built with <span class="text-cyan-400 font-semibold">GLM 5.2</span></p>
+<p class="text-xs text-slate-600 mono">rommark.dev/playground</p>
+</div>
+</footer>
+<script>
+(function(){
+"use strict";
+
+// --- Audio ---
+var audioCtx=null,muted=false;
+try{audioCtx=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}
+function playClick(){
+  if(muted||!audioCtx)return;
+  try{
+    var o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.connect(g);g.connect(audioCtx.destination);
+    o.type="sine";o.frequency.setValueAtTime(880,audioCtx.currentTime);
+    o.frequency.exponentialRampToValueAtTime(1200,audioCtx.currentTime+0.06);
+    g.gain.setValueAtTime(0.15,audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.12);
+    o.start(audioCtx.currentTime);o.stop(audioCtx.currentTime+0.12);
+  }catch(e){}
+}
+function playWin(){
+  if(muted||!audioCtx)return;
+  try{
+    [523,659,784,1047].forEach(function(f,i){
+      var o=audioCtx.createOscillator(),g=audioCtx.createGain();
+      o.connect(g);g.connect(audioCtx.destination);
+      o.type="sine";o.frequency.value=f;
+      g.gain.setValueAtTime(0.12,audioCtx.currentTime+i*0.1);
+      g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+i*0.1+0.25);
+      o.start(audioCtx.currentTime+i*0.1);o.stop(audioCtx.currentTime+i*0.1+0.25);
+    });
+  }catch(e){}
+}
+function playError(){
+  if(muted||!audioCtx)return;
+  try{
+    var o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    o.connect(g);g.connect(audioCtx.destination);
+    o.type="sawtooth";o.frequency.value=180;
+    g.gain.setValueAtTime(0.1,audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.2);
+    o.start(audioCtx.currentTime);o.stop(audioCtx.currentTime+0.2);
+  }catch(e){}
+}
+
+var muteBtn=document.getElementById("mute-btn");
+muteBtn.addEventListener("click",function(){
+  muted=!muted;
+  muteBtn.textContent=muted?"\uD83D\uDD07":"\uD83D\uDD0A";
+});
+
+// --- Levels ---
+var levels=[
+  {
+    name:"Triangle",
+    nodes:[{x:300,y:100},{x:150,y:340},{x:450,y:340}],
+    edges:[[0,1],[1,2],[2,0]]
+  },
+  {
+    name:"Square + Diagonal",
+    nodes:[{x:170,y:110},{x:430,y:110},{x:430,y:340},{x:170,y:340}],
+    edges:[[0,1],[1,2],[2,3],[3,0],[0,2]]
+  },
+  {
+    name:"House",
+    nodes:[{x:300,y:70},{x:470,y:200},{x:470,y:370},{x:130,y:370},{x:130,y:200}],
+    edges:[[0,1],[0,4],[1,2],[2,3],[3,4],[1,4]]
+  },
+  {
+    name:"Star",
+    nodes:[{x:300,y:60},{x:440,y:180},{x:390,y:360},{x:210,y:360},{x:160,y:180}],
+    edges:[[0,1],[0,2],[0,3],[0,4],[1,2],[2,3],[3,4],[4,1]]
+  },
+  {
+    name:"Complex",
+    nodes:[{x:150,y:100},{x:450,y:100},{x:500,y:280},{x:380,y:390},{x:220,y:390},{x:100,y:280}],
+    edges:[[0,1],[1,2],[2,3],[3,4],[4,5],[5,0],[0,3],[1,4],[2,5]]
+  }
+];
+
+// --- State ---
+var currentLevel=0;
+var currentNode=-1;
+var usedEdges=new Set();
+var totalEdges=0;
+var gameActive=false;
+var bestLevel=0;
+
+try{bestLevel=parseInt(localStorage.getItem("glm-06-best-level")||"0",10)||0}catch(e){}
+
+// --- DOM ---
+var btnStart=document.getElementById("btn-start");
+var btnReset=document.getElementById("btn-reset");
+var btnNext=document.getElementById("btn-next");
+var levelDisplay=document.getElementById("level-display");
+var movesDisplay=document.getElementById("moves-display");
+var statusText=document.getElementById("status-text");
+var statusDot=document.getElementById("status-dot");
+var gameScreen=document.getElementById("game-screen");
+var completeScreen=document.getElementById("complete-screen");
+var completeMsg=document.getElementById("complete-msg");
+var progressText=document.getElementById("progress-text");
+var progressBar=document.getElementById("progress-bar");
+var cv=document.getElementById("cv");
+var ctx=cv.getContext("2d");
+
+// --- Helpers ---
+function edgeKey(a,b){return Math.min(a,b)+"-"+Math.max(a,b)}
+
+function getAdjacent(nodeIdx,lvl){
+  var adj=[];
+  var l=levels[lvl];
+  for(var i=0;i<l.edges.length;i++){
+    var e=l.edges[i];
+    if(e[0]===nodeIdx&&!usedEdges.has(edgeKey(e[0],e[1])))adj.push(e[1]);
+    if(e[1]===nodeIdx&&!usedEdges.has(edgeKey(e[0],e[1])))adj.push(e[0]);
+  }
+  return adj;
+}
+
+function getValidStarts(lvl){
+  var l=levels[lvl];
+  var starts=[];
+  for(var n=0;n<l.nodes.length;n++){
+    var adj=[];
+    for(var i=0;i<l.edges.length;i++){
+      if(l.edges[i][0]===n||l.edges[i][1]===n)adj.push(1);
+    }
+    if(adj.length>0)starts.push(n);
+  }
+  return starts;
+}
+
+// --- Drawing ---
+var NODE_R=18;
+
+function draw(){
+  var l=levels[currentLevel];
+  var W=cv.width,H=cv.height;
+  ctx.clearRect(0,0,W,H);
+
+  // Background subtle grid
+  ctx.strokeStyle="rgba(34,211,238,0.03)";
+  ctx.lineWidth=1;
+  for(var gx=0;gx<W;gx+=40){ctx.beginPath();ctx.moveTo(gx,0);ctx.lineTo(gx,H);ctx.stroke()}
+  for(var gy=0;gy<H;gy+=40){ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(W,gy);ctx.stroke()}
+
+  // Draw edges
+  for(var i=0;i<l.edges.length;i++){
+    var e=l.edges[i];
+    var n1=l.nodes[e[0]],n2=l.nodes[e[1]];
+    var key=edgeKey(e[0],e[1]);
+    var used=usedEdges.has(key);
+    ctx.beginPath();
+    ctx.moveTo(n1.x,n1.y);
+    ctx.lineTo(n2.x,n2.y);
+    if(used){
+      ctx.strokeStyle="#22d3ee";
+      ctx.lineWidth=3;
+      ctx.shadowColor="rgba(34,211,238,0.5)";
+      ctx.shadowBlur=10;
+    }else{
+      ctx.strokeStyle="rgba(148,163,184,0.2)";
+      ctx.lineWidth=2;
+      ctx.shadowColor="transparent";
+      ctx.shadowBlur=0;
+    }
+    ctx.stroke();
+    ctx.shadowBlur=0;
+  }
+
+  // Determine valid next nodes
+  var validNext=[];
+  if(currentNode>=0){
+    validNext=getAdjacent(currentNode,currentLevel);
+  }else if(gameActive){
+    validNext=getValidStarts(currentLevel);
+  }
+
+  // Draw nodes
+  for(var n=0;n<l.nodes.length;n++){
+    var nd=l.nodes[n];
+    var isCurrent=n===currentNode;
+    var isValid=validNext.indexOf(n)>=0;
+
+    ctx.beginPath();
+    ctx.arc(nd.x,nd.y,NODE_R,0,Math.PI*2);
+
+    if(isCurrent){
+      ctx.fillStyle="rgba(34,211,238,0.25)";
+      ctx.strokeStyle="#22d3ee";
+      ctx.lineWidth=3;
+      ctx.shadowColor="rgba(34,211,238,0.6)";
+      ctx.shadowBlur=20;
+    }else if(isValid){
+      ctx.fillStyle="rgba(34,211,238,0.1)";
+      ctx.strokeStyle="rgba(34,211,238,0.5)";
+      ctx.lineWidth=2;
+      ctx.shadowColor="rgba(34,211,238,0.3)";
+      ctx.shadowBlur=12;
+    }else{
+      ctx.fillStyle="rgba(30,41,59,0.8)";
+      ctx.strokeStyle="rgba(148,163,184,0.25)";
+      ctx.lineWidth=1.5;
+      ctx.shadowColor="transparent";
+      ctx.shadowBlur=0;
+    }
+    ctx.fill();
+    ctx.stroke();
+    ctx.shadowBlur=0;
+
+    // Node number
+    ctx.fillStyle=isCurrent?"#22d3ee":isValid?"rgba(34,211,238,0.7)":"rgba(148,163,184,0.5)";
+    ctx.font="bold 13px 'JetBrains Mono',monospace";
+    ctx.textAlign="center";
+    ctx.textBaseline="middle";
+    ctx.fillText(String(n+1),nd.x,nd.y+1);
+  }
+}
+
+function updateUI(){
+  var drawn=usedEdges.size;
+  progressText.textContent=drawn+" / "+totalEdges;
+  var pct=totalEdges>0?Math.round(drawn/totalEdges*100):0;
+  progressBar.style.width=pct+"%";
+  movesDisplay.textContent=drawn+" EDGES";
+}
+
+function setStatus(txt,color){
+  statusText.textContent=txt;
+  if(color==="cyan"){
+    statusDot.className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse flex-shrink-0";
+  }else if(color==="green"){
+    statusDot.className="w-2 h-2 rounded-full bg-emerald-400 flex-shrink-0";
+  }else if(color==="red"){
+    statusDot.className="w-2 h-2 rounded-full bg-red-400 flex-shrink-0";
+  }else{
+    statusDot.className="w-2 h-2 rounded-full bg-slate-400 animate-pulse flex-shrink-0";
+  }
+}
+
+// --- Game Flow ---
+function startLevel(lvl){
+  currentLevel=lvl;
+  currentNode=-1;
+  usedEdges=new Set();
+  totalEdges=levels[lvl].edges.length;
+  gameActive=true;
+
+  gameScreen.classList.remove("hidden");
+  completeScreen.classList.add("hidden");
+  btnStart.classList.add("hidden");
+  btnReset.classList.remove("hidden");
+  levelDisplay.classList.remove("hidden");
+  movesDisplay.classList.remove("hidden");
+  levelDisplay.textContent="LEVEL "+(lvl+1);
+  setStatus("Click any node to begin your stroke.","cyan");
+  updateUI();
+  draw();
+}
+
+function resetLevel(){
+  currentNode=-1;
+  usedEdges=new Set();
+  gameActive=true;
+  completeScreen.classList.add("hidden");
+  gameScreen.classList.remove("hidden");
+  setStatus("Reset. Click any node to begin.","cyan");
+  updateUI();
+  draw();
+}
+
+function checkWin(){
+  if(usedEdges.size===totalEdges){
+    gameActive=false;
+    playWin();
+    if(currentLevel+1>bestLevel){
+      bestLevel=currentLevel+1;
+      try{localStorage.setItem("glm-06-best-level",String(bestLevel))}catch(e){}
+    }
+    completeMsg.textContent="Level "+(currentLevel+1)+" — "+levels[currentLevel].name+" — "+totalEdges+" edges traced";
+    completeScreen.classList.remove("hidden");
+    if(currentLevel>=levels.length-1){
+      btnNext.textContent="All Levels Done!";
+      btnNext.disabled=true;
+      btnNext.style.opacity="0.5";
+    }else{
+      btnNext.textContent="Next Level \u2192";
+      btnNext.disabled=false;
+      btnNext.style.opacity="1";
+    }
+    setStatus("Level complete!","green");
+    return true;
+  }
+  return false;
+}
+
+// --- Input ---
+function getCanvasPos(e){
+  var rect=cv.getBoundingClientRect();
+  var scaleX=cv.width/rect.width;
+  var scaleY=cv.height/rect.height;
+  var cx,cy;
+  if(e.touches){
+    cx=(e.touches[0].clientX-rect.left)*scaleX;
+    cy=(e.touches[0].clientY-rect.top)*scaleY;
+  }else{
+    cx=(e.clientX-rect.left)*scaleX;
+    cy=(e.clientY-rect.top)*scaleY;
+  }
+  return{x:cx,y:cy};
+}
+
+function hitTest(pos){
+  var l=levels[currentLevel];
+  for(var i=0;i<l.nodes.length;i++){
+    var dx=pos.x-l.nodes[i].x,dy=pos.y-l.nodes[i].y;
+    if(dx*dx+dy*dy<=(NODE_R+8)*(NODE_R+8))return i;
+  }
+  return -1;
+}
+
+function handleClick(e){
+  if(!gameActive)return;
+  e.preventDefault();
+  var pos=getCanvasPos(e);
+  var hit=hitTest(pos);
+  if(hit<0)return;
+
+  if(currentNode<0){
+    // Starting node
+    var validStarts=getValidStarts(currentLevel);
+    if(validStarts.indexOf(hit)<0){
+      playError();
+      setStatus("That node has no edges. Pick a connected node.","red");
+      return;
+    }
+    currentNode=hit;
+    playClick();
+    setStatus("Good start. Click a connected node to draw an edge.","cyan");
+    draw();
+    return;
+  }
+
+  // Already have a current node
+  if(hit===currentNode)return;
+
+  var key=edgeKey(currentNode,hit);
+  if(usedEdges.has(key)){
+    playError();
+    setStatus("That edge is already drawn. Choose another.","red");
+    return;
+  }
+
+  // Check adjacency
+  var adj=getAdjacent(currentNode,currentLevel);
+  if(adj.indexOf(hit)<0){
+    playError();
+    setStatus("No unused edge connects to that node.","red");
+    return;
+  }
+
+  // Valid move
+  usedEdges.add(key);
+  currentNode=hit;
+  playClick();
+
+  if(!checkWin()){
+    var nextAdj=getAdjacent(currentNode,currentLevel);
+    if(nextAdj.length===0){
+      gameActive=false;
+      playError();
+      setStatus("Stuck! No more valid moves. Reset and try a different path.","red");
+    }else{
+      setStatus("Keep going — "+nextAdj.length+" option"+(nextAdj.length>1?"s":"")+" from here.","cyan");
+    }
+    updateUI();
+    draw();
+  }else{
+    updateUI();
+    draw();
+  }
+}
+
+cv.addEventListener("click",handleClick);
+cv.addEventListener("touchstart",function(e){e.preventDefault();handleClick(e)},{passive:false});
+
+// --- Buttons ---
+btnStart.addEventListener("click",function(){
+  if(audioCtx&&audioCtx.state==="suspended"){try{audioCtx.resume()}catch(e){}}
+  startLevel(0);
+});
+
+btnReset.addEventListener("click",function(){
+  resetLevel();
+});
+
+btnNext.addEventListener("click",function(){
+  if(currentLevel<levels.length-1){
+    startLevel(currentLevel+1);
+  }
+});
+
+// --- Initial idle draw ---
+(function drawIdle(){
+  ctx.clearRect(0,0,cv.width,cv.height);
+  ctx.strokeStyle="rgba(34,211,238,0.03)";
+  ctx.lineWidth=1;
+  for(var gx=0;gx<cv.width;gx+=40){ctx.beginPath();ctx.moveTo(gx,0);ctx.lineTo(gx,cv.height);ctx.stroke()}
+  for(var gy=0;gy<cv.height;gy+=40){ctx.beginPath();ctx.moveTo(0,gy);ctx.lineTo(cv.width,gy);ctx.stroke()}
+  // Draw preview of level 1
+  var l=levels[0];
+  for(var i=0;i<l.edges.length;i++){
+    var e=l.edges[i];
+    ctx.beginPath();ctx.moveTo(l.nodes[e[0]].x,l.nodes[e[0]].y);ctx.lineTo(l.nodes[e[1]].x,l.nodes[e[1]].y);
+    ctx.strokeStyle="rgba(148,163,184,0.12)";ctx.lineWidth=1.5;ctx.stroke();
+  }
+  for(var n=0;n<l.nodes.length;n++){
+    ctx.beginPath();ctx.arc(l.nodes[n].x,l.nodes[n].y,NODE_R,0,Math.PI*2);
+    ctx.fillStyle="rgba(30,41,59,0.5)";ctx.strokeStyle="rgba(148,163,184,0.15)";ctx.lineWidth=1;
+    ctx.fill();ctx.stroke();
+    ctx.fillStyle="rgba(148,163,184,0.3)";ctx.font="bold 13px 'JetBrains Mono',monospace";
+    ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText(String(n+1),l.nodes[n].x,l.nodes[n].y+1);
+  }
+})();
+
+})();
+</script>
+</body>
+</html>

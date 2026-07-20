@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Schulte Table — Qwen 3.7 MAX Brain Lab</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+*{font-family:'Inter',sans-serif;box-sizing:border-box}
+body{background:#000;color:#fff;margin:0;overflow-x:hidden}
+.mono{font-family:'JetBrains Mono',monospace}
+.glass{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1)}
+.glass-strong{background:rgba(255,255,255,.08);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.15)}
+.orb{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0}
+@keyframes pulse-glow{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:.65;transform:scale(1.12)}}
+.orb1{width:520px;height:520px;background:radial-gradient(circle,#f97316,transparent 70%);top:-180px;left:-140px;animation:pulse-glow 9s ease-in-out infinite}
+.orb2{width:480px;height:480px;background:radial-gradient(circle,#a855f7,transparent 70%);bottom:-160px;right:-110px;animation:pulse-glow 11s ease-in-out infinite reverse}
+.gradient-text{background:linear-gradient(135deg,#f97316 0%,#f59e0b 40%,#a855f7 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.dot-pill{display:inline-block;width:8px;height:8px;border-radius:50%;background:#f97316;margin-right:8px;box-shadow:0 0 10px #f97316}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:9999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-size:13px;color:rgba(255,255,255,.7)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);color:#fff;font-weight:600;font-size:13px;cursor:pointer;transition:all .18s;user-select:none}
+.btn:hover{background:rgba(255,255,255,.12);transform:translateY(-1px)}
+.btn:active{transform:translateY(0) scale(.97)}
+.btn-primary{background:linear-gradient(135deg,#f97316,#a855f7);border-color:transparent}
+.btn-primary:hover{filter:brightness(1.15)}
+.mute-btn{position:fixed;top:16px;right:16px;z-index:50;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#f97316}
+.mute-btn:hover{background:rgba(255,255,255,.14)}
+#grid{display:grid;gap:6px;width:100%;max-width:480px;margin:0 auto;touch-action:manipulation}
+.cell{aspect-ratio:1;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:clamp(16px,4.5vw,28px);font-weight:800;color:rgba(255,255,255,.75);cursor:pointer;transition:all .12s;user-select:none;-webkit-tap-highlight-color:transparent;font-family:'JetBrains Mono',monospace}
+.cell:hover{background:rgba(255,255,255,.09)}
+.cell:active{transform:scale(.92)}
+.cell.done{background:rgba(52,211,153,.12);border-color:rgba(52,211,153,.25);color:rgba(52,211,153,.5);cursor:default}
+.cell.wrong{animation:shake .3s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.cell.current-hint{box-shadow:inset 0 0 0 2px rgba(249,115,22,.3)}
+.timer-display{font-size:48px;font-weight:900;text-align:center;font-family:'JetBrains Mono',monospace;color:#f97316;margin:8px 0}
+.timer-display .ms{font-size:24px;color:#f59e0b}
+.seg{display:inline-flex;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:3px}
+.seg button{padding:7px 14px;border-radius:9px;font-size:12px;font-weight:600;color:#94a3b8;background:transparent;border:none;cursor:pointer;transition:all .15s}
+.seg button.active{background:rgba(249,115,22,.2);color:#f97316}
+.win-flash{animation:win-pulse 1.6s ease-out}
+@keyframes win-pulse{0%{box-shadow:0 0 0 rgba(52,211,153,0)}50%{box-shadow:0 0 60px rgba(52,211,153,.55)}100%{box-shadow:0 0 0 rgba(52,211,153,0)}}
+#centerDot{position:absolute;width:12px;height:12px;border-radius:50%;background:#f97316;top:50%;left:50%;transform:translate(-50%,-50%);z-index:10;box-shadow:0 0 12px rgba(249,115,22,.6);pointer-events:none;opacity:0;transition:opacity .3s}
+#centerDot.visible{opacity:1}
+.grid-wrap{position:relative}
+</style>
+</head>
+<body>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<button id="muteBtn" class="mute-btn" title="Mute" aria-label="Mute toggle">
+  <svg id="muteIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+</button>
+<div class="relative z-10 max-w-4xl mx-auto px-4 md:px-6 py-6 md:py-10">
+  <nav class="flex items-center justify-between mb-8 gap-3">
+    <a href="../" class="glass inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm hover:bg-white/10 transition">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+      Playground
+    </a>
+    <span class="glass inline-flex items-center px-4 py-2 rounded-full text-xs mono whitespace-nowrap"><span class="dot-pill"></span>Qwen 3.7 MAX · Brain Lab · #02</span>
+  </nav>
+  <header class="mb-8">
+    <span class="glass inline-block px-3 py-1 rounded-full text-[11px] uppercase tracking-wider text-white/60 mb-4">◆ Visual Attention</span>
+    <h1 class="text-5xl md:text-7xl font-black tracking-tighter gradient-text leading-none mb-3">Schulte Table</h1>
+    <p class="text-white/40 text-lg">Find and tap numbers 1→N as fast as possible — keeping your eyes near the center.</p>
+  </header>
+  <section class="glass-strong rounded-3xl p-6 md:p-8 mb-6">
+    <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+      <div class="flex items-center gap-4 text-sm">
+        <span class="mono text-white/60">Next: <span id="nextNum" class="text-white font-bold text-lg">1</span></span>
+        <span class="mono text-white/60">Best <span id="best" class="text-emerald-400">—</span></span>
+      </div>
+      <div class="flex gap-2 flex-wrap items-center">
+        <div class="seg" id="sizeSeg">
+          <button data-size="3">3×3</button>
+          <button data-size="4">4×4</button>
+          <button data-size="5" class="active">5×5</button>
+          <button data-size="6">6×6</button>
+          <button data-size="7">7×7</button>
+        </div>
+        <button id="startBtn" class="btn btn-primary">Start</button>
+      </div>
+    </div>
+    <div class="timer-display" id="timer">0<span class="ms">.00</span></div>
+    <div class="grid-wrap">
+      <div id="centerDot"></div>
+      <div id="grid"></div>
+    </div>
+    <p id="msg" class="text-center text-white/60 text-sm mt-4 h-5 mono"></p>
+  </section>
+  <section class="glass rounded-3xl p-6 md:p-8 mb-6">
+    <h2 class="text-xl font-bold mb-3">Why this trains your brain</h2>
+    <div class="flex flex-wrap gap-2 mb-4">
+      <span class="chip">Peripheral Vision</span>
+      <span class="chip">Visual Search Speed</span>
+      <span class="chip">Attention Span</span>
+      <span class="chip">Reading Speed</span>
+    </div>
+    <p class="text-white/60 text-sm leading-relaxed">The Schulte Table is used by speed-reading coaches and fighter pilots alike. By training yourself to find numbers using peripheral vision (eyes near center), you expand your functional visual field — the same skill that lets you scan a page or dashboard faster without losing comprehension.</p>
+  </section>
+  <footer class="text-center text-white/30 text-xs mono py-4">Powered by Qwen 3.7 MAX · Brain Challenge Lab</footer>
+</div>
+<script>
+(function(){
+  'use strict';
+  var AC=null, muted=false;
+  function audio(){ if(!AC){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ AC=null; } } if(AC&&AC.state==='suspended'){ try{ AC.resume(); }catch(e){} } return AC; }
+  function tickSound(){ if(muted) return; try{ var a=audio(); if(!a) return; var o=a.createOscillator(),g=a.createGain(); o.type='sine'; o.frequency.value=500+Math.random()*200; o.connect(g); g.connect(a.destination); var t=a.currentTime; g.gain.setValueAtTime(0.04,t); g.gain.exponentialRampToValueAtTime(0.0001,t+0.06); o.start(t); o.stop(t+0.06); }catch(e){} }
+  function winSound(){ [523,659,784,1046,1318].forEach(function(f,i){ setTimeout(function(){ try{ var a=audio(); if(!a||muted) return; var o=a.createOscillator(),g=a.createGain(); o.type='triangle'; o.frequency.value=f; o.connect(g); g.connect(a.destination); var t=a.currentTime; g.gain.setValueAtTime(0.08,t); g.gain.exponentialRampToValueAtTime(0.0001,t+0.2); o.start(t); o.stop(t+0.2); }catch(e){} }, i*90); }); }
+  function errSound(){ if(muted) return; try{ var a=audio(); if(!a) return; var o=a.createOscillator(),g=a.createGain(); o.type='sawtooth'; o.frequency.value=160; o.connect(g); g.connect(a.destination); var t=a.currentTime; g.gain.setValueAtTime(0.04,t); g.gain.exponentialRampToValueAtTime(0.0001,t+0.15); o.start(t); o.stop(t+0.15); }catch(e){} }
+
+  var SIZE=5, TOTAL=25, nextN=1;
+  var startTime=0, elapsed=0, running=false, finished=false;
+  var timerInterval=null;
+  var grid=document.getElementById('grid');
+  var timerEl=document.getElementById('timer');
+  var centerDot=document.getElementById('centerDot');
+  function $(id){ return document.getElementById(id); }
+
+  function bestKey(){ return 'qw_schulte_best_'+SIZE; }
+  function loadBest(){ try{ var v=localStorage.getItem(bestKey()); return v?parseFloat(v):null; }catch(e){ return null; } }
+  function saveBest(v){ try{ localStorage.setItem(bestKey(),String(v)); }catch(e){} }
+
+  function shuffle(arr){
+    for(var i=arr.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=arr[i]; arr[i]=arr[j]; arr[j]=t; }
+    return arr;
+  }
+
+  function buildGrid(){
+    TOTAL=SIZE*SIZE;
+    var nums=[];
+    for(var i=1;i<=TOTAL;i++) nums.push(i);
+    shuffle(nums);
+    grid.style.gridTemplateColumns='repeat('+SIZE+',1fr)';
+    grid.innerHTML='';
+    for(var k=0;k<nums.length;k++){
+      var c=document.createElement('div');
+      c.className='cell';
+      c.textContent=nums[k];
+      c.dataset.val=nums[k];
+      (function(v,el){ el.addEventListener('click',function(){ onTap(v,el); }); })(nums[k],c);
+      grid.appendChild(c);
+    }
+  }
+
+  function formatTime(ms){
+    var s=Math.floor(ms/1000);
+    var cs=Math.floor((ms%1000)/10);
+    return s+'<span class="ms">.'+('0'+cs).slice(-2)+'</span>';
+  }
+
+  function updateTimer(){
+    if(!running) return;
+    elapsed=Date.now()-startTime;
+    if(timerEl) timerEl.innerHTML=formatTime(elapsed);
+  }
+
+  function updateHUD(){
+    if($('nextNum')) $('nextNum').textContent=nextN;
+    var b=loadBest();
+    if($('best')) $('best').textContent=(b==null?'—':b.toFixed(2)+'s');
+  }
+  function flashMsg(t){ var m=$('msg'); if(m) m.textContent=t; }
+
+  function startGame(){
+    audio();
+    buildGrid();
+    nextN=1; running=false; finished=false; elapsed=0;
+    if(timerEl) timerEl.innerHTML='0<span class="ms">.00</span>';
+    updateHUD();
+    flashMsg('Tap Start, then find 1, 2, 3… as fast as you can');
+    running=true;
+    startTime=Date.now();
+    if(centerDot) centerDot.classList.add('visible');
+    timerInterval=setInterval(updateTimer, 30);
+    flashMsg('Go! Eyes near center — use peripheral vision');
+  }
+
+  function onTap(val, el){
+    if(!running||finished) return;
+    audio();
+    if(val===nextN){
+      el.classList.add('done');
+      tickSound();
+      nextN++;
+      updateHUD();
+      if(nextN>TOTAL){
+        finished=true;
+        running=false;
+        clearInterval(timerInterval);
+        elapsed=Date.now()-startTime;
+        if(timerEl) timerEl.innerHTML=formatTime(elapsed);
+        if(centerDot) centerDot.classList.remove('visible');
+        winSound();
+        var sec=document.querySelector('section.glass-strong');
+        if(sec){ sec.classList.add('win-flash'); setTimeout(function(){ sec.classList.remove('win-flash'); },1600); }
+        var secs=elapsed/1000;
+        var b=loadBest();
+        if(b==null||secs<b){ saveBest(secs); flashMsg('New best! '+secs.toFixed(2)+'s'); }
+        else { flashMsg('Done in '+secs.toFixed(2)+'s — best is '+b.toFixed(2)+'s'); }
+        updateHUD();
+      }
+    } else {
+      el.classList.add('wrong');
+      errSound();
+      setTimeout(function(){ el.classList.remove('wrong'); },300);
+      flashMsg('Wrong — looking for '+nextN);
+    }
+  }
+
+  if($('startBtn')) $('startBtn').addEventListener('click',function(){ startGame(); });
+  if($('sizeSeg')) $('sizeSeg').addEventListener('click',function(e){
+    var b=e.target.closest('button'); if(!b||running) return;
+    SIZE=parseInt(b.dataset.size,10);
+    $('sizeSeg').querySelectorAll('button').forEach(function(x){ x.classList.remove('active'); });
+    b.classList.add('active');
+    buildGrid(); updateHUD();
+  });
+  var muteBtn=$('muteBtn'), muteIcon=$('muteIcon');
+  if(muteBtn) muteBtn.addEventListener('click',function(){
+    muted=!muted;
+    if(muted){ muteIcon.innerHTML='<path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>'; }
+    else { muteIcon.innerHTML='<path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>'; audio(); }
+  });
+
+  function init(){ buildGrid(); updateHUD(); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init);
+  else init();
+})();
+</script>
+</body>
+</html>

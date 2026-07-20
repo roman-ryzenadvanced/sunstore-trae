@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <radialGradient id="bg5" cx="50%" cy="40%" r="70%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0a0f1a"/>
+    </radialGradient>
+    <linearGradient id="cc5" x1="0.1" y1="0" x2="0.9" y2="1">
+      <stop offset="0%" stop-color="#374151"/>
+      <stop offset="50%" stop-color="#1f2937"/>
+      <stop offset="100%" stop-color="#111827"/>
+    </linearGradient>
+    <linearGradient id="ccScreen5" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <filter id="shadow5">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#000000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg5)"/>
+  <ellipse cx="200" cy="335" rx="115" ry="16" fill="#000000" opacity="0.3"/>
+  <!-- Controller body -->
+  <g filter="url(#shadow5)">
+    <rect x="90" y="100" width="220" height="150" rx="12" fill="url(#cc5)" stroke="#374151" stroke-width="2"/>
+    <rect x="90" y="100" width="220" height="18" rx="12" fill="#ffffff" opacity="0.08"/>
+    <!-- LCD -->
+    <rect x="110" y="125" width="180" height="68" rx="6" fill="url(#ccScreen5)" stroke="#334155" stroke-width="2"/>
+    <text x="200" y="158" font-family="monospace" font-size="19" fill="#f97316" text-anchor="middle" font-weight="bold">60A MPPT</text>
+    <text x="200" y="182" font-family="monospace" font-size="12" fill="#10b981" text-anchor="middle">98.5% EFF</text>
+    <!-- Terminal blocks -->
+    <rect x="110" y="210" width="42" height="26" rx="4" fill="#f97316" stroke="#ea580c" stroke-width="1"/>
+    <rect x="162" y="210" width="42" height="26" rx="4" fill="#f97316" stroke="#ea580c" stroke-width="1"/>
+    <rect x="214" y="210" width="42" height="26" rx="4" fill="#334155"/>
+    <rect x="266" y="210" width="24" height="26" rx="4" fill="#334155"/>
+    <!-- Status LED -->
+    <circle cx="200" cy="255" r="6" fill="#10b981"/>
+  </g>
+  <text x="200" y="320" font-family="Arial, sans-serif" font-size="15" font-weight="bold" fill="#e2e8f0" text-anchor="middle">SolarEdge MPPT 60A</text>
+  <text x="200" y="345" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#e2e8f0" text-anchor="middle">Контроллер заряда</text>
+</svg>

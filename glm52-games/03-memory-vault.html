@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simon Sequence — Brain & ASMR Lab</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+*{font-family:'Inter',sans-serif}
+body{background:#000;color:#fff;overflow-x:hidden}
+.mono{font-family:'JetBrains Mono',monospace}
+.glass{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1)}
+.glass-strong{background:rgba(255,255,255,.08);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.15)}
+.orb{position:fixed;border-radius:9999px;filter:blur(80px);pointer-events:none;z-index:0}
+@keyframes pulse-glow{0%,100%{opacity:.45;transform:scale(1)}50%{opacity:.78;transform:scale(1.18)}}
+.orb1{width:520px;height:520px;background:radial-gradient(circle,#22c55e,transparent 70%);top:-200px;left:-150px;animation:pulse-glow 9s ease-in-out infinite}
+.orb2{width:480px;height:480px;background:radial-gradient(circle,#3b82f6,transparent 70%);bottom:-180px;right:-120px;animation:pulse-glow 11s ease-in-out infinite reverse}
+.gradient-text{background:linear-gradient(135deg,#4ade80 0%,#60a5fa 50%,#a78bfa 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.dot-pill{display:inline-block;width:8px;height:8px;border-radius:9999px;background:#34d399;margin-right:8px;box-shadow:0 0 10px #34d399}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:9999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-size:13px;color:rgba(255,255,255,.7)}
+.btn{padding:10px 18px;border-radius:14px;font-weight:600;font-size:14px;transition:all .2s;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;cursor:pointer}
+.btn:hover{background:rgba(255,255,255,.12);transform:translateY(-1px)}
+.btn-primary{background:linear-gradient(135deg,#22c55e,#3b82f6);border-color:transparent}
+.btn-primary:hover{filter:brightness(1.15)}
+.btn-toggle{padding:8px 14px;border-radius:12px;font-weight:600;font-size:13px;transition:all .2s;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:rgba(255,255,255,.6);cursor:pointer}
+.btn-toggle.active{background:rgba(239,68,68,.18);border-color:rgba(239,68,68,.5);color:#fca5a5}
+.pad-grid{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:14px;width:100%;max-width:420px;margin:0 auto;aspect-ratio:1/1}
+.pad{border-radius:24px;cursor:pointer;transition:all .12s ease;border:2px solid rgba(0,0,0,.3);user-select:none;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.pad::after{content:'';position:absolute;inset:0;background:radial-gradient(circle at 30% 30%, rgba(255,255,255,.25), transparent 60%);opacity:.4;transition:opacity .12s}
+.pad.lit::after{opacity:.9}
+.pad-green{background:#15803d}
+.pad-green.lit{background:#4ade80;box-shadow:0 0 50px rgba(74,222,128,.85),inset 0 0 30px rgba(255,255,255,.4)}
+.pad-red{background:#991b1b}
+.pad-red.lit{background:#f87171;box-shadow:0 0 50px rgba(248,113,113,.85),inset 0 0 30px rgba(255,255,255,.4)}
+.pad-yellow{background:#a16207}
+.pad-yellow.lit{background:#facc15;box-shadow:0 0 50px rgba(250,204,21,.85),inset 0 0 30px rgba(255,255,255,.4)}
+.pad-blue{background:#1e40af}
+.pad-blue.lit{background:#60a5fa;box-shadow:0 0 50px rgba(96,165,250,.85),inset 0 0 30px rgba(255,255,255,.4)}
+.pad.disabled{cursor:default;opacity:.85}
+.status-banner{padding:14px 20px;border-radius:16px;text-align:center;font-weight:600;transition:all .3s}
+</style>
+</head>
+<body>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="relative z-10 max-w-5xl mx-auto px-4 md:px-6 py-6 md:py-10">
+  <nav class="flex items-center justify-between mb-8 gap-3">
+    <a href="../" class="glass inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm hover:bg-white/10 transition">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+      Playground
+    </a>
+    <span class="glass inline-flex items-center px-4 py-2 rounded-full text-xs mono whitespace-nowrap"><span class="dot-pill"></span>GLM 5.2 · Brain Lab · #03</span>
+  </nav>
+
+  <header class="mb-8">
+    <span class="glass inline-block px-3 py-1 rounded-full text-[11px] uppercase tracking-wider text-white/60 mb-4">◆ Sequential Recall</span>
+    <h1 class="text-6xl md:text-8xl font-black tracking-tighter gradient-text leading-none mb-3">Simon Sequence</h1>
+    <p class="text-white/40 text-lg">Watch the pads light and echo the growing sequence back.</p>
+  </header>
+
+  <section class="glass-strong rounded-3xl p-6 md:p-8 mb-6">
+    <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+      <div class="flex items-center gap-4 text-sm">
+        <span class="mono text-white/60">Round <span id="round" class="text-white">0</span></span>
+        <span class="mono text-white/60">Best <span id="best" class="text-emerald-400">—</span></span>
+      </div>
+      <div class="flex gap-2 items-center">
+        <button id="strictBtn" class="btn-toggle">Strict: Off</button>
+        <button id="startBtn" class="btn btn-primary">Start</button>
+      </div>
+    </div>
+
+    <div id="statusBanner" class="status-banner glass mb-5 text-white/70">Press Start to begin the sequence.</div>
+
+    <div class="flex justify-center">
+      <div id="board" class="pad-grid">
+        <div class="pad pad-green disabled" data-pad="0"></div>
+        <div class="pad pad-red disabled" data-pad="1"></div>
+        <div class="pad pad-yellow disabled" data-pad="2"></div>
+        <div class="pad pad-blue disabled" data-pad="3"></div>
+      </div>
+    </div>
+
+    <p id="msg" class="text-center text-white/60 text-sm mt-4 h-5 mono"></p>
+  </section>
+
+  <section class="glass rounded-3xl p-6 md:p-8 mb-6">
+    <h2 class="text-xl font-bold mb-3">Why this trains your brain</h2>
+    <div class="flex flex-wrap gap-2 mb-4">
+      <span class="chip">Sequential Recall</span>
+      <span class="chip">Auditory Memory</span>
+      <span class="chip">Attention</span>
+      <span class="chip">Motor Timing</span>
+    </div>
+    <p class="text-white/60 text-sm leading-relaxed">Each round adds one step, forcing you to maintain and update an ordered sequence under load — the same machinery you use to remember a phone number or a passcode. Pairing each step with a tone recruits auditory memory, giving your brain a second channel to lean on when the visual buffer overflows.</p>
+  </section>
+
+  <footer class="text-center text-white/30 text-xs mono py-4">Powered by Z.AI GLM 5.2 · Brain &amp; ASMR Lab</footer>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  // ---------- Audio ----------
+  var actx = null;
+  function audio(){
+    if(!actx){ try{ actx = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){ actx = null; } }
+    if(actx && actx.state === 'suspended'){ try{ actx.resume(); }catch(e){} }
+    return actx;
+  }
+  function tone(freq, dur, gain){
+    try{
+      var a = audio(); if(!a) return;
+      var o = a.createOscillator(); var g = a.createGain();
+      o.type = 'sine'; o.frequency.value = freq || 440;
+      o.connect(g); g.connect(a.destination);
+      var t = a.currentTime;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(gain || 0.18, t + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + (dur || 0.4));
+      o.start(t); o.stop(t + (dur || 0.4));
+    }catch(e){}
+  }
+  function errSound(){
+    try{
+      var a = audio(); if(!a) return;
+      var o = a.createOscillator(); var g = a.createGain();
+      o.type = 'sawtooth'; o.frequency.value = 110;
+      o.connect(g); g.connect(a.destination);
+      var t = a.currentTime;
+      g.gain.setValueAtTime(0.12, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
+      o.frequency.setValueAtTime(110, t);
+      o.frequency.exponentialRampToValueAtTime(70, t + 0.6);
+      o.start(t); o.stop(t + 0.6);
+    }catch(e){}
+  }
+  function winRoundSound(){ [659,784,988].forEach(function(f,i){ setTimeout(function(){tone(f,0.18,0.12);}, i*70); }); }
+
+  // ---------- Config ----------
+  var FREQS = [329.63, 261.63, 392.00, 523.25]; // green, red, yellow, blue
+  var PAD_CLASSES = ['pad-green','pad-red','pad-yellow','pad-blue'];
+
+  // ---------- State ----------
+  var sequence = [];
+  var inputIdx = 0;
+  var round = 0;
+  var phase = 'idle'; // idle | showing | input | over
+  var strict = false;
+  var pads = [];
+
+  function $(id){ return document.getElementById(id); }
+
+  function bestKey(){ return 'simon_best'; }
+  function loadBest(){ try{ var v = localStorage.getItem(bestKey()); return v ? parseInt(v,10) : null; }catch(e){ return null; } }
+  function saveBest(v){ try{ localStorage.setItem(bestKey(), String(v)); }catch(e){} }
+
+  function updateHUD(){
+    if($('round')) $('round').textContent = round;
+    if($('best')){ var b = loadBest(); $('best').textContent = (b==null ? '—' : b); }
+  }
+
+  function setBanner(text, kind){
+    var b = $('statusBanner'); if(!b) return;
+    b.textContent = text;
+    b.className = 'status-banner mb-5 ';
+    if(kind === 'show'){ b.className += 'glass text-amber-300'; }
+    else if(kind === 'input'){ b.className += 'glass text-emerald-300'; }
+    else if(kind === 'over'){ b.className += 'glass text-rose-300'; }
+    else { b.className += 'glass text-white/70'; }
+  }
+
+  function setPadsDisabled(disabled){
+    for(var i=0;i<pads.length;i++){
+      if(disabled) pads[i].classList.add('disabled');
+      else pads[i].classList.remove('disabled');
+    }
+  }
+
+  function lightPad(idx, dur, cb){
+    if(!pads[idx]) { if(cb) cb(); return; }
+    pads[idx].classList.add('lit');
+    tone(FREQS[idx], (dur||400)/1000, 0.18);
+    setTimeout(function(){
+      pads[idx].classList.remove('lit');
+      if(cb) setTimeout(cb, 120);
+    }, dur || 400);
+  }
+
+  function playSequence(){
+    phase = 'showing';
+    setPadsDisabled(true);
+    setBanner('Watch and listen…', 'show');
+    var speed = Math.max(280, 600 - Math.floor(round/5)*70);
+    var gap = Math.max(140, 280 - Math.floor(round/5)*30);
+    var i = 0;
+    function step(){
+      if(i >= sequence.length){
+        setTimeout(function(){
+          phase = 'input';
+          inputIdx = 0;
+          setPadsDisabled(false);
+          setBanner('Your turn — repeat the sequence', 'input');
+        }, 350);
+        return;
+      }
+      lightPad(sequence[i], speed, function(){ i++; setTimeout(step, gap); });
+    }
+    setTimeout(step, 500);
+  }
+
+  function nextRound(){
+    round++;
+    sequence.push(Math.floor(Math.random()*4));
+    updateHUD();
+    playSequence();
+  }
+
+  function onPadClick(idx){
+    if(phase !== 'input') return;
+    audio();
+    lightPad(idx, 220);
+    if(sequence[inputIdx] === idx){
+      inputIdx++;
+      if(inputIdx >= sequence.length){
+        phase = 'between';
+        setPadsDisabled(true);
+        winRoundSound();
+        var best = loadBest();
+        if(best==null || round > best){ saveBest(round); }
+        updateHUD();
+        setBanner('Correct! Next round…', 'input');
+        setTimeout(nextRound, 900);
+      }
+    } else {
+      errSound();
+      var best = loadBest();
+      if(best==null || round > best){ saveBest(round); }
+      updateHUD();
+      if(strict){
+        // Strict mode: immediately restart from round 1
+        phase = 'between';
+        setPadsDisabled(true);
+        setBanner('Wrong! Strict mode — restarting from Round 1…', 'over');
+        setTimeout(function(){
+          sequence = [];
+          inputIdx = 0;
+          round = 0;
+          updateHUD();
+          nextRound();
+        }, 1400);
+      } else {
+        phase = 'over';
+        setPadsDisabled(true);
+        setBanner('Wrong! Game over. Reached Round ' + round + '.', 'over');
+        if($('startBtn')) $('startBtn').textContent = 'Play Again';
+      }
+    }
+  }
+
+  function startGame(){
+    audio();
+    sequence = [];
+    inputIdx = 0;
+    round = 0;
+    if($('startBtn')) $('startBtn').textContent = 'Restart';
+    updateHUD();
+    nextRound();
+  }
+
+  function toggleStrict(){
+    strict = !strict;
+    if($('strictBtn')){
+      $('strictBtn').textContent = 'Strict: ' + (strict ? 'On' : 'Off');
+      if(strict) $('strictBtn').classList.add('active');
+      else $('strictBtn').classList.remove('active');
+    }
+  }
+
+  function init(){
+    var padEls = document.querySelectorAll('.pad');
+    for(var i=0;i<padEls.length;i++){
+      (function(el, idx){
+        pads.push(el);
+        el.addEventListener('click', function(){ onPadClick(idx); });
+        el.addEventListener('touchstart', function(e){ e.preventDefault(); onPadClick(idx); }, {passive:false});
+      })(padEls[i], i);
+    }
+    if($('startBtn')) $('startBtn').addEventListener('click', startGame);
+    if($('strictBtn')) $('strictBtn').addEventListener('click', toggleStrict);
+    updateHUD();
+  }
+
+  if(document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', init); }
+  else { init(); }
+})();
+</script>
+</body>
+</html>

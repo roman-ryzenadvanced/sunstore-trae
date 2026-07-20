@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Soap Sort ASMR — Brain & ASMR Lab</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+  *{font-family:'Inter',sans-serif;}
+  body{background:#000;color:#fff;margin:0;overflow-x:hidden;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+  .glass{background:rgba(255,255,255,0.05);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.08);}
+  .glass-strong{background:rgba(255,255,255,0.08);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.12);}
+  .orb{position:fixed;border-radius:50%;filter:blur(80px);opacity:0.35;pointer-events:none;z-index:0;animation:pulseGlow 9s ease-in-out infinite;}
+  .orb-a{width:520px;height:520px;background:radial-gradient(circle,#14b8a6,#0d9488);top:-150px;left:-120px;}
+  .orb-b{width:560px;height:560px;background:radial-gradient(circle,#7c3aed,#4f46e5);bottom:-180px;right:-140px;animation-delay:-4.5s;}
+  @keyframes pulseGlow{0%,100%{transform:scale(1);opacity:0.35;}50%{transform:scale(1.12);opacity:0.5;}}
+  .grad-text{background:linear-gradient(120deg,#5eead4,#a78bfa 55%,#818cf8);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .pill{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:#cbd5e1;}
+  .dot{width:8px;height:8px;border-radius:50%;background:#5eead4;box-shadow:0 0 8px #5eead4;}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:#fff;font-weight:600;font-size:13px;cursor:pointer;transition:all .18s ease;user-select:none;}
+  .btn:hover{background:rgba(255,255,255,0.12);transform:translateY(-1px);}
+  .btn:active{transform:translateY(0) scale(0.97);}
+  .btn-primary{background:linear-gradient(120deg,#0d9488,#6366f1);border-color:transparent;}
+  .btn-primary:hover{filter:brightness(1.15);}
+  .chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);font-size:12px;color:#cbd5e1;}
+  .chip .cdot{width:6px;height:6px;border-radius:50%;background:#a78bfa;}
+  #board{display:flex;flex-wrap:wrap;justify-content:center;gap:14px 18px;min-height:340px;position:relative;}
+  .jar{position:relative;width:62px;height:200px;cursor:pointer;transition:transform .18s ease;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+  .jar:hover{transform:translateY(-3px);}
+  .jar.sel{transform:translateY(-8px);}
+  .jar.sel::before{content:'';position:absolute;inset:-6px -6px -6px -6px;border-radius:14px;border:2px solid rgba(94,234,212,0.7);box-shadow:0 0 18px rgba(94,234,212,0.4);animation:selPulse 1.4s ease-in-out infinite;}
+  @keyframes selPulse{0%,100%{box-shadow:0 0 12px rgba(94,234,212,0.35);}50%{box-shadow:0 0 22px rgba(94,234,212,0.6);}}
+  .jar-body{position:absolute;inset:0;border-radius:18px 18px 22px 22px;background:linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04));border:1.5px solid rgba(255,255,255,0.18);overflow:hidden;box-shadow:inset 0 -10px 18px rgba(0,0,0,0.25), inset 0 6px 10px rgba(255,255,255,0.18);}
+  .jar-body::after{content:'';position:absolute;top:6px;left:8px;width:14px;height:60px;border-radius:8px;background:linear-gradient(180deg,rgba(255,255,255,0.35),rgba(255,255,255,0));filter:blur(2px);}
+  .soap-stack{position:absolute;left:4px;right:4px;bottom:6px;display:flex;flex-direction:column-reverse;gap:2px;}
+  .soap{height:42px;border-radius:10px;position:relative;box-shadow:inset 0 -4px 8px rgba(0,0,0,0.25), inset 0 3px 5px rgba(255,255,255,0.5);transition:transform .25s ease, opacity .25s;}
+  .soap::after{content:'';position:absolute;top:4px;left:6px;width:60%;height:30%;border-radius:50%;background:rgba(255,255,255,0.45);filter:blur(1px);}
+  .soap.moving{transition:none;}
+  #pourCanvas{position:absolute;inset:0;pointer-events:none;z-index:5;}
+  .mute-btn{position:fixed;top:16px;right:16px;z-index:50;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#5eead4;}
+  .mute-btn:hover{background:rgba(255,255,255,0.14);}
+  .stat{font-family:'JetBrains Mono',monospace;font-size:13px;color:#94a3b8;}
+  .stat b{color:#5eead4;}
+  .win-banner{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;z-index:8;}
+  .win-banner span{font-size:32px;font-weight:900;background:linear-gradient(120deg,#5eead4,#a78bfa);-webkit-background-clip:text;background-clip:text;color:transparent;animation:winPop .8s ease;}
+  @keyframes winPop{0%{transform:scale(0.5);opacity:0;}60%{transform:scale(1.15);opacity:1;}100%{transform:scale(1);opacity:1;}}
+</style>
+</head>
+<body class="min-h-screen relative">
+  <div class="orb orb-a"></div>
+  <div class="orb orb-b"></div>
+
+  <button id="muteBtn" class="mute-btn" title="Mute / Unmute" aria-label="Mute toggle">
+    <svg id="muteIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+  </button>
+
+  <div class="relative z-10 max-w-5xl mx-auto px-4 md:px-6 py-6 md:py-10">
+    <nav class="flex items-center justify-between mb-8">
+      <a href="../" class="btn">← Playground</a>
+      <div class="pill"><span class="dot"></span> GLM 5.2 · ASMR Lab · #13</div>
+    </nav>
+
+    <header class="mb-6">
+      <div class="pill mb-3">◆ Color Sorting Calm</div>
+      <h1 class="text-4xl md:text-6xl font-black tracking-tight grad-text leading-none">Soap Sort ASMR</h1>
+      <p class="mt-4 text-slate-300/80 max-w-2xl text-sm md:text-base">Tap a jar, tap another. The top soap chunk glides over with a soft thud. Sort every jar to a single color and a gentle chime rings out. Slow, low-stakes, deeply calming.</p>
+    </header>
+
+    <section class="glass-strong rounded-3xl p-6 md:p-8 mb-6">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+        <div class="flex items-center gap-2 flex-wrap">
+          <button id="newBtn" class="btn btn-primary">New Puzzle</button>
+          <button id="undoBtn" class="btn">Undo</button>
+        </div>
+        <div class="flex items-center gap-3">
+          <div class="seg inline-flex bg-white/5 border border-white/10 rounded-xl p-1" id="levelSeg">
+            <button data-lvl="0" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-400 active">Easy</button>
+            <button data-lvl="1" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-400">Medium</button>
+            <button data-lvl="2" class="px-3 py-1.5 text-xs font-semibold rounded-lg text-slate-400">Hard</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="boardWrap" class="relative">
+        <div id="board"></div>
+        <canvas id="pourCanvas"></canvas>
+        <div id="winBanner" class="win-banner" style="display:none;"><span>Solved</span></div>
+      </div>
+
+      <div class="flex items-center gap-6 mt-5 stat">
+        <div>Level: <b id="levelLabel">Easy</b></div>
+        <div>Moves: <b id="moves">0</b></div>
+        <div>Solved: <b id="solved">0</b></div>
+      </div>
+    </section>
+
+    <section class="glass rounded-3xl p-6 md:p-8 mb-6">
+      <h2 class="text-xl font-bold mb-3">Why this feels good</h2>
+      <div class="flex flex-wrap gap-2 mb-3">
+        <span class="chip"><span class="cdot"></span> Tactile Feedback</span>
+        <span class="chip"><span class="cdot"></span> Visual Order</span>
+        <span class="chip"><span class="cdot"></span> Auditory Tingles</span>
+        <span class="chip"><span class="cdot"></span> Repetitive Motion</span>
+      </div>
+      <p class="text-slate-300/80 text-sm">Sorting tasks reward the brain's pattern-completion circuits with steady micro-wins. Pastel soap bars and soft thud-sounds keep arousal low, while the visible progress toward "one color per jar" produces a calm, hypnotic flow.</p>
+    </section>
+
+    <footer class="text-center text-xs text-slate-500 pt-4 pb-2">Powered by Z.AI GLM 5.2 · Brain &amp; ASMR Lab</footer>
+  </div>
+
+<script>
+(function(){
+  'use strict';
+  // ---- Audio ----
+  var AC=null, muted=false;
+  function audioCtx(){
+    if(!AC){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ AC=null; } }
+    if(AC && AC.state==='suspended'){ try{ AC.resume(); }catch(e){} }
+    return AC;
+  }
+  function thudSound(){
+    if(muted) return; var ctx=audioCtx(); if(!ctx) return;
+    try{
+      var now=ctx.currentTime, dur=0.22;
+      var o=ctx.createOscillator(); o.type='sine';
+      o.frequency.setValueAtTime(260,now); o.frequency.exponentialRampToValueAtTime(90,now+dur);
+      var g=ctx.createGain(); g.gain.setValueAtTime(0.0001,now); g.gain.exponentialRampToValueAtTime(0.34,now+0.02); g.gain.exponentialRampToValueAtTime(0.0001,now+dur);
+      o.connect(g); g.connect(ctx.destination); o.start(now); o.stop(now+dur);
+      // soft noise splash
+      var buf=ctx.createBuffer(1,Math.floor(ctx.sampleRate*0.12),ctx.sampleRate);
+      var d=buf.getChannelData(0); for(var i=0;i<d.length;i++){ d[i]=(Math.random()*2-1)*Math.pow(1-(i/d.length),2); }
+      var src=ctx.createBufferSource(); src.buffer=buf; var lp=ctx.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=600;
+      var ng=ctx.createGain(); ng.gain.value=0.1;
+      src.connect(lp); lp.connect(ng); ng.connect(ctx.destination); src.start(now); src.stop(now+0.12);
+    }catch(e){}
+  }
+  function invalidSound(){
+    if(muted) return; var ctx=audioCtx(); if(!ctx) return;
+    try{ var now=ctx.currentTime; var o=ctx.createOscillator(); o.type='triangle'; o.frequency.setValueAtTime(180,now); o.frequency.exponentialRampToValueAtTime(120,now+0.1);
+      var g=ctx.createGain(); g.gain.setValueAtTime(0.0001,now); g.gain.exponentialRampToValueAtTime(0.08,now+0.01); g.gain.exponentialRampToValueAtTime(0.0001,now+0.12);
+      o.connect(g); g.connect(ctx.destination); o.start(now); o.stop(now+0.15);
+    }catch(e){}
+  }
+  function chimeSound(){
+    if(muted) return; var ctx=audioCtx(); if(!ctx) return;
+    try{ var now=ctx.currentTime, freqs=[523.25,659.25,783.99,1046.5,1318.51];
+      freqs.forEach(function(f,i){ var o=ctx.createOscillator(); o.type='sine'; o.frequency.value=f; var g=ctx.createGain(); var t=now+i*0.09;
+        g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.18,t+0.02); g.gain.exponentialRampToValueAtTime(0.0001,t+0.7);
+        o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t+0.75); });
+    }catch(e){}
+  }
+
+  // ---- Game ----
+  var CAP=4;
+  var palette=['#fbcfe8','#fde68a','#bfdbfe','#bbf7d0','#ddd6fe','#fed7aa','#a7f3d0','#f9a8d4'];
+  var levels=[
+    {names:['Easy'],   jars:5, colors:3, empty:1},
+    {names:['Medium'], jars:7, colors:5, empty:1},
+    {names:['Hard'],   jars:9, colors:7, empty:1}
+  ];
+  var LVL=0;
+  var jars=[]; // arrays of color indices
+  var selected=-1;
+  var moves=0, solvedCount=0, won=false;
+  var history=[];
+  var animating=false;
+
+  var board=document.getElementById('board');
+  var pourCanvas=document.getElementById('pourCanvas');
+  var pctx=pourCanvas.getContext('2d');
+  var winBanner=document.getElementById('winBanner');
+  var movesEl=document.getElementById('moves');
+  var solvedEl=document.getElementById('solved');
+  var levelLabelEl=document.getElementById('levelLabel');
+
+  function resizePour(){
+    var rect=board.getBoundingClientRect();
+    pourCanvas.width=rect.width* (window.devicePixelRatio||1);
+    pourCanvas.height=rect.height* (window.devicePixelRatio||1);
+    pourCanvas.style.width=rect.width+'px';
+    pourCanvas.style.height=rect.height+'px';
+    pctx.setTransform(window.devicePixelRatio||1,0,0,window.devicePixelRatio||1,0,0);
+  }
+
+  function newPuzzle(){
+    var cfg=levels[LVL];
+    var k=cfg.colors, nj=cfg.jars, empty=cfg.empty;
+    // build full chunks then shuffle
+    var pool=[];
+    for(var c=0;c<k;c++){ for(var i=0;i<CAP;i++) pool.push(c); }
+    // shuffle pool
+    for(var i=pool.length-1;i>0;i--){ var j=Math.floor(Math.random()*(i+1)); var t=pool[i]; pool[i]=pool[j]; pool[j]=t; }
+    jars=[];
+    for(var j2=0;j2<nj-empty;j2++){ jars.push(pool.splice(0,CAP)); }
+    for(var e=0;e<empty;e++){ jars.push([]); }
+    selected=-1; moves=0; won=false; history=[];
+    winBanner.style.display='none';
+    render();
+    if(levelLabelEl) levelLabelEl.textContent=cfg.names[0];
+    if(movesEl) movesEl.textContent=moves;
+    if(solvedEl) solvedEl.textContent=solvedCount;
+  }
+
+  function render(){
+    board.innerHTML='';
+    resizePour();
+    for(var i=0;i<jars.length;i++){
+      var jar=document.createElement('div');
+      jar.className='jar'+(selected===i?' sel':'');
+      jar.dataset.idx=i;
+      var body=document.createElement('div'); body.className='jar-body';
+      var stack=document.createElement('div'); stack.className='soap-stack';
+      for(var s=0;s<jars[i].length;s++){
+        var soap=document.createElement('div');
+        soap.className='soap';
+        soap.style.background=soapGradient(jars[i][s]);
+        stack.appendChild(soap);
+      }
+      body.appendChild(stack);
+      jar.appendChild(body);
+      board.appendChild(jar);
+      (function(idx){ jar.addEventListener('click', function(e){ onJarTap(idx, jar); }); })(i);
+    }
+    updateSolved();
+  }
+
+  function soapGradient(c){
+    var col=palette[c%palette.length];
+    var l=shade(col,40), d=shade(col,-30);
+    return 'radial-gradient(circle at 35% 25%, '+l+' 0%, '+col+' 55%, '+d+' 100%)';
+  }
+  function shade(hex,p){
+    var h=hex.replace('#','');
+    var r=parseInt(h.substr(0,2),16),g=parseInt(h.substr(2,2),16),b=parseInt(h.substr(4,2),16);
+    r=Math.max(0,Math.min(255,r+p)); g=Math.max(0,Math.min(255,g+p)); b=Math.max(0,Math.min(255,b+p));
+    return '#'+[r,g,b].map(function(x){return ('0'+Math.round(x).toString(16)).slice(-2);}).join('');
+  }
+
+  function onJarTap(idx, jarEl){
+    if(animating || won) return;
+    audioCtx();
+    if(selected===-1){
+      if(jars[idx].length===0){ invalidSound(); return; }
+      selected=idx; render(); return;
+    }
+    if(selected===idx){ selected=-1; render(); return; }
+    // attempt pour from selected -> idx
+    var src=selected, dst=idx;
+    var srcTop=jars[src][jars[src].length-1];
+    var dstTop=jars[dst].length?jars[dst][jars[dst].length-1]:null;
+    if(jars[dst].length>=CAP){ invalidSound(); selected=-1; render(); return; }
+    if(dstTop!==null && dstTop!==srcTop){ invalidSound(); selected=-1; render(); return; }
+    // valid: animate
+    pourAnim(src, dst, srcTop, function(){
+      history.push({src:src,dst:dst});
+      jars[src].pop();
+      jars[dst].push(srcTop);
+      moves++; if(movesEl) movesEl.textContent=moves;
+      selected=-1;
+      render();
+      thudSound();
+      if(checkWin()){ winEvent(); }
+    });
+  }
+
+  function pourAnim(srcIdx, dstIdx, colorIdx, done){
+    animating=true;
+    var srcEl=board.children[srcIdx], dstEl=board.children[dstIdx];
+    if(!srcEl||!dstEl){ animating=false; done(); return; }
+    var sb=srcEl.getBoundingClientRect(), db=dstEl.getBoundingClientRect();
+    var bb=board.getBoundingClientRect();
+    var start={x:sb.left+sb.width/2-bb.left, y:sb.top+20-bb.top};
+    var end={x:db.left+db.width/2-bb.left, y:db.top+20-bb.top};
+    var top={x:(start.x+end.x)/2, y:Math.min(start.y,end.y)-80};
+    // animate a soap chip along quadratic curve
+    var dur=380, t0=performance.now();
+    var col=palette[colorIdx%palette.length];
+    function frame(t){
+      var p=Math.min(1,(t-t0)/dur);
+      p=1-Math.pow(1-p,3); // easeOut
+      var x=quad(start.x,top.x,end.x,p);
+      var y=quad(start.y,top.y,end.y,p);
+      pctx.clearRect(0,0,pourCanvas.width,pourCanvas.height);
+      pctx.save();
+      pctx.fillStyle=soapGradient(colorIdx);
+      pctx.shadowColor=col; pctx.shadowBlur=14;
+      pctx.beginPath();
+      roundRect(pctx, x-22, y-18, 44, 36, 10);
+      pctx.fill();
+      pctx.restore();
+      if(p<1){ requestAnimationFrame(frame); }
+      else { pctx.clearRect(0,0,pourCanvas.width,pourCanvas.height); animating=false; done(); }
+    }
+    requestAnimationFrame(frame);
+  }
+  function quad(a,b,c,t){ var u=1-t; return u*u*a+2*u*t*b+t*t*c; }
+  function roundRect(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+
+  function checkWin(){
+    // win = every jar is empty or fully one color
+    for(var i=0;i<jars.length;i++){
+      var j=jars[i];
+      if(j.length===0) continue;
+      if(j.length!==CAP) return false;
+      for(var s=1;s<j.length;s++){ if(j[s]!==j[0]) return false; }
+    }
+    return true;
+  }
+  function updateSolved(){
+    var n=0;
+    for(var i=0;i<jars.length;i++){ var j=jars[i]; if(j.length===CAP){ var ok=true; for(var s=1;s<j.length;s++){ if(j[s]!==j[0]){ ok=false; break; } } if(ok) n++; } }
+    if(solvedEl) solvedEl.textContent=n+' / '+levels[LVL].colors;
+  }
+  function winEvent(){
+    won=true;
+    winBanner.style.display='flex';
+    chimeSound();
+    render();
+  }
+
+  // ---- Buttons ----
+  document.getElementById('newBtn').addEventListener('click', function(){ audioCtx(); newPuzzle(); thudSound(); });
+  document.getElementById('undoBtn').addEventListener('click', function(){
+    audioCtx();
+    if(animating||history.length===0) return;
+    var h=history.pop();
+    var c=jars[h.dst].pop();
+    jars[h.src].push(c);
+    moves++; if(movesEl) movesEl.textContent=moves;
+    selected=-1; won=false; winBanner.style.display='none';
+    render(); thudSound();
+  });
+  var levelSeg=document.getElementById('levelSeg');
+  levelSeg.addEventListener('click', function(e){
+    var b=e.target.closest('button'); if(!b) return;
+    LVL=+b.dataset.lvl;
+    Array.prototype.forEach.call(levelSeg.querySelectorAll('button'),function(x){x.classList.remove('active');x.classList.add('text-slate-400');});
+    b.classList.add('active'); b.classList.remove('text-slate-400');
+    newPuzzle();
+  });
+
+  // ---- Mute ----
+  var muteBtn=document.getElementById('muteBtn'), muteIcon=document.getElementById('muteIcon');
+  muteBtn.addEventListener('click', function(){
+    muted=!muted;
+    if(muted){ muteIcon.innerHTML='<path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>'; }
+    else { muteIcon.innerHTML='<path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>'; audioCtx(); }
+  });
+
+  window.addEventListener('resize', function(){ resizePour(); });
+
+  // ---- Init ----
+  newPuzzle();
+})();
+</script>
+</body>
+</html>

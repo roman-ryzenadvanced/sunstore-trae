@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Board Memory — Qwen 3.7 MAX Brain Lab</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+*{font-family:'Inter',sans-serif;box-sizing:border-box}
+body{background:#000;color:#fff;margin:0;overflow-x:hidden}
+.mono{font-family:'JetBrains Mono',monospace}
+.glass{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1)}
+.glass-strong{background:rgba(255,255,255,.08);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.15)}
+.orb{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0}
+@keyframes pulse-glow{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:.65;transform:scale(1.12)}}
+.orb1{width:520px;height:520px;background:radial-gradient(circle,#f97316,transparent 70%);top:-180px;left:-140px;animation:pulse-glow 9s ease-in-out infinite}
+.orb2{width:480px;height:480px;background:radial-gradient(circle,#a855f7,transparent 70%);bottom:-160px;right:-110px;animation:pulse-glow 11s ease-in-out infinite reverse}
+.gradient-text{background:linear-gradient(135deg,#f97316 0%,#f59e0b 40%,#a855f7 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.dot-pill{display:inline-block;width:8px;height:8px;border-radius:50%;background:#f97316;margin-right:8px;box-shadow:0 0 10px #f97316}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:9999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-size:13px;color:rgba(255,255,255,.7)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);color:#fff;font-weight:600;font-size:13px;cursor:pointer;transition:all .18s;user-select:none}
+.btn:hover{background:rgba(255,255,255,.12);transform:translateY(-1px)}
+.btn:active{transform:translateY(0) scale(.97)}
+.btn-primary{background:linear-gradient(135deg,#f97316,#a855f7);border-color:transparent}
+.btn-primary:hover{filter:brightness(1.15)}
+.btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.mute-btn{position:fixed;top:16px;right:16px;z-index:50;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#f97316}
+.mute-btn:hover{background:rgba(255,255,255,.14)}
+#showBoard,#recallBoard{display:grid;gap:4px;width:100%;max-width:320px;margin:0 auto}
+.cell{aspect-ratio:1;border-radius:8px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);display:flex;align-items:center;justify-content:center;font-size:clamp(18px,4.5vw,28px);transition:all .15s;user-select:none}
+#showBoard .cell.has-piece{background:rgba(249,115,22,.2);border-color:rgba(249,115,22,.4);color:#f97316;font-weight:800}
+#recallBoard .cell{cursor:pointer;-webkit-tap-highlight-color:transparent}
+#recallBoard .cell:hover{background:rgba(255,255,255,.09)}
+#recallBoard .cell.selected{background:rgba(168,85,247,.25);border-color:rgba(168,85,247,.5);color:#a855f7;font-weight:800}
+#recallBoard .cell.correct{background:rgba(52,211,153,.2);border-color:rgba(52,211,153,.4);color:#34d399;font-weight:800}
+#recallBoard .cell.wrong{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.3);color:#ef4444}
+#recallBoard .cell.missed{background:rgba(251,191,36,.15);border-color:rgba(251,191,36,.3);color:#fbbf24;font-weight:800}
+.board-label{text-align:center;font-size:13px;color:rgba(255,255,255,.4);margin-bottom:8px;text-transform:uppercase;letter-spacing:2px}
+.boards-row{display:flex;gap:24px;justify-content:center;flex-wrap:wrap}
+.board-col{flex:1;min-width:260px;max-width:340px}
+.seg{display:inline-flex;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:3px}
+.seg button{padding:7px 14px;border-radius:9px;font-size:12px;font-weight:600;color:#94a3b8;background:transparent;border:none;cursor:pointer;transition:all .15s}
+.seg button.active{background:rgba(249,115,22,.2);color:#f97316}
+.win-flash{animation:win-pulse 1.6s ease-out}
+@keyframes win-pulse{0%{box-shadow:0 0 0 rgba(52,211,153,0)}50%{box-shadow:0 0 60px rgba(52,211,153,.55)}100%{box-shadow:0 0 0 rgba(52,211,153,0)}}
+</style>
+</head>
+<body>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<button id="muteBtn" class="mute-btn" title="Mute" aria-label="Mute toggle">
+  <svg id="muteIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+</button>
+<div class="relative z-10 max-w-5xl mx-auto px-4 md:px-6 py-6 md:py-10">
+  <nav class="flex items-center justify-between mb-8 gap-3">
+    <a href="../" class="glass inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm hover:bg-white/10 transition">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+      Playground
+    </a>
+    <span class="glass inline-flex items-center px-4 py-2 rounded-full text-xs mono whitespace-nowrap"><span class="dot-pill"></span>Qwen 3.7 MAX · Brain Lab · #09</span>
+  </nav>
+  <header class="mb-8">
+    <span class="glass inline-block px-3 py-1 rounded-full text-[11px] uppercase tracking-wider text-white/60 mb-4">◆ Grid Recall</span>
+    <h1 class="text-5xl md:text-7xl font-black tracking-tighter gradient-text leading-none mb-3">Board Memory</h1>
+    <p class="text-white/40 text-lg">Study the piece positions, then place them all from memory on a blank board.</p>
+  </header>
+  <section class="glass-strong rounded-3xl p-6 md:p-8 mb-6">
+    <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+      <div class="flex items-center gap-4 text-sm">
+        <span class="mono text-white/60">Level <span id="lvl" class="text-white">1</span></span>
+        <span class="mono text-white/60">Pieces <span id="pc" class="text-white">5</span></span>
+        <span class="mono text-white/60">Best <span id="best" class="text-emerald-400">—</span></span>
+      </div>
+      <div class="flex gap-2 flex-wrap items-center">
+        <div class="seg" id="sizeSeg">
+          <button data-size="4">4×4</button>
+          <button data-size="5" class="active">5×5</button>
+          <button data-size="6">6×6</button>
+        </div>
+        <button id="startBtn" class="btn btn-primary">Start Round</button>
+      </div>
+    </div>
+    <div class="boards-row">
+      <div class="board-col">
+        <div class="board-label">Study Board</div>
+        <div id="showBoard"></div>
+      </div>
+      <div class="board-col">
+        <div class="board-label">Your Recall</div>
+        <div id="recallBoard"></div>
+      </div>
+    </div>
+    <div class="flex justify-center gap-2 mt-4">
+      <button id="checkBtn" class="btn btn-primary" disabled>Check Answers</button>
+      <button id="clearBtn" class="btn">Clear</button>
+    </div>
+    <p id="msg" class="text-center text-white/60 text-sm mt-4 h-5 mono"></p>
+  </section>
+  <section class="glass rounded-3xl p-6 md:p-8 mb-6">
+    <h2 class="text-xl font-bold mb-3">Why this trains your brain</h2>
+    <div class="flex flex-wrap gap-2 mb-4">
+      <span class="chip">Spatial Memory</span>
+      <span class="chip">Board Visualization</span>
+      <span class="chip">Chess Training</span>
+      <span class="chip">Pattern Encoding</span>
+    </div>
+    <p class="text-white/60 text-sm leading-relaxed">Board Memory mirrors the "position recall" drills used by chess masters. You must encode piece locations as spatial chunks — grouping nearby pieces into constellations. This is exactly how grandmasters memorize board positions: not cell-by-cell, but as meaningful patterns. As piece counts grow, chunking strategy becomes essential.</p>
+  </section>
+  <footer class="text-center text-white/30 text-xs mono py-4">Powered by Qwen 3.7 MAX · Brain Challenge Lab</footer>
+</div>
+<script>
+(function(){
+  'use strict';
+  var AC=null, muted=false;
+  function audio(){ if(!AC){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ AC=null; } } if(AC&&AC.state==='suspended'){ try{ AC.resume(); }catch(e){} } return AC; }
+  function blip(freq,dur,type,gain){
+    if(muted) return;
+    try{ var a=audio(); if(!a) return; var o=a.createOscillator(),g=a.createGain(); o.type=type||'sine'; o.frequency.value=freq||440; o.connect(g); g.connect(a.destination); var t=a.currentTime; g.gain.setValueAtTime(gain||0.05,t); g.gain.exponentialRampToValueAtTime(0.0001,t+(dur||0.08)); o.start(t); o.stop(t+(dur||0.08)); }catch(e){}
+  }
+  function tapSound(){ blip(500+Math.random()*200,0.05,'sine',0.04); }
+  function correctSound(){ blip(660,0.1,'sine',0.06); setTimeout(function(){ blip(880,0.15,'sine',0.06); },100); }
+  function wrongSound(){ blip(160,0.2,'sawtooth',0.05); }
+  function winSound(){ [523,659,784,1046,1318].forEach(function(f,i){ setTimeout(function(){ blip(f,0.2,'triangle',0.08); },i*90); }); }
+
+  var PIECE_CHARS=['♟','♞','♜','♝','♛','♚','⚔','⛊','✦','◆','▲','●','★','♦','♠'];
+  var SIZE=5, TOTAL=25;
+  var lvl=1, pieceCount=5;
+  var piecePositions=[]; // indices in the grid
+  var userSelections=[]; // indices user tapped
+  var phase='idle'; // idle|show|recall|done
+  var showBoard=document.getElementById('showBoard');
+  var recallBoard=document.getElementById('recallBoard');
+  var startBtn=document.getElementById('startBtn');
+  var checkBtn=document.getElementById('checkBtn');
+  var clearBtn=document.getElementById('clearBtn');
+  var sizeSeg=document.getElementById('sizeSeg');
+  function $(id){ return document.getElementById(id); }
+
+  function bestKey(){ return 'qw_boardmem_best_'+SIZE; }
+  function loadBest(){ try{ var v=localStorage.getItem(bestKey()); return v?parseInt(v,10):null; }catch(e){ return null; } }
+  function saveBest(v){ try{ localStorage.setItem(bestKey(),String(v)); }catch(e){} }
+
+  function updateHUD(){
+    if($('lvl')) $('lvl').textContent=lvl;
+    if($('pc')) $('pc').textContent=pieceCount;
+    var b=loadBest();
+    if($('best')) $('best').textContent=(b==null?'—':b);
+  }
+  function flashMsg(t){ var m=$('msg'); if(m) m.textContent=t; }
+
+  function buildBoards(){
+    TOTAL=SIZE*SIZE;
+    showBoard.style.gridTemplateColumns='repeat('+SIZE+',1fr)';
+    recallBoard.style.gridTemplateColumns='repeat('+SIZE+',1fr)';
+    showBoard.innerHTML='';
+    recallBoard.innerHTML='';
+    for(var i=0;i<TOTAL;i++){
+      var sc=document.createElement('div');
+      sc.className='cell'; sc.dataset.idx=i;
+      showBoard.appendChild(sc);
+      var rc=document.createElement('div');
+      rc.className='cell'; rc.dataset.idx=i;
+      (function(idx){ rc.addEventListener('click',function(){ onTap(idx); }); })(i);
+      recallBoard.appendChild(rc);
+    }
+  }
+
+  function generatePieces(){
+    piecePositions=[];
+    var pool=[];
+    for(var i=0;i<TOTAL;i++) pool.push(i);
+    for(var k=0;k<pieceCount;k++){
+      var idx=Math.floor(Math.random()*pool.length);
+      piecePositions.push(pool[idx]);
+      pool.splice(idx,1);
+    }
+  }
+
+  function renderShowBoard(){
+    var cells=showBoard.querySelectorAll('.cell');
+    for(var i=0;i<cells.length;i++){
+      cells[i].classList.remove('has-piece');
+      cells[i].textContent='';
+    }
+    for(var k=0;k<piecePositions.length;k++){
+      var idx=piecePositions[k];
+      cells[idx].classList.add('has-piece');
+      cells[idx].textContent=PIECE_CHARS[k%PIECE_CHARS.length];
+    }
+  }
+
+  function startRound(){
+    audio();
+    generatePieces();
+    userSelections=[];
+    buildBoards();
+    renderShowBoard();
+    phase='show';
+    startBtn.disabled=true;
+    checkBtn.disabled=true;
+    flashMsg('Study the positions…');
+    var showTime=Math.max(2000, 4000-lvl*250);
+    setTimeout(function(){
+      // hide show board pieces
+      var cells=showBoard.querySelectorAll('.cell');
+      for(var i=0;i<cells.length;i++){
+        cells[i].classList.remove('has-piece');
+        cells[i].textContent='';
+      }
+      phase='recall';
+      checkBtn.disabled=false;
+      flashMsg('Now tap the cells where you remember pieces — '+pieceCount+' total');
+    },showTime);
+  }
+
+  function onTap(idx){
+    if(phase!=='recall') return;
+    audio(); tapSound();
+    var cells=recallBoard.querySelectorAll('.cell');
+    var ci=userSelections.indexOf(idx);
+    if(ci>=0){
+      userSelections.splice(ci,1);
+      cells[idx].classList.remove('selected');
+      cells[idx].textContent='';
+    } else {
+      if(userSelections.length>=pieceCount) return;
+      userSelections.push(idx);
+      cells[idx].classList.add('selected');
+      cells[idx].textContent=PIECE_CHARS[userSelections.length%PIECE_CHARS.length-1]||'◆';
+    }
+  }
+
+  function checkAnswers(){
+    if(phase!=='recall') return;
+    phase='done';
+    var cells=recallBoard.querySelectorAll('.cell');
+    var correctCount=0;
+    for(var i=0;i<cells.length;i++){
+      cells[i].classList.remove('selected');
+      var isPiece=piecePositions.indexOf(i)>=0;
+      var isUser=userSelections.indexOf(i)>=0;
+      if(isPiece&&isUser){ cells[i].classList.add('correct'); correctCount++; }
+      else if(!isPiece&&isUser){ cells[i].classList.add('wrong'); }
+      else if(isPiece&&!isUser){ cells[i].classList.add('missed'); cells[i].textContent=PIECE_CHARS[piecePositions.indexOf(i)%PIECE_CHARS.length]; }
+    }
+    if(correctCount===pieceCount){
+      correctSound();
+      winSound();
+      var sec=document.querySelector('section.glass-strong');
+      if(sec){ sec.classList.add('win-flash'); setTimeout(function(){ sec.classList.remove('win-flash'); },1600); }
+      flashMsg('Perfect! All '+pieceCount+' pieces placed correctly');
+      var b=loadBest();
+      if(b==null||lvl>b) saveBest(lvl);
+      lvl++;
+      pieceCount=Math.min(TOTAL-2, 4+lvl);
+      updateHUD();
+    } else {
+      wrongSound();
+      flashMsg(correctCount+'/'+pieceCount+' correct — green=right, orange=missed, red=wrong');
+    }
+    checkBtn.disabled=true;
+    setTimeout(function(){
+      phase='idle';
+      startBtn.disabled=false;
+      flashMsg('Tap "Start Round" for the next challenge');
+    },2500);
+  }
+
+  function clearRecall(){
+    if(phase!=='recall') return;
+    userSelections=[];
+    var cells=recallBoard.querySelectorAll('.cell');
+    for(var i=0;i<cells.length;i++){
+      cells[i].classList.remove('selected','correct','wrong','missed');
+      cells[i].textContent='';
+    }
+  }
+
+  if(startBtn) startBtn.addEventListener('click',function(){ startRound(); });
+  if(checkBtn) checkBtn.addEventListener('click',function(){ checkAnswers(); });
+  if(clearBtn) clearBtn.addEventListener('click',function(){ clearRecall(); });
+  if(sizeSeg) sizeSeg.addEventListener('click',function(e){
+    var b=e.target.closest('button'); if(!b||phase!=='idle') return;
+    SIZE=parseInt(b.dataset.size,10);
+    sizeSeg.querySelectorAll('button').forEach(function(x){ x.classList.remove('active'); });
+    b.classList.add('active');
+    pieceCount=Math.min(SIZE*SIZE-2, 3+lvl);
+    buildBoards();
+    updateHUD();
+  });
+
+  var muteBtn=$('muteBtn'), muteIcon=$('muteIcon');
+  if(muteBtn) muteBtn.addEventListener('click',function(){
+    muted=!muted;
+    if(muted){ muteIcon.innerHTML='<path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>'; }
+    else { muteIcon.innerHTML='<path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>'; audio(); }
+  });
+
+  function init(){ buildBoards(); updateHUD(); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init);
+  else init();
+})();
+</script>
+</body>
+</html>

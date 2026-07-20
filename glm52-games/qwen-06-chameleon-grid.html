@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Chameleon Grid — Qwen 3.7 MAX Brain Lab</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+*{font-family:'Inter',sans-serif;box-sizing:border-box}
+body{background:#000;color:#fff;margin:0;overflow-x:hidden}
+.mono{font-family:'JetBrains Mono',monospace}
+.glass{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1)}
+.glass-strong{background:rgba(255,255,255,.08);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.15)}
+.orb{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0}
+@keyframes pulse-glow{0%,100%{opacity:.4;transform:scale(1)}50%{opacity:.65;transform:scale(1.12)}}
+.orb1{width:520px;height:520px;background:radial-gradient(circle,#f97316,transparent 70%);top:-180px;left:-140px;animation:pulse-glow 9s ease-in-out infinite}
+.orb2{width:480px;height:480px;background:radial-gradient(circle,#a855f7,transparent 70%);bottom:-160px;right:-110px;animation:pulse-glow 11s ease-in-out infinite reverse}
+.gradient-text{background:linear-gradient(135deg,#f97316 0%,#f59e0b 40%,#a855f7 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.dot-pill{display:inline-block;width:8px;height:8px;border-radius:50%;background:#f97316;margin-right:8px;box-shadow:0 0 10px #f97316}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:9999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-size:13px;color:rgba(255,255,255,.7)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);color:#fff;font-weight:600;font-size:13px;cursor:pointer;transition:all .18s;user-select:none}
+.btn:hover{background:rgba(255,255,255,.12);transform:translateY(-1px)}
+.btn:active{transform:translateY(0) scale(.97)}
+.btn-primary{background:linear-gradient(135deg,#f97316,#a855f7);border-color:transparent}
+.btn-primary:hover{filter:brightness(1.15)}
+.btn:disabled{opacity:.35;cursor:not-allowed;transform:none}
+.mute-btn{position:fixed;top:16px;right:16px;z-index:50;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#f97316}
+.mute-btn:hover{background:rgba(255,255,255,.14)}
+#grid{display:grid;gap:6px;width:100%;max-width:420px;margin:0 auto}
+.tile{aspect-ratio:1;border-radius:12px;transition:background .2s, box-shadow .2s, transform .12s;cursor:pointer;user-select:none;-webkit-tap-highlight-color:transparent}
+.tile:active{transform:scale(.92)}
+.tile.flash{box-shadow:0 0 20px rgba(255,255,255,.5)}
+.tile.correct{box-shadow:0 0 24px rgba(52,211,153,.7);outline:3px solid #34d399}
+.tile.wrong{box-shadow:0 0 24px rgba(239,68,68,.7);outline:3px solid #ef4444;animation:shake .3s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+.win-flash{animation:win-pulse 1.6s ease-out}
+@keyframes win-pulse{0%{box-shadow:0 0 0 rgba(52,211,153,0)}50%{box-shadow:0 0 60px rgba(52,211,153,.55)}100%{box-shadow:0 0 0 rgba(52,211,153,0)}}
+</style>
+</head>
+<body>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<button id="muteBtn" class="mute-btn" title="Mute" aria-label="Mute toggle">
+  <svg id="muteIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+</button>
+<div class="relative z-10 max-w-4xl mx-auto px-4 md:px-6 py-6 md:py-10">
+  <nav class="flex items-center justify-between mb-8 gap-3">
+    <a href="../" class="glass inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm hover:bg-white/10 transition">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+      Playground
+    </a>
+    <span class="glass inline-flex items-center px-4 py-2 rounded-full text-xs mono whitespace-nowrap"><span class="dot-pill"></span>Qwen 3.7 MAX · Brain Lab · #06</span>
+  </nav>
+  <header class="mb-8">
+    <span class="glass inline-block px-3 py-1 rounded-full text-[11px] uppercase tracking-wider text-white/60 mb-4">◆ Change Detection</span>
+    <h1 class="text-5xl md:text-7xl font-black tracking-tighter gradient-text leading-none mb-3">Chameleon Grid</h1>
+    <p class="text-white/40 text-lg">Memorize the grid colors — one tile will change. Spot it before time runs out.</p>
+  </header>
+  <section class="glass-strong rounded-3xl p-6 md:p-8 mb-6">
+    <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+      <div class="flex items-center gap-4 text-sm">
+        <span class="mono text-white/60">Level <span id="lvl" class="text-white">1</span></span>
+        <span class="mono text-white/60">Streak <span id="streak" class="text-white">0</span></span>
+        <span class="mono text-white/60">Best <span id="best" class="text-emerald-400">—</span></span>
+      </div>
+      <button id="startBtn" class="btn btn-primary">Start Round</button>
+    </div>
+    <div id="timer" class="text-center mono text-white/50 text-sm mb-3 h-5"></div>
+    <div id="grid"></div>
+    <p id="msg" class="text-center text-white/60 text-sm mt-4 h-5 mono"></p>
+  </section>
+  <section class="glass rounded-3xl p-6 md:p-8 mb-6">
+    <h2 class="text-xl font-bold mb-3">Why this trains your brain</h2>
+    <div class="flex flex-wrap gap-2 mb-4">
+      <span class="chip">Visual Memory</span>
+      <span class="chip">Change Detection</span>
+      <span class="chip">Iconic Memory</span>
+      <span class="chip">Attention to Detail</span>
+    </div>
+    <p class="text-white/60 text-sm leading-relaxed">Change detection exercises your iconic memory — the sub-second visual snapshot your brain takes of any scene. As grids grow larger and change windows shrink, you push the capacity limits of pre-attentive visual processing, a skill critical for driving, sports, and visual inspection tasks.</p>
+  </section>
+  <footer class="text-center text-white/30 text-xs mono py-4">Powered by Qwen 3.7 MAX · Brain Challenge Lab</footer>
+</div>
+<script>
+(function(){
+  'use strict';
+  var AC=null, muted=false;
+  function audio(){ if(!AC){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ AC=null; } } if(AC&&AC.state==='suspended'){ try{ AC.resume(); }catch(e){} } return AC; }
+  function blip(freq,dur,type,gain){
+    if(muted) return;
+    try{ var a=audio(); if(!a) return; var o=a.createOscillator(),g=a.createGain(); o.type=type||'sine'; o.frequency.value=freq||440; o.connect(g); g.connect(a.destination); var t=a.currentTime; g.gain.setValueAtTime(gain||0.06,t); g.gain.exponentialRampToValueAtTime(0.0001,t+(dur||0.1)); o.start(t); o.stop(t+(dur||0.1)); }catch(e){}
+  }
+  function correctSound(){ blip(660,0.1,'sine',0.06); setTimeout(function(){ blip(880,0.15,'sine',0.06); },100); }
+  function wrongSound(){ blip(160,0.2,'sawtooth',0.05); }
+  function winSound(){ [523,659,784,1046,1318].forEach(function(f,i){ setTimeout(function(){ blip(f,0.2,'triangle',0.08); },i*90); }); }
+  function tickSound(){ blip(520,0.04,'sine',0.03); }
+
+  var COLORS=['#ef4444','#f59e0b','#22c55e','#3b82f6','#a855f7','#ec4899','#14b8a6','#f97316','#6366f1','#84cc16'];
+  var SIZE=4, TOTAL=16;
+  var lvl=1, streak=0;
+  var gridColors=[];
+  var changedIdx=-1;
+  var phase='idle'; // idle|memorize|detect|done
+  var timer=null;
+  var tiles=[];
+  var grid=document.getElementById('grid');
+  function $(id){ return document.getElementById(id); }
+
+  function bestKey(){ return 'qw_chameleon_best'; }
+  function loadBest(){ try{ var v=localStorage.getItem(bestKey()); return v?parseInt(v,10):null; }catch(e){ return null; } }
+  function saveBest(v){ try{ localStorage.setItem(bestKey(),String(v)); }catch(e){} }
+
+  function updateHUD(){
+    if($('lvl')) $('lvl').textContent=lvl;
+    if($('streak')) $('streak').textContent=streak;
+    var b=loadBest();
+    if($('best')) $('best').textContent=(b==null?'—':b);
+  }
+  function flashMsg(t){ var m=$('msg'); if(m) m.textContent=t; }
+  function setTimer(t){ var el=$('timer'); if(el) el.textContent=t; }
+
+  function buildGrid(){
+    TOTAL=SIZE*SIZE;
+    grid.style.gridTemplateColumns='repeat('+SIZE+',1fr)';
+    grid.innerHTML='';
+    tiles=[];
+    gridColors=[];
+    for(var i=0;i<TOTAL;i++){
+      var c=COLORS[Math.floor(Math.random()*COLORS.length)];
+      gridColors.push(c);
+      var tile=document.createElement('div');
+      tile.className='tile';
+      tile.style.background=c;
+      tile.dataset.idx=i;
+      (function(idx){ tile.addEventListener('click',function(){ onTap(idx); }); })(i);
+      grid.appendChild(tile);
+      tiles.push(tile);
+    }
+  }
+  function renderColors(){
+    for(var i=0;i<tiles.length;i++){
+      tiles[i].style.background=gridColors[i];
+      tiles[i].classList.remove('correct','wrong','flash');
+    }
+  }
+
+  function startRound(){
+    audio();
+    buildGrid();
+    renderColors();
+    phase='memorize';
+    $('startBtn').disabled=true;
+    flashMsg('Memorize the grid…');
+    setTimer('');
+    var memorizeTime=Math.max(1200, 3000-lvl*200);
+    timer=setTimeout(function(){
+      // make the change
+      changedIdx=Math.floor(Math.random()*TOTAL);
+      var oldColor=gridColors[changedIdx];
+      var newColor;
+      do { newColor=COLORS[Math.floor(Math.random()*COLORS.length)]; } while(newColor===oldColor);
+      gridColors[changedIdx]=newColor;
+      tiles[changedIdx].style.background=newColor;
+      tiles[changedIdx].classList.add('flash');
+      setTimeout(function(){ tiles[changedIdx].classList.remove('flash'); },200);
+      tickSound();
+      phase='detect';
+      flashMsg('One tile changed — tap it!');
+      var detectTime=Math.max(2000, 5000-lvl*300);
+      var remaining=detectTime;
+      setTimer((remaining/1000).toFixed(1)+'s');
+      var tick=setInterval(function(){
+        remaining-=100;
+        setTimer((Math.max(0,remaining)/1000).toFixed(1)+'s');
+        if(remaining<=0){
+          clearInterval(tick);
+          if(phase==='detect') onTimeout();
+        }
+      },100);
+      timer=setTimeout(function(){
+        clearInterval(tick);
+        if(phase==='detect') onTimeout();
+      },detectTime);
+    },memorizeTime);
+  }
+
+  function onTap(idx){
+    if(phase!=='detect') return;
+    clearTimeout(timer);
+    phase='done';
+    if(idx===changedIdx){
+      tiles[idx].classList.add('correct');
+      correctSound();
+      streak++;
+      if(streak%3===0){ lvl++; }
+      var b=loadBest();
+      if(b==null||lvl>b) saveBest(lvl);
+      flashMsg('Correct! Streak: '+streak);
+      updateHUD();
+      setTimeout(function(){
+        $('startBtn').disabled=false;
+        flashMsg('Tap "Start Round" for the next challenge');
+      },1000);
+    } else {
+      tiles[idx].classList.add('wrong');
+      tiles[changedIdx].classList.add('correct');
+      wrongSound();
+      streak=0;
+      flashMsg('Wrong! The changed tile is highlighted green');
+      updateHUD();
+      setTimeout(function(){
+        $('startBtn').disabled=false;
+        flashMsg('Tap "Start Round" to try again');
+      },1500);
+    }
+  }
+
+  function onTimeout(){
+    phase='done';
+    tiles[changedIdx].classList.add('correct');
+    wrongSound();
+    streak=0;
+    flashMsg('Time up! The changed tile is highlighted green');
+    updateHUD();
+    setTimeout(function(){
+      $('startBtn').disabled=false;
+      flashMsg('Tap "Start Round" to try again');
+    },1500);
+  }
+
+  if($('startBtn')) $('startBtn').addEventListener('click',function(){ startRound(); });
+
+  var muteBtn=$('muteBtn'), muteIcon=$('muteIcon');
+  if(muteBtn) muteBtn.addEventListener('click',function(){
+    muted=!muted;
+    if(muted){ muteIcon.innerHTML='<path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>'; }
+    else { muteIcon.innerHTML='<path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>'; audio(); }
+  });
+
+  function init(){ buildGrid(); updateHUD(); }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init);
+  else init();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Zen Sand Rake — Brain & ASMR Lab</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
+  *{font-family:'Inter',sans-serif;}
+  body{background:#000;color:#fff;margin:0;overflow:hidden;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+  .glass{background:rgba(255,255,255,0.05);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.08);}
+  .glass-strong{background:rgba(255,255,255,0.08);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.12);}
+  .orb{position:fixed;border-radius:50%;filter:blur(80px);opacity:0.35;pointer-events:none;z-index:0;animation:pulseGlow 9s ease-in-out infinite;}
+  .orb-a{width:520px;height:520px;background:radial-gradient(circle,#14b8a6,#0d9488);top:-150px;left:-120px;}
+  .orb-b{width:560px;height:560px;background:radial-gradient(circle,#7c3aed,#4f46e5);bottom:-180px;right:-140px;animation-delay:-4.5s;}
+  @keyframes pulseGlow{0%,100%{transform:scale(1);opacity:0.35;}50%{transform:scale(1.12);opacity:0.5;}}
+  .grad-text{background:linear-gradient(120deg,#5eead4,#a78bfa 55%,#818cf8);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .pill{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:#cbd5e1;}
+  .dot{width:8px;height:8px;border-radius:50%;background:#5eead4;box-shadow:0 0 8px #5eead4;}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 16px;border-radius:14px;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);color:#fff;font-weight:600;font-size:13px;cursor:pointer;transition:all .18s ease;user-select:none;}
+  .btn:hover{background:rgba(255,255,255,0.12);transform:translateY(-1px);}
+  .btn:active{transform:translateY(0) scale(0.97);}
+  .btn-primary{background:linear-gradient(120deg,#0d9488,#6366f1);border-color:transparent;}
+  .btn-primary:hover{filter:brightness(1.15);}
+  .chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);font-size:12px;color:#cbd5e1;}
+  .chip .cdot{width:6px;height:6px;border-radius:50%;background:#a78bfa;}
+  .seg{display:inline-flex;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:3px;}
+  .seg button{padding:7px 12px;border-radius:9px;font-size:12px;font-weight:600;color:#94a3b8;background:transparent;border:none;cursor:pointer;transition:all .15s;}
+  .seg button.active{background:rgba(94,234,212,0.18);color:#5eead4;}
+  #stage{position:relative;width:100%;height:62vh;min-height:420px;border-radius:24px;overflow:hidden;touch-action:none;cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'%3E%3Cpath d='M5 24L14 4' stroke='%23e2e8f0' stroke-width='2.5' stroke-linecap='round'/%3E%3Cpath d='M14 4L16 6' stroke='%23e2e8f0' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M14 4L12.5 6.5' stroke='%23e2e8f0' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E") 14 24, crosshair;}
+  #sandCanvas{position:absolute;inset:0;width:100%;height:100%;}
+  .mute-btn{position:fixed;top:16px;right:16px;z-index:50;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.12);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#5eead4;}
+  .mute-btn:hover{background:rgba(255,255,255,0.14);}
+  .stat{font-family:'JetBrains Mono',monospace;font-size:13px;color:#94a3b8;}
+  .stat b{color:#5eead4;}
+  .hint{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);font-size:11px;color:rgba(255,255,255,0.5);pointer-events:none;text-align:center;background:rgba(0,0,0,0.3);padding:4px 10px;border-radius:8px;}
+</style>
+</head>
+<body class="min-h-screen relative">
+  <div class="orb orb-a"></div>
+  <div class="orb orb-b"></div>
+
+  <button id="muteBtn" class="mute-btn" title="Mute / Unmute" aria-label="Mute toggle">
+    <svg id="muteIcon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+  </button>
+
+  <div class="relative z-10 max-w-5xl mx-auto px-4 md:px-6 py-6 md:py-10">
+    <nav class="flex items-center justify-between mb-8">
+      <a href="../" class="btn">← Playground</a>
+      <div class="pill"><span class="dot"></span> GLM 5.2 · ASMR Lab · #15</div>
+    </nav>
+
+    <header class="mb-6">
+      <div class="pill mb-3">◆ Mindful Raking</div>
+      <h1 class="text-4xl md:text-6xl font-black tracking-tight grad-text leading-none">Zen Sand Rake</h1>
+      <p class="mt-4 text-slate-300/80 max-w-2xl text-sm md:text-base">Drag your finger across the sand to carve smooth grooves. Place stones and the rake path parts around them. Switch between parallel, wavy, and circular rake patterns. A quiet, meditative canvas.</p>
+    </header>
+
+    <section class="glass-strong rounded-3xl p-6 md:p-8 mb-6">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <div class="flex items-center gap-2 flex-wrap">
+          <button id="clearBtn" class="btn">Clear</button>
+          <button id="stoneBtn" class="btn btn-primary">Add Stone</button>
+          <span id="stoneHint" class="text-xs text-slate-400 hidden">Tap sand to place stone</span>
+        </div>
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="text-xs text-slate-400">Pattern</span>
+          <div class="seg" id="patternSeg">
+            <button data-p="parallel" class="active">Parallel</button>
+            <button data-p="wavy">Wavy</button>
+            <button data-p="circles">Circles</button>
+          </div>
+          <span class="text-xs text-slate-400 ml-2">Theme</span>
+          <div class="seg" id="themeSeg">
+            <button data-t="zen" class="active">Zen</button>
+            <button data-t="dawn">Dawn</button>
+            <button data-t="night">Night</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="stage">
+        <canvas id="sandCanvas"></canvas>
+        <div class="hint">Drag to rake the sand · Place stones for the rake to flow around</div>
+      </div>
+
+      <div class="flex items-center gap-6 mt-4 stat">
+        <div>Strokes: <b id="strokeCount">0</b></div>
+        <div>Stones: <b id="stoneCount">0</b></div>
+      </div>
+    </section>
+
+    <section class="glass rounded-3xl p-6 md:p-8 mb-6">
+      <h2 class="text-xl font-bold mb-3">Why this feels good</h2>
+      <div class="flex flex-wrap gap-2 mb-3">
+        <span class="chip"><span class="cdot"></span> Tactile Feedback</span>
+        <span class="chip"><span class="cdot"></span> Visual Order</span>
+        <span class="chip"><span class="cdot"></span> Auditory Tingles</span>
+        <span class="chip"><span class="cdot"></span> Repetitive Motion</span>
+      </div>
+      <p class="text-slate-300/80 text-sm">Raking sand is a classic mindfulness exercise: slow, intentional strokes produce gentle scraping sounds and leave visible order behind. The brain rewards the visible transformation from chaos to pattern, while the auditory texture grounds you in the present moment.</p>
+    </section>
+
+    <footer class="text-center text-xs text-slate-500 pt-4 pb-2">Powered by Z.AI GLM 5.2 · Brain &amp; ASMR Lab</footer>
+  </div>
+
+<script>
+(function(){
+  'use strict';
+  // ---- Audio ----
+  var AC=null, muted=false, rakeNode=null;
+  function audioCtx(){
+    if(!AC){ try{ AC=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){ AC=null; } }
+    if(AC && AC.state==='suspended'){ try{ AC.resume(); }catch(e){} }
+    return AC;
+  }
+  function startRakeSound(){
+    if(muted) return; var ctx=audioCtx(); if(!ctx) return;
+    stopRakeSound();
+    try{
+      var now=ctx.currentTime;
+      var buf=ctx.createBuffer(1, Math.floor(ctx.sampleRate*2), ctx.sampleRate);
+      var d=buf.getChannelData(0); for(var i=0;i<d.length;i++){ d[i]=(Math.random()*2-1); }
+      var src=ctx.createBufferSource(); src.buffer=buf; src.loop=true;
+      var bp=ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=900; bp.Q.value=0.8;
+      var lfo=ctx.createOscillator(); lfo.frequency.value=4; var lfoG=ctx.createGain(); lfoG.gain.value=200;
+      lfo.connect(lfoG); lfoG.connect(bp.frequency);
+      var g=ctx.createGain(); g.gain.setValueAtTime(0.0001,now); g.gain.linearRampToValueAtTime(0.09,now+0.15);
+      src.connect(bp); bp.connect(g); g.connect(ctx.destination);
+      src.start(now); lfo.start(now);
+      rakeNode={src:src,lfo:lfo,g:g};
+    }catch(e){}
+  }
+  function stopRakeSound(){
+    if(!rakeNode) return;
+    try{ var ctx=AC, now=ctx?ctx.currentTime:0;
+      rakeNode.g.gain.linearRampToValueAtTime(0.0001,now+0.08);
+      rakeNode.src.stop(now+0.1); rakeNode.lfo.stop(now+0.1);
+    }catch(e){}
+    rakeNode=null;
+  }
+
+  // ---- Canvas ----
+  var canvas=document.getElementById('sandCanvas');
+  var ctx=canvas.getContext('2d');
+  var stage=document.getElementById('stage');
+  var W=0,H=0,DPR=Math.max(1,Math.min(2,window.devicePixelRatio||1));
+  function resize(){
+    var r=stage.getBoundingClientRect();
+    W=r.width; H=r.height;
+    canvas.width=W*DPR; canvas.height=H*DPR;
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+    drawBase();
+    redrawStrokes();
+  }
+  window.addEventListener('resize', resize);
+
+  // ---- Themes ----
+  var themes={
+    zen:  {sand:'#c4b89a', groove:'#a69374', base:'#d6ccae', highlight:'#e8dfc8'},
+    dawn: {sand:'#e8c9a0', groove:'#c49b6a', base:'#f0d8b4', highlight:'#f8e8cc'},
+    night:{sand:'#2a2a3e', groove:'#1a1a2e', base:'#353548', highlight:'#444460'}
+  };
+  var curTheme='zen';
+  var curPattern='parallel';
+  var RAKE_W=18; // rake width in px
+  var STONE_R=22;
+  var strokes=[]; // each: {points:[{x,y}], pattern:string}
+  var stones=[]; // each: {x,y,r}
+  var strokeCount=0;
+  var placingStone=false;
+
+  function drawBase(){
+    var t=themes[curTheme];
+    ctx.fillStyle=t.base;
+    ctx.fillRect(0,0,W,H);
+    // sand grain texture
+    ctx.save();
+    ctx.globalAlpha=0.08;
+    for(var i=0;i<4000;i++){
+      var x=Math.random()*W, y=Math.random()*H;
+      ctx.fillStyle=Math.random()>0.5?t.sand:t.highlight;
+      ctx.fillRect(x,y,1.5,1.5);
+    }
+    ctx.restore();
+    // draw stones
+    drawStones();
+  }
+
+  function drawStones(){
+    var t=themes[curTheme];
+    for(var i=0;i<stones.length;i++){
+      var s=stones[i];
+      // shadow
+      ctx.save();
+      ctx.beginPath(); ctx.arc(s.x+3,s.y+3,s.r,0,Math.PI*2);
+      ctx.fillStyle='rgba(0,0,0,0.3)'; ctx.fill();
+      ctx.restore();
+      // stone body
+      var sg=ctx.createRadialGradient(s.x-s.r*0.3,s.y-s.r*0.3,s.r*0.1,s.x,s.y,s.r);
+      sg.addColorStop(0, t.highlight);
+      sg.addColorStop(0.6, t.sand);
+      sg.addColorStop(1, t.groove);
+      ctx.beginPath(); ctx.arc(s.x,s.y,s.r,0,Math.PI*2);
+      ctx.fillStyle=sg; ctx.fill();
+      ctx.strokeStyle='rgba(0,0,0,0.15)'; ctx.lineWidth=1; ctx.stroke();
+      // gloss
+      ctx.beginPath(); ctx.ellipse(s.x-s.r*0.3, s.y-s.r*0.35, s.r*0.3, s.r*0.15, -0.4, 0, Math.PI*2);
+      ctx.fillStyle='rgba(255,255,255,0.25)'; ctx.fill();
+    }
+  }
+
+  function redrawStrokes(){
+    for(var i=0;i<strokes.length;i++){
+      drawStroke(strokes[i]);
+    }
+  }
+
+  function drawStroke(stroke){
+    if(stroke.points.length<2) return;
+    var t=themes[curTheme];
+    ctx.save();
+    ctx.lineCap='round'; ctx.lineJoin='round';
+
+    if(stroke.pattern==='parallel'){
+      for(var off=-RAKE_W; off<=RAKE_W; off+=6){
+        ctx.beginPath();
+        ctx.strokeStyle=t.groove;
+        ctx.lineWidth=2.5;
+        ctx.globalAlpha=0.8;
+        for(var i=0;i<stroke.points.length;i++){
+          var p=stroke.points[i];
+          // perpendicular offset
+          var nx=0, ny=0;
+          if(i<stroke.points.length-1){ var dx=stroke.points[i+1].x-p.x, dy=stroke.points[i+1].y-p.y; var l=Math.sqrt(dx*dx+dy*dy)+0.001; nx=-dy/l; ny=dx/l; }
+          else if(i>0){ var dx2=p.x-stroke.points[i-1].x, dy2=p.y-stroke.points[i-1].y; var l2=Math.sqrt(dx2*dx2+dy2*dy2)+0.001; nx=-dy2/l2; ny=dx2/l2; }
+          var ox=p.x+nx*off, oy=p.y+ny*off;
+          // jitter for hand-drawn feel
+          ox += (Math.sin(i*0.7+off*0.3)*0.6);
+          oy += (Math.cos(i*0.9+off*0.5)*0.6);
+          // avoid stones
+          var skip=false;
+          for(var si=0;si<stones.length;si++){
+            var sdx=ox-stones[si].x, sdy=oy-stones[si].y;
+            if(sdx*sdx+sdy*sdy < (stones[si].r+RAKE_W)*(stones[si].r+RAKE_W)){ skip=true; break; }
+          }
+          if(skip){ if(i>0) ctx.stroke(); ctx.beginPath(); continue; }
+          if(i===0) ctx.moveTo(ox,oy);
+          else ctx.lineTo(ox,oy);
+        }
+        ctx.stroke();
+      }
+    } else if(stroke.pattern==='wavy'){
+      for(var off=-RAKE_W; off<=RAKE_W; off+=6){
+        ctx.beginPath();
+        ctx.strokeStyle=t.groove;
+        ctx.lineWidth=2.5;
+        ctx.globalAlpha=0.8;
+        for(var i=0;i<stroke.points.length;i++){
+          var p=stroke.points[i];
+          var nx=0, ny=0;
+          if(i<stroke.points.length-1){ var dx=stroke.points[i+1].x-p.x, dy=stroke.points[i+1].y-p.y; var l=Math.sqrt(dx*dx+dy*dy)+0.001; nx=-dy/l; ny=dx/l; }
+          else if(i>0){ var dx2=p.x-stroke.points[i-1].x, dy2=p.y-stroke.points[i-1].y; var l2=Math.sqrt(dx2*dx2+dy2*dy2)+0.001; nx=-dy2/l2; ny=dx2/l2; }
+          var waveOff = Math.sin(i*0.15+off*0.4)*8;
+          var ox=p.x+nx*(off+waveOff), oy=p.y+ny*(off+waveOff);
+          ox += (Math.sin(i*0.7+off*0.3)*0.6);
+          oy += (Math.cos(i*0.9+off*0.5)*0.6);
+          var skip=false;
+          for(var si=0;si<stones.length;si++){
+            var sdx=ox-stones[si].x, sdy=oy-stones[si].y;
+            if(sdx*sdx+sdy*sdy < (stones[si].r+RAKE_W)*(stones[si].r+RAKE_W)){ skip=true; break; }
+          }
+          if(skip){ if(i>0) ctx.stroke(); ctx.beginPath(); continue; }
+          if(i===0) ctx.moveTo(ox,oy);
+          else ctx.lineTo(ox,oy);
+        }
+        ctx.stroke();
+      }
+    } else if(stroke.pattern==='circles'){
+      // draw concentric circles around each point
+      ctx.strokeStyle=t.groove;
+      ctx.lineWidth=2;
+      ctx.globalAlpha=0.6;
+      // sample every few points to make circles
+      var step=Math.max(1, Math.floor(stroke.points.length/12));
+      for(var i=0;i<stroke.points.length;i+=step){
+        var p=stroke.points[i];
+        var skip=false;
+        for(var si=0;si<stones.length;si++){
+          var sdx=p.x-stones[si].x, sdy=p.y-stones[si].y;
+          if(sdx*sdx+sdy*sdy < (stones[si].r+4)*(stones[si].r+4)){ skip=true; break; }
+        }
+        if(skip) continue;
+        for(var r=8; r<=RAKE_W+12; r+=6){
+          ctx.beginPath();
+          // slightly irregular circle
+          for(var a=0;a<=Math.PI*2+0.1;a+=0.3){
+            var rx=r+Math.sin(a*3+i*0.2)*1.5;
+            var cx=p.x+Math.cos(a)*rx, cy=p.y+Math.sin(a)*rx;
+            if(a===0) ctx.moveTo(cx,cy); else ctx.lineTo(cx,cy);
+          }
+          ctx.stroke();
+        }
+      }
+    }
+    ctx.restore();
+  }
+
+  // ---- Input ----
+  var raking=false, curStroke=null;
+
+  function pos(e){
+    var rect=stage.getBoundingClientRect();
+    var t=e.touches?e.touches[0]:e;
+    return {x:t.clientX-rect.left, y:t.clientY-rect.top};
+  }
+
+  function onDown(e){
+    e.preventDefault(); audioCtx();
+    var p=pos(e);
+    if(placingStone){
+      stones.push({x:p.x,y:p.y,r:STONE_R});
+      placingStone=false;
+      document.getElementById('stoneHint').classList.add('hidden');
+      document.getElementById('stoneBtn').textContent='Add Stone';
+      drawBase(); redrawStrokes();
+      updateCounts();
+      return;
+    }
+    raking=true;
+    curStroke={points:[p], pattern:curPattern};
+    startRakeSound();
+  }
+  function onMove(e){
+    if(!raking||!curStroke) return;
+    e.preventDefault();
+    var p=pos(e);
+    curStroke.points.push(p);
+    // incremental draw: redraw everything (simple but correct)
+    drawBase();
+    strokes.push(curStroke);
+    redrawStrokes();
+    strokes.pop();
+  }
+  function onUp(){
+    if(!raking) return;
+    raking=false;
+    stopRakeSound();
+    if(curStroke && curStroke.points.length>1){
+      strokes.push(curStroke);
+      strokeCount++;
+    }
+    curStroke=null;
+    drawBase(); redrawStrokes();
+    updateCounts();
+  }
+
+  stage.addEventListener('mousedown',onDown);
+  window.addEventListener('mousemove',onMove);
+  window.addEventListener('mouseup',onUp);
+  stage.addEventListener('touchstart',onDown,{passive:false});
+  stage.addEventListener('touchmove',onMove,{passive:false});
+  stage.addEventListener('touchend',onUp);
+  stage.addEventListener('touchcancel',onUp);
+
+  function updateCounts(){
+    var sc=document.getElementById('strokeCount'); if(sc) sc.textContent=strokeCount;
+    var st=document.getElementById('stoneCount'); if(st) st.textContent=stones.length;
+  }
+
+  // ---- Buttons ----
+  document.getElementById('clearBtn').addEventListener('click', function(){
+    audioCtx(); strokes=[]; stones=[]; strokeCount=0;
+    drawBase(); updateCounts();
+  });
+  document.getElementById('stoneBtn').addEventListener('click', function(){
+    audioCtx();
+    if(placingStone){
+      placingStone=false;
+      document.getElementById('stoneHint').classList.add('hidden');
+      document.getElementById('stoneBtn').textContent='Add Stone';
+    } else {
+      placingStone=true;
+      document.getElementById('stoneHint').classList.remove('hidden');
+      document.getElementById('stoneBtn').textContent='Cancel';
+    }
+  });
+
+  document.getElementById('patternSeg').addEventListener('click', function(e){
+    var b=e.target.closest('button'); if(!b) return;
+    curPattern=b.dataset.p;
+    Array.prototype.forEach.call(this.querySelectorAll('button'),function(x){x.classList.remove('active');});
+    b.classList.add('active');
+  });
+  document.getElementById('themeSeg').addEventListener('click', function(e){
+    var b=e.target.closest('button'); if(!b) return;
+    curTheme=b.dataset.t;
+    Array.prototype.forEach.call(this.querySelectorAll('button'),function(x){x.classList.remove('active');});
+    b.classList.add('active');
+    drawBase(); redrawStrokes();
+  });
+
+  // ---- Mute ----
+  var muteBtn=document.getElementById('muteBtn'), muteIcon=document.getElementById('muteIcon');
+  muteBtn.addEventListener('click', function(){
+    muted=!muted;
+    if(muted){ stopRakeSound(); muteIcon.innerHTML='<path d="M11 5L6 9H2v6h4l5 4V5z"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/>'; }
+    else { muteIcon.innerHTML='<path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>'; audioCtx(); }
+  });
+
+  // ---- Init ----
+  resize();
+})();
+</script>
+</body>
+</html>

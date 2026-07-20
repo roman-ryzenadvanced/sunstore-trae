@@ -1,0 +1,137 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Store {
+  id        String   @id @default(cuid())
+  name      String
+  domain    String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  config    StoreConfig?
+  products  Product[]
+  orders    Order[]
+  carts     Cart[]
+}
+
+model StoreConfig {
+  id             String   @id @default(cuid())
+  storeId        String   @unique
+  baseCurrency   String   @default("RUB")
+  enabledCurrencies String // JSON array: ["RUB", "USD", "EUR"]
+  conversionRates String // JSON object: {"USD": 0.0105, "EUR": 0.0098}
+  paymentMethods  String // JSON array: ["tbank", "yookassa", "sberpay"]
+  tbankEnabled    Boolean @default(false)
+  tbankTerminalKey String?
+  tbankSecret     String?
+  tbankTestMode   Boolean @default(true)
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  store          Store?   @relation(fields: [storeId], references: [id])
+}
+
+model Product {
+  id             String   @id @default(cuid())
+  storeId        String
+  name           String
+  description    String
+  price          Float
+  category       String
+  imageUrl       String?
+  specifications  String // JSON object
+  stock          Int      @default(0)
+  sku            String   @unique
+  isActive       Boolean  @default(true)
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  
+  store          Store    @relation(fields: [storeId], references: [id])
+  cartItems      CartItem[]
+  orderItems     OrderItem[]
+  
+  @@index([storeId, category])
+  @@index([sku])
+}
+
+model Cart {
+  id        String   @id @default(cuid())
+  sessionId String   @unique
+  storeId   String
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  store     Store     @relation(fields: [storeId], references: [id])
+  items     CartItem[]
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  cartId    String
+  productId String
+  quantity  Int      @default(1)
+  price     Float    // Price at time of addition
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  cart      Cart     @relation(fields: [cartId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+  
+  @@unique([cartId, productId])
+  @@index([cartId])
+  @@index([productId])
+}
+
+model Order {
+  id               String   @id @default(cuid())
+  storeId          String
+  orderNumber      String   @unique
+  customerName     String
+  customerEmail    String
+  customerPhone    String
+  shippingAddress  String   // JSON object
+  totalAmount      Float
+  currency         String   @default("RUB")
+  paymentMethod    String
+  status           String   @default("pending_payment") // pending_payment, paid, cancelled, processing, shipped, delivered
+  paymentId        String?
+  
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  
+  store            Store      @relation(fields: [storeId], references: [id])
+  items            OrderItem[]
+  
+  @@index([storeId])
+  @@index([customerEmail])
+  @@index([orderNumber])
+  @@index([status])
+}
+
+model OrderItem {
+  id          String   @id @default(cuid())
+  orderId     String
+  productId   String
+  productName String
+  quantity    Int
+  price       Float    // Price at time of order
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  order       Order    @relation(fields: [orderId], references: [id])
+  product     Product? @relation(fields: [productId], references: [id])
+  
+  @@index([orderId])
+  @@index([productId])
+}

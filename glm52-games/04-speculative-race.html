@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reaction Rush — Brain & ASMR Lab</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+*{font-family:'Inter',sans-serif}
+body{background:#000;color:#fff;overflow-x:hidden}
+.mono{font-family:'JetBrains Mono',monospace}
+.glass{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1)}
+.glass-strong{background:rgba(255,255,255,.08);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.15)}
+.orb{position:fixed;border-radius:9999px;filter:blur(80px);pointer-events:none;z-index:0}
+@keyframes pulse-glow{0%,100%{opacity:.45;transform:scale(1)}50%{opacity:.78;transform:scale(1.18)}}
+.orb1{width:520px;height:520px;background:radial-gradient(circle,#ef4444,transparent 70%);top:-200px;left:-150px;animation:pulse-glow 9s ease-in-out infinite}
+.orb2{width:480px;height:480px;background:radial-gradient(circle,#22c55e,transparent 70%);bottom:-180px;right:-120px;animation:pulse-glow 11s ease-in-out infinite reverse}
+.gradient-text{background:linear-gradient(135deg,#f87171 0%,#fbbf24 50%,#4ade80 100%);-webkit-background-clip:text;background-clip:text;color:transparent}
+.dot-pill{display:inline-block;width:8px;height:8px;border-radius:9999px;background:#34d399;margin-right:8px;box-shadow:0 0 10px #34d399}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;border-radius:9999px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);font-size:13px;color:rgba(255,255,255,.7)}
+.btn{padding:10px 18px;border-radius:14px;font-weight:600;font-size:14px;transition:all .2s;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;cursor:pointer}
+.btn:hover{background:rgba(255,255,255,.12);transform:translateY(-1px)}
+.btn-primary{background:linear-gradient(135deg,#ef4444,#f59e0b);border-color:transparent}
+.btn-primary:hover{filter:brightness(1.15)}
+.btn-toggle{padding:8px 14px;border-radius:12px;font-weight:600;font-size:13px;transition:all .2s;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:rgba(255,255,255,.6);cursor:pointer}
+.btn-toggle.active{background:rgba(34,197,94,.18);border-color:rgba(34,197,94,.5);color:#86efac}
+.pad{width:100%;min-height:340px;border-radius:28px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:background-color .15s ease,box-shadow .15s ease,transform .08s ease;user-select:none;-webkit-tap-highlight-color:transparent;text-align:center;padding:24px}
+.pad:active{transform:scale(.99)}
+.pad-wait{background:linear-gradient(135deg,#7f1d1d,#991b1b);box-shadow:inset 0 0 80px rgba(0,0,0,.4)}
+.pad-go{background:linear-gradient(135deg,#15803d,#22c55e);box-shadow:0 0 60px rgba(34,197,94,.6),inset 0 0 80px rgba(255,255,255,.15)}
+.pad-idle{background:rgba(255,255,255,.05);border:2px dashed rgba(255,255,255,.2)}
+.pad-tooearly{background:linear-gradient(135deg,#7c2d12,#ea580c);box-shadow:0 0 40px rgba(234,88,12,.5)}
+.pad-result{background:linear-gradient(135deg,#1e3a8a,#3b82f6);box-shadow:0 0 40px rgba(59,130,246,.5)}
+.pad-over{background:rgba(255,255,255,.05);border:2px solid rgba(255,255,255,.15)}
+.big-num{font-size:64px;font-weight:900;line-height:1;letter-spacing:-.04em}
+.label{font-size:18px;font-weight:600;letter-spacing:.02em}
+.stat-cell{padding:14px;border-radius:14px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.08);text-align:center}
+.timebar-track{height:6px;border-radius:9999px;background:rgba(255,255,255,.08);overflow:hidden;width:100%}
+.timebar-fill{height:100%;background:linear-gradient(90deg,#ef4444,#f59e0b,#22c55e);border-radius:9999px;transition:width .2s linear}
+</style>
+</head>
+<body>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="relative z-10 max-w-5xl mx-auto px-4 md:px-6 py-6 md:py-10">
+  <nav class="flex items-center justify-between mb-8 gap-3">
+    <a href="../" class="glass inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm hover:bg-white/10 transition">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 18l-6-6 6-6"/></svg>
+      Playground
+    </a>
+    <span class="glass inline-flex items-center px-4 py-2 rounded-full text-xs mono whitespace-nowrap"><span class="dot-pill"></span>GLM 5.2 · Brain Lab · #04</span>
+  </nav>
+
+  <header class="mb-8">
+    <span class="glass inline-block px-3 py-1 rounded-full text-[11px] uppercase tracking-wider text-white/60 mb-4">◆ Processing Speed</span>
+    <h1 class="text-6xl md:text-8xl font-black tracking-tighter gradient-text leading-none mb-3">Reaction Rush</h1>
+    <p class="text-white/40 text-lg">Wait for green, tap fast. Train your raw reaction time.</p>
+  </header>
+
+  <section class="glass-strong rounded-3xl p-6 md:p-8 mb-6">
+    <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+      <div class="flex items-center gap-3">
+        <button id="modeClassic" class="btn-toggle active">Classic · 5 rounds</button>
+        <button id="modeStreak" class="btn-toggle">Streak · 20s</button>
+      </div>
+      <div class="flex items-center gap-4 text-sm">
+        <span id="modeStat" class="mono text-white/60">Best Avg: <span id="best" class="text-emerald-400">—</span></span>
+        <button id="startBtn" class="btn btn-primary">Start</button>
+      </div>
+    </div>
+
+    <div id="liveRow" class="grid grid-cols-3 gap-3 mb-4">
+      <div class="stat-cell">
+        <div class="text-[11px] uppercase tracking-wider text-white/40 mb-1" id="stat1Label">Round</div>
+        <div class="text-2xl font-bold mono" id="stat1">0 / 5</div>
+      </div>
+      <div class="stat-cell">
+        <div class="text-[11px] uppercase tracking-wider text-white/40 mb-1" id="stat2Label">Last</div>
+        <div class="text-2xl font-bold mono" id="stat2">—</div>
+      </div>
+      <div class="stat-cell">
+        <div class="text-[11px] uppercase tracking-wider text-white/40 mb-1" id="stat3Label">Avg</div>
+        <div class="text-2xl font-bold mono" id="stat3">—</div>
+      </div>
+    </div>
+
+    <div id="pad" class="pad pad-idle">
+      <div class="label text-white/80" id="padLabel">Press Start to begin</div>
+      <div class="big-num mt-3" id="padNum"></div>
+    </div>
+
+    <div id="streakTimerWrap" class="mt-4 hidden">
+      <div class="timebar-track"><div class="timebar-fill" id="timebar" style="width:100%"></div></div>
+    </div>
+
+    <p id="msg" class="text-center text-white/60 text-sm mt-4 h-5 mono"></p>
+  </section>
+
+  <section class="glass rounded-3xl p-6 md:p-8 mb-6">
+    <h2 class="text-xl font-bold mb-3">Why this trains your brain</h2>
+    <div class="flex flex-wrap gap-2 mb-4">
+      <span class="chip">Processing Speed</span>
+      <span class="chip">Sustained Attention</span>
+      <span class="chip">Inhibitory Control</span>
+      <span class="chip">Motor Timing</span>
+    </div>
+    <p class="text-white/60 text-sm leading-relaxed">Waiting for a go-signal and suppressing premature taps trains the circuits that gate impulsive responses. Compressing that gap between stimulus and action sharpens decision-making speed, which generalizes to driving, sports, and rapid-fire conversation.</p>
+  </section>
+
+  <footer class="text-center text-white/30 text-xs mono py-4">Powered by Z.AI GLM 5.2 · Brain &amp; ASMR Lab</footer>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  // ---------- Audio ----------
+  var actx = null;
+  function audio(){
+    if(!actx){ try{ actx = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){ actx = null; } }
+    if(actx && actx.state === 'suspended'){ try{ actx.resume(); }catch(e){} }
+    return actx;
+  }
+  function blip(freq, dur, type, gain){
+    try{
+      var a = audio(); if(!a) return;
+      var o = a.createOscillator(); var g = a.createGain();
+      o.type = type || 'sine'; o.frequency.value = freq || 440;
+      o.connect(g); g.connect(a.destination);
+      var t = a.currentTime;
+      g.gain.setValueAtTime(gain || 0.08, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + (dur || 0.12));
+      o.start(t); o.stop(t + (dur || 0.12));
+    }catch(e){}
+  }
+  function goSound(){ blip(880, 0.18, 'square', 0.1); }
+  function hitSound(){ blip(660, 0.1, 'triangle', 0.08); setTimeout(function(){blip(990,0.1,'triangle',0.07);},60); }
+  function earlySound(){ blip(180, 0.2, 'sawtooth', 0.07); setTimeout(function(){blip(140,0.2,'sawtooth',0.06);},120); }
+  function endSound(){ [659,523,392].forEach(function(f,i){ setTimeout(function(){blip(f,0.2,'triangle',0.08);}, i*100); }); }
+
+  // ---------- State ----------
+  var MODE_CLASSIC = 'classic';
+  var MODE_STREAK = 'streak';
+  var mode = MODE_CLASSIC;
+  var phase = 'idle'; // idle | waiting | ready | tooearly | result | over
+  var waitTimer = null;
+  var goTime = 0;
+  var rounds = [];
+  var streakScore = 0;
+  var streakStart = 0;
+  var streakTimer = null;
+  var streakRemaining = 0;
+
+  function $(id){ return document.getElementById(id); }
+
+  function bestKey(){ return mode === MODE_CLASSIC ? 'rr_best_avg' : 'rr_best_streak'; }
+  function loadBest(){ try{ var v = localStorage.getItem(bestKey()); return v ? parseInt(v,10) : null; }catch(e){ return null; } }
+  function saveBest(v){ try{ localStorage.setItem(bestKey(), String(v)); }catch(e){} }
+  function formatBest(){
+    var b = loadBest();
+    if(b == null) return '—';
+    return mode === MODE_CLASSIC ? (b + ' ms') : (b + ' taps');
+  }
+
+  function updateHUD(){
+    if($('best')) $('best').textContent = formatBest();
+    if(mode === MODE_CLASSIC){
+      if($('stat1Label')) $('stat1Label').textContent = 'Round';
+      if($('stat1')) $('stat1').textContent = rounds.length + ' / 5';
+      if($('stat2Label')) $('stat2Label').textContent = 'Last';
+      if($('stat2')) $('stat2').textContent = rounds.length ? rounds[rounds.length-1] + ' ms' : '—';
+      if($('stat3Label')) $('stat3Label').textContent = 'Avg';
+      var sum = 0; for(var i=0;i<rounds.length;i++) sum += rounds[i];
+      if($('stat3')) $('stat3').textContent = rounds.length ? Math.round(sum/rounds.length) + ' ms' : '—';
+      if($('modeStat')) $('modeStat').innerHTML = 'Best Avg: <span class="text-emerald-400">' + formatBest() + '</span>';
+    } else {
+      if($('stat1Label')) $('stat1Label').textContent = 'Taps';
+      if($('stat1')) $('stat1').textContent = String(streakScore);
+      if($('stat2Label')) $('stat2Label').textContent = 'Last';
+      if($('stat2')) $('stat2').textContent = rounds.length ? rounds[rounds.length-1] + ' ms' : '—';
+      if($('stat3Label')) $('stat3Label').textContent = 'Best';
+      if($('stat3')) $('stat3').textContent = formatBest();
+      if($('modeStat')) $('modeStat').innerHTML = 'Best Streak: <span class="text-emerald-400">' + formatBest() + '</span>';
+    }
+  }
+
+  function setPad(kind, label, num){
+    var pad = $('pad'); if(!pad) return;
+    pad.className = 'pad pad-' + kind;
+    if($('padLabel')) $('padLabel').textContent = label || '';
+    if($('padNum')) $('padNum').textContent = num || '';
+  }
+
+  function setMsg(t){ var m = $('msg'); if(m) m.textContent = t; }
+
+  function clearTimers(){
+    if(waitTimer){ clearTimeout(waitTimer); waitTimer = null; }
+    if(streakTimer){ clearInterval(streakTimer); streakTimer = null; }
+  }
+
+  // ---------- Classic Mode ----------
+  function startClassic(){
+    audio();
+    rounds = [];
+    if($('startBtn')) $('startBtn').textContent = 'Restart';
+    if($('streakTimerWrap')) $('streakTimerWrap').classList.add('hidden');
+    updateHUD();
+    nextClassicRound();
+  }
+
+  function nextClassicRound(){
+    if(rounds.length >= 5){
+      finishClassic();
+      return;
+    }
+    phase = 'waiting';
+    setPad('wait', 'Wait for green…', '');
+    setMsg('Round ' + (rounds.length+1) + ' of 5 — wait for the green flash');
+    var delay = 1500 + Math.random()*2500;
+    waitTimer = setTimeout(function(){
+      phase = 'ready';
+      goTime = performance.now();
+      goSound();
+      setPad('go', 'TAP NOW!', '');
+    }, delay);
+  }
+
+  function finishClassic(){
+    phase = 'over';
+    var sum = 0; for(var i=0;i<rounds.length;i++) sum += rounds[i];
+    var avg = Math.round(sum/rounds.length);
+    var b = loadBest();
+    if(b==null || avg < b){ saveBest(avg); }
+    updateHUD();
+    setPad('over', 'Done! Average', avg + ' ms');
+    setMsg('Best avg: ' + formatBest() + ' — tap Start to retry');
+    if($('startBtn')) $('startBtn').textContent = 'Play Again';
+  }
+
+  // ---------- Streak Mode ----------
+  function startStreak(){
+    audio();
+    streakScore = 0;
+    rounds = [];
+    streakRemaining = 20000;
+    if($('startBtn')) $('startBtn').textContent = 'Restart';
+    if($('streakTimerWrap')) $('streakTimerWrap').classList.remove('hidden');
+    updateHUD();
+    streakStart = performance.now();
+    streakTimer = setInterval(function(){
+      var elapsed = performance.now() - streakStart;
+      var left = Math.max(0, 20000 - elapsed);
+      streakRemaining = left;
+      if($('timebar')) $('timebar').style.width = (left/20000*100) + '%';
+      if(left <= 0){
+        clearTimers();
+        finishStreak();
+      }
+    }, 80);
+    nextStreakRound();
+  }
+
+  function nextStreakRound(){
+    if(streakRemaining <= 0) return;
+    phase = 'waiting';
+    setPad('wait', 'Wait for green…', '');
+    var delay = 600 + Math.random()*1800;
+    waitTimer = setTimeout(function(){
+      if(streakRemaining <= 0) return;
+      phase = 'ready';
+      goTime = performance.now();
+      goSound();
+      setPad('go', 'TAP!', String(streakScore));
+    }, delay);
+  }
+
+  function finishStreak(){
+    phase = 'over';
+    var b = loadBest();
+    if(b==null || streakScore > b){ saveBest(streakScore); }
+    updateHUD();
+    setPad('over', 'Streak complete!', streakScore + ' taps');
+    setMsg('Best streak: ' + formatBest() + ' — tap Start to retry');
+    if($('startBtn')) $('startBtn').textContent = 'Play Again';
+  }
+
+  // ---------- Pad interaction ----------
+  function onPadTap(){
+    audio();
+    if(phase === 'idle' || phase === 'over'){
+      // start
+      if(mode === MODE_CLASSIC) startClassic(); else startStreak();
+      return;
+    }
+    if(phase === 'waiting'){
+      // too early
+      clearTimers();
+      earlySound();
+      phase = 'tooearly';
+      setPad('tooearly', 'Too early!', '');
+      setMsg('Tap the pad to retry this round');
+      // require a tap to continue
+      return;
+    }
+    if(phase === 'tooearly'){
+      // retry current round
+      if(mode === MODE_CLASSIC) nextClassicRound();
+      else { if(streakRemaining > 0) nextStreakRound(); else finishStreak(); }
+      return;
+    }
+    if(phase === 'ready'){
+      var rt = Math.round(performance.now() - goTime);
+      hitSound();
+      if(mode === MODE_CLASSIC){
+        rounds.push(rt);
+        updateHUD();
+        phase = 'result';
+        setPad('result', rt + ' ms', '');
+        setMsg('Nice! Next round loading…');
+        setTimeout(nextClassicRound, 900);
+      } else {
+        rounds.push(rt);
+        streakScore++;
+        updateHUD();
+        phase = 'result';
+        setPad('result', rt + ' ms', String(streakScore));
+        setMsg('Tap!');
+        setTimeout(function(){
+          if(streakRemaining > 0) nextStreakRound(); else finishStreak();
+        }, 350);
+      }
+    }
+  }
+
+  function switchMode(newMode){
+    if(mode === newMode) return;
+    clearTimers();
+    mode = newMode;
+    phase = 'idle';
+    rounds = [];
+    streakScore = 0;
+    if($('modeClassic')) $('modeClassic').classList.toggle('active', mode === MODE_CLASSIC);
+    if($('modeStreak')) $('modeStreak').classList.toggle('active', mode === MODE_STREAK);
+    if($('streakTimerWrap')) $('streakTimerWrap').classList.add('hidden');
+    if($('startBtn')) $('startBtn').textContent = 'Start';
+    updateHUD();
+    setPad('idle', 'Press Start to begin', '');
+    setMsg('');
+  }
+
+  function init(){
+    var pad = $('pad');
+    if(pad){
+      pad.addEventListener('click', onPadTap);
+      pad.addEventListener('touchstart', function(e){ e.preventDefault(); onPadTap(); }, {passive:false});
+    }
+    if($('startBtn')) $('startBtn').addEventListener('click', function(e){ e.stopPropagation(); if(mode === MODE_CLASSIC) startClassic(); else startStreak(); });
+    if($('modeClassic')) $('modeClassic').addEventListener('click', function(){ switchMode(MODE_CLASSIC); });
+    if($('modeStreak')) $('modeStreak').addEventListener('click', function(){ switchMode(MODE_STREAK); });
+    updateHUD();
+  }
+
+  if(document.readyState === 'loading'){ document.addEventListener('DOMContentLoaded', init); }
+  else { init(); }
+})();
+</script>
+</body>
+</html>
