@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { useCart } from '@/contexts/CartContext'
-import { useCurrency } from '@/hooks/useCurrency'
+import { useCurrency } from '@/contexts/CurrencyContext'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 
@@ -27,14 +27,7 @@ function ProductDetailContent() {
   const [isLoading, setIsLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
   const { addToCart } = useCart()
-  const { currency, convertPrice, currencyConfig } = useCurrency()
-
-  const formatPrice = (price: number) =>
-    new Intl.NumberFormat('ru-RU', {
-      style: 'currency',
-      currency,
-      maximumFractionDigits: 0
-    }).format(convertPrice(price))
+  const { formatPrice } = useCurrency() as any
 
   useEffect(() => {
     const fetchProduct = async () => {

@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
-import { useCurrency } from '@/hooks/useCurrency'
+import { useCurrency } from '@/contexts/CurrencyContext'
 import { useCart } from '@/contexts/CartContext'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
@@ -23,7 +23,7 @@ const categoryLabel = (category: string) =>
 
 function ArrayContent() {
   const [products, setProducts] = useState<any[]>([])
-  const { currency, convertPrice, currencyConfig } = useCurrency()
+  const { currency, convertPrice, formatPrice: ctxFormatPrice } = useCurrency() as any
   const { addToCart } = useCart()
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
@@ -54,13 +54,6 @@ function ArrayContent() {
     const matchesPriceRange = productPrice >= priceRange.min && productPrice <= priceRange.max
     return matchesSearch && matchesCategory && matchesPriceRange
   })
-
-  const formatPrice = (price: number) =>
-    new Intl.NumberFormat('ru-RU', {
-      style: 'currency',
-      currency,
-      maximumFractionDigits: 0
-    }).format(convertPrice(price))
 
   const categories = [
     { value: 'all', label: 'Все категории', count: products.length },
@@ -170,8 +163,7 @@ function ArrayContent() {
                     <h3 className="text-base font-semibold text-[color:var(--ink)]">{product.name}</h3>
                     <p className="muted-ss mt-1 line-clamp-2 text-sm">{product.description}</p>
                     <div className="mt-4">
-                      <span className="price-ss text-lg">{formatPrice(product.price)}</span>
-                      <span className="muted-ss ml-2 text-xs">{currencyConfig.symbol}</span>
+                      <span className="price-ss text-lg">{ctxFormatPrice(product.price)}</span>
                     </div>
                     <div className="mt-auto pt-4 flex gap-2">
                       <button

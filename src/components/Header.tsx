@@ -3,16 +3,15 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useCart } from '@/contexts/CartContext'
-import { useCurrency } from '@/hooks/useCurrency'
+import { useCurrency } from '@/contexts/CurrencyContext'
 
 export default function Header() {
   const { cartCount } = useCart()
-  const { currency, setCurrency } = useCurrency()
+  const { currency, setCurrency, availableCurrencies } = useCurrency() as any
   const router = useRouter()
 
   const handleCurrencyChange = (newCurrency: string) => {
-    setCurrency(newCurrency)
-    localStorage.setItem('currency', newCurrency)
+    setCurrency(newCurrency as any)
   }
 
   const goToCart = () => {

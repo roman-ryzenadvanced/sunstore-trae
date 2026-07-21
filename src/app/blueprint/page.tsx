@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from 'react'
-import { useCurrency } from '@/hooks/useCurrency'
+import { useCurrency } from '@/contexts/CurrencyContext'
 import { useCart } from '@/contexts/CartContext'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
@@ -22,7 +22,7 @@ const categoryLabel: Record<string, string> = {
 
 function BlueprintContent() {
   const [product, setProduct] = useState<any>(null)
-  const { currency, convertPrice, currencyConfig } = useCurrency()
+  const { convertPrice, formatPrice: ctxFormatPrice } = useCurrency() as any
   const { addToCart } = useCart()
   const [isLoading, setIsLoading] = useState(true)
   const [quantity, setQuantity] = useState(1)
@@ -76,13 +76,6 @@ function BlueprintContent() {
     }
     fetchProduct()
   }, [])
-
-  const formatPrice = (price: number) =>
-    new Intl.NumberFormat('ru-RU', {
-      style: 'currency',
-      currency,
-      maximumFractionDigits: 0
-    }).format(convertPrice(price))
 
   const calculateTotalPrice = () => (product ? product.price * quantity : 0)
 
@@ -138,8 +131,7 @@ function BlueprintContent() {
 
               <div className="card-ss mt-8 p-6">
                 <div className="mb-6 flex items-baseline justify-between">
-                  <span className="price-ss text-3xl">{formatPrice(product.price)}</span>
-                  <span className="muted-ss text-sm">{currencyConfig.symbol}</span>
+                  <span className="price-ss text-3xl">{ctxFormatPrice(product.price)}</span>
                 </div>
 
                 <div className="space-y-6">
@@ -222,7 +214,7 @@ function BlueprintContent() {
                   }
                   className="btn btn-primary flex-1"
                 >
-                  В корзину — {formatPrice(calculateTotalPrice())}
+                  В корзину — {ctxFormatPrice(calculateTotalPrice())}
                 </button>
               </div>
 

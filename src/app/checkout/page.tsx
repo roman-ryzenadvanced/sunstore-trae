@@ -3,7 +3,7 @@
 export const dynamic = 'force-dynamic'
 
 import { useState, useEffect, useRef } from 'react'
-import { useCurrency } from '@/hooks/useCurrency'
+import { useCurrency } from '@/contexts/CurrencyContext'
 import { useCart } from '@/contexts/CartContext'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
@@ -102,7 +102,7 @@ function loadCloudPaymentsWidget(
 
 export default function CheckoutPage() {
   const { cartItems, updateQuantity, removeFromCart, clearCart, isLoading } = useCart()
-  const { currency, convertPrice, currencyConfig } = useCurrency()
+  const { formatPrice: ctxFormatPrice } = useCurrency() as any
   const [currentStep, setCurrentStep] = useState(1)
   const [paymentData, setPaymentData] = useState({
     method: 'card',
@@ -188,15 +188,6 @@ export default function CheckoutPage() {
     } finally {
       setConfigLoading(false)
     }
-  }
-
-  const formatPrice = (price: number) => {
-    return new Intl.NumberFormat('ru-RU', {
-      style: 'currency',
-      currency: currency,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0
-    }).format(convertPrice(price))
   }
 
   const subtotal = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0)
@@ -442,7 +433,7 @@ export default function CheckoutPage() {
 
                         <div className="text-right">
                           <div className="text-xl font-bold text-orange-400">
-                            {formatPrice(item.price * item.quantity)}
+                            {ctxFormatPrice(item.price * item.quantity)}
                           </div>
                           <button
                             onClick={() => removeFromCart(item.id)}
@@ -600,12 +591,12 @@ export default function CheckoutPage() {
                   <div className="space-y-4 mb-6">
                     <div className="flex justify-between py-3 border-b border-slate-700/50">
                       <span className="text-slate-400">Сумма заказа</span>
-                      <span className="font-semibold">{formatPrice(subtotal)}</span>
+                      <span className="font-semibold">{ctxFormatPrice(subtotal)}</span>
                     </div>
                     <div className="flex justify-between py-3 border-b border-slate-700/50">
                       <span className="text-slate-400">Доставка</span>
                       <span className={`font-semibold ${shippingCost === 0 ? 'text-green-400' : ''}`}>
-                        {shippingCost === 0 ? 'Бесплатно' : formatPrice(shippingCost)}
+                        {shippingCost === 0 ? 'Бесплатно' : ctxFormatPrice(shippingCost)}
                       </span>
                     </div>
                     {shippingCost === 0 && (
@@ -620,7 +611,7 @@ export default function CheckoutPage() {
                   <div className="border-t border-slate-700/50 pt-4 mb-6">
                     <div className="flex justify-between items-center">
                       <span className="text-lg font-semibold">Итого к оплате</span>
-                      <span className="text-2xl font-bold text-orange-400">{formatPrice(total)}</span>
+                      <span className="text-2xl font-bold text-orange-400">{ctxFormatPrice(total)}</span>
                     </div>
                   </div>
 
@@ -677,7 +668,7 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex items-center justify-between py-3 border-b border-slate-700/50">
                   <span className="text-slate-400">Сумма заказа</span>
-                  <span className="font-semibold">{formatPrice(total)}</span>
+                  <span className="font-semibold">{ctxFormatPrice(total)}</span>
                 </div>
               </div>
 

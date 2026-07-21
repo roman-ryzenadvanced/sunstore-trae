@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { useCart } from '@/contexts/CartContext'
-import { useCurrency } from '@/hooks/useCurrency'
+import { useCurrency } from '@/contexts/CurrencyContext'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 
@@ -14,7 +14,7 @@ const scrollTo = (id: string) => {
   if (el) el.scrollIntoView({ behavior: 'smooth' })
 }
 
-function ProductCard({ product, onAdd, formatPrice, currencySymbol }: { product: any; onAdd: (p: any) => void; formatPrice: (p: number) => string; currencySymbol?: string }) {
+function ProductCard({ product, onAdd, formatPrice }: { product: any; onAdd: (p: any) => void; formatPrice: (p: number) => string }) {
   return (
     <div className="card-ss card-ss-hover flex flex-col overflow-hidden">
       <div className="relative aspect-[4/3] overflow-hidden bg-[color:var(--surface-2)]">
@@ -29,9 +29,8 @@ function ProductCard({ product, onAdd, formatPrice, currencySymbol }: { product:
       <div className="flex flex-1 flex-col p-5">
         <h3 className="text-base font-semibold text-[color:var(--ink)]">{product.name}</h3>
         <p className="mt-1 line-clamp-2 text-sm text-[color:var(--ink-3)]">{product.description}</p>
-        <div className="mt-4 flex items-center justify-between">
+        <div className="mt-4">
           <span className="price-ss text-lg">{formatPrice(product.price)}</span>
-          {currencySymbol && <span className="muted-ss text-xs">{currencySymbol}</span>}
         </div>
         <div className="mt-auto pt-4 flex gap-2">
           <button onClick={() => onAdd(product)} className="btn btn-primary flex-1">
@@ -50,16 +49,7 @@ function HomeContent() {
   const [products, setProducts] = useState<any[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const { addToCart } = useCart()
-  const { convertPrice, currencyConfig } = useCurrency()
-
-  const formatPrice = (price: number) => {
-    const converted = convertPrice(price)
-    return new Intl.NumberFormat('ru-RU', {
-      style: 'currency',
-      currency: currencyConfig.code,
-      maximumFractionDigits: 0
-    }).format(converted)
-  }
+  const { formatPrice } = useCurrency()
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -146,7 +136,7 @@ function HomeContent() {
             <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {products.map((product) => (
                 <div key={product.id} className="group">
-                  <ProductCard product={product} onAdd={handleAdd} formatPrice={formatPrice} currencySymbol={currencyConfig.symbol} />
+                  <ProductCard product={product} onAdd={handleAdd} formatPrice={formatPrice} />
                 </div>
               ))}
             </div>
