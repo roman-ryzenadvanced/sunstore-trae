@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GLM 5.2 · Chime Garden</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --g: #0a0a0a;
+      --gb: #1a1a1a;
+      --a: #00d4ff;
+      --r: #ff3e3e;
+      --rb: #ff6b6b;
+      --s: #888;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--g);
+      color: #fff;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .glass-strong {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.28;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .orb-1 {
+      width: 440px;
+      height: 440px;
+      background: #2dd4bf;
+      top: -120px;
+      right: -120px;
+    }
+
+    .orb-2 {
+      width: 380px;
+      height: 380px;
+      background: #fbbf24;
+      bottom: -100px;
+      left: -100px;
+    }
+
+    .btn {
+      padding: 0.7rem 1.4rem;
+      border-radius: 0.75rem;
+      font-weight: 600;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+    }
+
+    .btn-glow {
+      background: linear-gradient(135deg, #2dd4bf, #14b8a6);
+      color: #042f2a;
+      box-shadow: 0 0 20px rgba(45, 212, 191, 0.4);
+    }
+
+    .btn-glow:hover {
+      box-shadow: 0 0 30px rgba(45, 212, 191, 0.6);
+      transform: translateY(-2px);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.375rem 0.75rem;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      gap: 0.375rem;
+    }
+
+    .chip-cyan {
+      background: rgba(0, 212, 255, 0.15);
+      color: var(--a);
+      border: 1px solid rgba(0, 212, 255, 0.3);
+    }
+
+    .chip-rose {
+      background: rgba(255, 62, 62, 0.15);
+      color: var(--rb);
+      border: 1px solid rgba(255, 62, 62, 0.3);
+    }
+
+    .chip-emerald {
+      background: rgba(16, 185, 129, 0.15);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .h1-grad {
+      background: linear-gradient(135deg, #a7f3d0 0%, #fde68a 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--s);
+      flex-shrink: 0;
+    }
+
+    .status-dot.active {
+      background: #2dd4bf;
+      box-shadow: 0 0 10px #2dd4bf;
+    }
+
+    .status-dot.breeze {
+      background: #fbbf24;
+      box-shadow: 0 0 12px #fbbf24;
+    }
+
+    .status-dot.harmony {
+      background: #a7f3d0;
+      box-shadow: 0 0 12px #a7f3d0;
+    }
+
+    /* Chime palette swatch */
+    .swatch {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.7rem 0.5rem;
+      border-radius: 0.9rem;
+      background: rgba(255, 255, 255, 0.04);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      cursor: pointer;
+      transition: all 0.2s;
+      min-width: 64px;
+    }
+
+    .swatch:hover {
+      background: rgba(255, 255, 255, 0.08);
+      transform: translateY(-2px);
+    }
+
+    .swatch.selected {
+      border-color: var(--swatch-color, #2dd4bf);
+      background: rgba(255, 255, 255, 0.1);
+      box-shadow: 0 0 18px rgba(255, 255, 255, 0.12);
+    }
+
+    .swatch .dot {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background: var(--swatch-color, #2dd4bf);
+      box-shadow: 0 0 14px var(--swatch-color, #2dd4bf);
+    }
+
+    .swatch .note {
+      font-size: 0.8rem;
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .swatch .hz {
+      font-size: 0.62rem;
+      color: rgba(255, 255, 255, 0.4);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .toggle-on {
+      background: linear-gradient(135deg, #2dd4bf, #14b8a6);
+      color: #042f2a;
+      box-shadow: 0 0 18px rgba(45, 212, 191, 0.45);
+    }
+
+    .canvas-wrap {
+      position: relative;
+      width: 100%;
+      line-height: 0;
+    }
+
+    #cv {
+      width: 100%;
+      aspect-ratio: 600 / 450;
+      display: block;
+      border-radius: 1rem;
+      touch-action: none;
+      cursor: crosshair;
+    }
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <nav class="glass fixed top-0 left-0 right-0 z-50 px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-teal-400 to-emerald-500 flex items-center justify-center font-bold text-black">
+        R
+      </div>
+      <a href="https://rommark.dev" class="text-white font-semibold hover:text-teal-300 transition">rommark.dev</a>
+    </div>
+    <div class="flex items-center gap-4">
+      <a href="#" class="text-white/60 hover:text-white transition flex items-center gap-2">
+        <span>←</span>
+        <span>Playground</span>
+      </a>
+      <button id="mute-btn" class="glass rounded-lg px-3 py-2 text-sm hover:bg-white/10 transition" title="Mute / unmute">
+        🔊
+      </button>
+    </div>
+  </nav>
+
+  <main class="relative z-10 pt-32 pb-20 px-6 max-w-4xl mx-auto">
+    <div class="text-center mb-10">
+      <h1 class="text-5xl md:text-6xl font-bold mb-4 h1-grad">Chime Garden</h1>
+      <p class="text-white/60 text-lg mb-6">Plant chimes. Let the breeze sing them awake.</p>
+      <div class="flex items-center justify-center gap-3 flex-wrap">
+        <span class="chip chip-cyan">
+          <span>●</span>
+          <span>GLM 5.2</span>
+        </span>
+        <span class="chip chip-rose">
+          <span>♪</span>
+          <span>ASMR</span>
+        </span>
+      </div>
+    </div>
+
+    <section class="glass-strong rounded-3xl p-5 md:p-7 mb-6">
+      <div class="canvas-wrap mb-5">
+        <canvas id="cv" width="600" height="450"></canvas>
+      </div>
+
+      <!-- Chime palette -->
+      <div class="flex items-center justify-center gap-3 flex-wrap mb-5" id="palette"></div>
+
+      <!-- Controls -->
+      <div class="flex items-center justify-center gap-3 flex-wrap mb-4">
+        <button id="clearBtn" class="btn glass text-white">Clear Garden</button>
+        <button id="breezeBtn" class="btn btn-glow">Auto Breeze: ON</button>
+        <button id="sweepBtn" class="btn glass text-white">Summon Breeze</button>
+      </div>
+
+      <!-- Status -->
+      <div id="statusBar" class="glass rounded-xl px-5 py-3 flex items-center gap-3">
+        <div id="statusDot" class="status-dot"></div>
+        <span id="statusText" class="text-white/80 text-sm">Tap the canvas to plant your first chime.</span>
+      </div>
+
+      <div class="flex items-center justify-center gap-2 mt-4 text-white/40 text-xs mono">
+        <span>Chimes planted (all time):</span>
+        <span id="totalChimes" class="text-teal-300">0</span>
+      </div>
+    </section>
+
+    <section class="glass rounded-2xl p-7">
+      <h2 class="text-xl font-bold mb-3">How to tend your garden</h2>
+      <ul class="space-y-2.5 text-white/70 text-sm leading-relaxed">
+        <li class="flex items-start gap-3">
+          <span class="text-teal-300 font-bold">1.</span>
+          <span>Pick a chime from the palette — each is a note from a calm pentatonic scale (C · D · E · G · A).</span>
+        </li>
+        <li class="flex items-start gap-3">
+          <span class="text-teal-300 font-bold">2.</span>
+          <span>Tap anywhere on the canvas to plant a glowing chime in your garden.</span>
+        </li>
+        <li class="flex items-start gap-3">
+          <span class="text-teal-300 font-bold">3.</span>
+          <span>Tap an existing chime any time to ring it by hand and hear its tone.</span>
+        </li>
+        <li class="flex items-start gap-3">
+          <span class="text-teal-300 font-bold">4.</span>
+          <span>Leave Auto Breeze on and a gentle wind will drift through, ringing chimes in a soothing melody.</span>
+        </li>
+        <li class="flex items-start gap-3">
+          <span class="text-teal-300 font-bold">5.</span>
+          <span>No score, no fail — just a peaceful sound garden. Breathe, and listen.</span>
+        </li>
+      </ul>
+    </section>
+  </main>
+
+  <footer class="glass fixed bottom-0 left-0 right-0 z-50 px-6 py-4 text-center text-white/60 text-sm">
+    <p>GLM 5.2 · Chime Garden · Built with precision</p>
+  </footer>
+
+  <script>
+    (function () {
+      'use strict';
+
+      // ---------- DOM helpers (null-guarded) ----------
+      function $(id) { return document.getElementById(id); }
+
+      // ---------- Audio (CRITICAL ASMR — Web Audio, try/catch) ----------
+      var actx = null;
+      var muted = false;
+
+      function ensureAudio() {
+        if (!actx) {
+          try {
+            var AC = window.AudioContext || window.webkitAudioContext;
+            if (AC) actx = new AC();
+          } catch (e) { actx = null; }
+        }
+        if (actx && actx.state === 'suspended') {
+          try { actx.resume(); } catch (e) {}
+        }
+        return actx;
+      }
+
+      // Soft bell tone: additive sine partials with staggered exponential decay.
+      // Pentatonic frequencies only -> always consonant.
+      function playChime(freq, vel) {
+        if (muted) return;
+        var a = ensureAudio();
+        if (!a) return;
+        try {
+          var t0 = a.currentTime;
+          var v = (vel == null ? 1 : vel);
+          var partials = [
+            { ratio: 1.0, gain: 1.00, decay: 2.8 },
+            { ratio: 2.0, gain: 0.50, decay: 1.9 },
+            { ratio: 3.0, gain: 0.28, decay: 1.3 },
+            { ratio: 4.2, gain: 0.16, decay: 0.9 },
+            { ratio: 5.4, gain: 0.10, decay: 0.6 }
+          ];
+          var master = a.createGain();
+          master.gain.setValueAtTime(0.0001, t0);
+          master.gain.exponentialRampToValueAtTime(0.20 * v, t0 + 0.012);
+          master.gain.exponentialRampToValueAtTime(0.0001, t0 + 3.2);
+          master.connect(a.destination);
+
+          for (var i = 0; i < partials.length; i++) {
+            var p = partials[i];
+            var o = a.createOscillator();
+            var g = a.createGain();
+            o.type = 'sine';
+            o.frequency.value = freq * p.ratio;
+            o.detune.value = (Math.random() * 6 - 3); // tiny warmth
+            g.gain.setValueAtTime(0.0001, t0);
+            g.gain.exponentialRampToValueAtTime(p.gain, t0 + 0.008);
+            g.gain.exponentialRampToValueAtTime(0.0001, t0 + p.decay);
+            o.connect(g);
+            g.connect(master);
+            o.start(t0);
+            o.stop(t0 + p.decay + 0.1);
+          }
+        } catch (e) {}
+      }
+
+      // Subtle filtered-noise whoosh for the breeze.
+      function playBreeze(duration) {
+        if (muted) return;
+        var a = ensureAudio();
+        if (!a) return;
+        try {
+          var dur = duration || 2.2;
+          var t0 = a.currentTime;
+          var len = Math.max(1, Math.floor(a.sampleRate * dur));
+          var buf = a.createBuffer(1, len, a.sampleRate);
+          var d = buf.getChannelData(0);
+          for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1);
+          var src = a.createBufferSource();
+          src.buffer = buf;
+          var bp = a.createBiquadFilter();
+          bp.type = 'bandpass';
+          bp.Q.value = 0.7;
+          var g = a.createGain();
+          src.connect(bp);
+          bp.connect(g);
+          g.connect(a.destination);
+          g.gain.setValueAtTime(0.0001, t0);
+          g.gain.linearRampToValueAtTime(0.05, t0 + dur * 0.3);
+          g.gain.linearRampToValueAtTime(0.0001, t0 + dur);
+          bp.frequency.setValueAtTime(380, t0);
+          bp.frequency.linearRampToValueAtTime(950, t0 + dur);
+          src.start(t0);
+          src.stop(t0 + dur + 0.1);
+        } catch (e) {}
+      }
+
+      // ---------- Chime palette (pentatonic: C5 D5 E5 G5 A5) ----------
+      var NOTES = [
+        { name: 'C', freq: 523.25, color: '#fbbf24' }, // warm gold
+        { name: 'D', freq: 587.33, color: '#2dd4bf' }, // teal
+        { name: 'E', freq: 659.25, color: '#4ade80' }, // green
+        { name: 'G', freq: 783.99, color: '#38bdf8' }, // sky
+        { name: 'A', freq: 880.00, color: '#f472b6' }  // rose
+      ];
+      var selectedIndex = 0;
+
+      // ---------- State ----------
+      var chimes = [];     // { x, y, note, color, phase, ringBoost, ringAt }
+      var ripples = [];    // { x, y, start, color }
+      var leaves = [];     // drifting breeze specks
+      var autoBreeze = true;
+      var breeze = null;   // { dir, front, prevFront, speed, rung:{}, duration, start }
+      var nextBreezeAt = 0;
+      var totalPlaced = 0;
+
+      // ---------- Canvas ----------
+      var cv = $('cv');
+      var ctx = cv ? cv.getContext('2d') : null;
+      var W = 600, H = 450;
+
+      function loadTotal() {
+        try {
+          var v = parseInt(localStorage.getItem('glm-20-chimes') || '0', 10);
+          totalPlaced = isNaN(v) ? 0 : v;
+        } catch (e) { totalPlaced = 0; }
+        if ($('totalChimes')) $('totalChimes').textContent = totalPlaced;
+      }
+      function bumpTotal() {
+        totalPlaced++;
+        try { localStorage.setItem('glm-20-chimes', String(totalPlaced)); } catch (e) {}
+        if ($('totalChimes')) $('totalChimes').textContent = totalPlaced;
+      }
+
+      // ---------- Status ----------
+      function setStatus(text, type) {
+        var t = $('statusText'), d = $('statusDot');
+        if (t) t.textContent = text;
+        if (d) {
+          d.className = 'status-dot';
+          if (type === 'breeze') d.classList.add('breeze');
+          else if (type === 'harmony') d.classList.add('harmony');
+          else if (type === 'active') d.classList.add('active');
+        }
+      }
+
+      // ---------- Drawing ----------
+      function drawGarden(t) {
+        if (!ctx) return;
+        // Sky
+        var sky = ctx.createLinearGradient(0, 0, 0, H * 0.62);
+        sky.addColorStop(0, '#15323d');
+        sky.addColorStop(1, '#1f4a47');
+        ctx.fillStyle = sky;
+        ctx.fillRect(0, 0, W, H * 0.62);
+
+        // Soft moon glow (top-right)
+        var mg = ctx.createRadialGradient(W - 90, 70, 5, W - 90, 70, 110);
+        mg.addColorStop(0, 'rgba(253,230,138,0.30)');
+        mg.addColorStop(1, 'rgba(253,230,138,0)');
+        ctx.fillStyle = mg;
+        ctx.fillRect(0, 0, W, H * 0.62);
+
+        // Grass
+        var grass = ctx.createLinearGradient(0, H * 0.55, 0, H);
+        grass.addColorStop(0, '#1c3f29');
+        grass.addColorStop(1, '#102418');
+        ctx.fillStyle = grass;
+        ctx.fillRect(0, H * 0.55, W, H * 0.45);
+
+        // Soft ground haze line
+        ctx.strokeStyle = 'rgba(167,243,208,0.08)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, H * 0.6);
+        ctx.lineTo(W, H * 0.6);
+        ctx.stroke();
+
+        // Tree (left)
+        drawTree(95, H * 0.6, t);
+
+        // Grass tufts
+        drawTufts(t);
+      }
+
+      function drawTree(bx, baseY, t) {
+        // trunk
+        ctx.strokeStyle = '#3d2b1f';
+        ctx.lineWidth = 9;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        ctx.moveTo(bx, baseY);
+        ctx.lineTo(bx, baseY - 70);
+        ctx.stroke();
+        // canopy (soft glowing green blobs)
+        var blobs = [
+          [bx - 26, baseY - 88, 30],
+          [bx + 24, baseY - 84, 28],
+          [bx, baseY - 112, 34],
+          [bx - 4, baseY - 78, 26]
+        ];
+        for (var i = 0; i < blobs.length; i++) {
+          var b = blobs[i];
+          var sway = Math.sin(t * 0.0006 + i) * 3;
+          var grad = ctx.createRadialGradient(b[0] + sway, b[1], 4, b[0] + sway, b[1], b[2]);
+          grad.addColorStop(0, 'rgba(74,222,128,0.55)');
+          grad.addColorStop(1, 'rgba(31,90,60,0.15)');
+          ctx.fillStyle = grad;
+          ctx.beginPath();
+          ctx.arc(b[0] + sway, b[1], b[2], 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      function drawTufts(t) {
+        ctx.strokeStyle = 'rgba(74,222,128,0.18)';
+        ctx.lineWidth = 2;
+        var spots = [180, 260, 340, 430, 510, 560];
+        for (var i = 0; i < spots.length; i++) {
+          var x = spots[i];
+          var y = H - 18 - (i % 2) * 6;
+          var sway = Math.sin(t * 0.001 + i) * 2;
+          ctx.beginPath();
+          ctx.moveTo(x, y);
+          ctx.quadraticCurveTo(x + 4 + sway, y - 12, x + 9 + sway * 2, y - 4);
+          ctx.moveTo(x, y);
+          ctx.quadraticCurveTo(x - 4 + sway, y - 10, x - 8 + sway * 2, y - 3);
+          ctx.stroke();
+        }
+      }
+
+      function drawChime(c, t) {
+        if (!ctx) return;
+        var pulse = 1 + 0.10 * Math.sin(t * 0.0022 + c.phase);
+        var ring = c.ringBoost || 0; // 0..1 decays
+        var glowR = (34 + ring * 26) * pulse;
+        // glow
+        var g = ctx.createRadialGradient(c.x, c.y - 4, 2, c.x, c.y - 4, glowR);
+        g.addColorStop(0, hexA(c.color, 0.45 + ring * 0.4));
+        g.addColorStop(1, hexA(c.color, 0));
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.arc(c.x, c.y - 4, glowR, 0, Math.PI * 2);
+        ctx.fill();
+
+        // hanger string
+        ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(c.x, c.y - 30 * pulse);
+        ctx.lineTo(c.x, c.y - 18 * pulse);
+        ctx.stroke();
+
+        // bell body
+        var s = pulse * (1 + ring * 0.12);
+        var bw = 11 * s, bh = 16 * s;
+        var top = c.y - 18 * s;
+        ctx.beginPath();
+        ctx.moveTo(c.x - 2, top);
+        ctx.lineTo(c.x + 2, top);
+        ctx.lineTo(c.x + bw, c.y - 2 * s);
+        ctx.quadraticCurveTo(c.x, c.y + bh * 0.5, c.x - bw, c.y - 2 * s);
+        ctx.closePath();
+        var bg = ctx.createLinearGradient(c.x - bw, top, c.x + bw, c.y);
+        bg.addColorStop(0, hexA(c.color, 0.85));
+        bg.addColorStop(0.5, lighten(c.color, 0.4));
+        bg.addColorStop(1, hexA(c.color, 0.85));
+        ctx.fillStyle = bg;
+        ctx.fill();
+        // clapper
+        ctx.fillStyle = lighten(c.color, 0.6);
+        ctx.beginPath();
+        ctx.arc(c.x, c.y + bh * 0.4 * s, 2.4 * s, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      function drawRipples(now) {
+        if (!ctx) return;
+        for (var i = ripples.length - 1; i >= 0; i--) {
+          var r = ripples[i];
+          var age = (now - r.start) / 1000;
+          if (age > 1.1) { ripples.splice(i, 1); continue; }
+          var rad = 6 + age * 46;
+          var alpha = (1 - age / 1.1) * 0.5;
+          ctx.strokeStyle = hexA(r.color, alpha);
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          ctx.arc(r.x, r.y, rad, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+      }
+
+      function drawBreeze(t) {
+        if (!breeze || !ctx) return;
+        // translucent moving band
+        var bandW = 90;
+        var x = breeze.front;
+        var grad = ctx.createLinearGradient(x - bandW, 0, x + bandW, 0);
+        grad.addColorStop(0, 'rgba(167,243,208,0)');
+        grad.addColorStop(0.5, 'rgba(167,243,208,0.06)');
+        grad.addColorStop(1, 'rgba(167,243,208,0)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(x - bandW, 0, bandW * 2, H);
+
+        // drifting leaves/specks
+        for (var i = 0; i < leaves.length; i++) {
+          var lf = leaves[i];
+          ctx.fillStyle = hexA(lf.color, lf.alpha);
+          ctx.beginPath();
+          ctx.ellipse(lf.x, lf.y, 3, 1.6, lf.rot, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      // color helpers
+      function hexA(hex, a) {
+        var c = hex.replace('#', '');
+        if (c.length === 3) c = c[0] + c[0] + c[1] + c[1] + c[2] + c[2];
+        var r = parseInt(c.substr(0, 2), 16),
+            g = parseInt(c.substr(2, 2), 16),
+            b = parseInt(c.substr(4, 2), 16);
+        return 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
+      }
+      function lighten(hex, amt) {
+        var c = hex.replace('#', '');
+        if (c.length === 3) c = c[0] + c[0] + c[1] + c[1] + c[2] + c[2];
+        var r = parseInt(c.substr(0, 2), 16),
+            g = parseInt(c.substr(2, 2), 16),
+            b = parseInt(c.substr(4, 2), 16);
+        r = Math.round(r + (255 - r) * amt);
+        g = Math.round(g + (255 - g) * amt);
+        b = Math.round(b + (255 - b) * amt);
+        return 'rgb(' + r + ',' + g + ',' + b + ')';
+      }
+
+      // ---------- Ring / place ----------
+      function ringChime(c, vel) {
+        if (!c) return;
+        c.ringBoost = 1;
+        c.ringAt = performance.now();
+        ripples.push({ x: c.x, y: c.y, start: performance.now(), color: c.color });
+        playChime(c.note.freq, vel == null ? 1 : vel);
+      }
+
+      function canvasCoords(evt) {
+        if (!cv) return null;
+        var rect = cv.getBoundingClientRect();
+        var cx = (evt.clientX - rect.left) * (W / rect.width);
+        var cy = (evt.clientY - rect.top) * (H / rect.height);
+        return { x: cx, y: cy };
+      }
+
+      function chimeAt(x, y) {
+        for (var i = chimes.length - 1; i >= 0; i--) {
+          var c = chimes[i];
+          var dx = x - c.x, dy = y - c.y;
+          if (dx * dx + dy * dy < 22 * 22) return c;
+        }
+        return null;
+      }
+
+      function placeChime(x, y) {
+        var note = NOTES[selectedIndex];
+        var c = {
+          x: x, y: y,
+          note: note, color: note.color,
+          phase: Math.random() * Math.PI * 2,
+          ringBoost: 1, ringAt: performance.now()
+        };
+        chimes.push(c);
+        ripples.push({ x: x, y: y, start: performance.now(), color: note.color });
+        bumpTotal();
+        playChime(note.freq, 0.9);
+        setStatus('A new chime blossoms in the garden.', 'active');
+      }
+
+      function onCanvasDown(evt) {
+        ensureAudio();
+        evt.preventDefault();
+        var p = canvasCoords(evt);
+        if (!p) return;
+        var hit = chimeAt(p.x, p.y);
+        if (hit) {
+          ringChime(hit, 1);
+        } else {
+          // keep within reasonable bounds (not above sky top, not below grass)
+          if (p.y < 24) p.y = 24;
+          if (p.y > H - 16) p.y = H - 16;
+          placeChime(p.x, p.y);
+        }
+      }
+
+      // ---------- Breeze ----------
+      function startBreeze() {
+        if (breeze || chimes.length === 0) return;
+        var dir = Math.random() < 0.5 ? 1 : -1;
+        breeze = {
+          dir: dir,
+          front: dir > 0 ? -60 : W + 60,
+          prevFront: dir > 0 ? -60 : W + 60,
+          speed: 2.6 + Math.random() * 1.2, // px per frame
+          rung: {},
+          duration: 0,
+          start: performance.now()
+        };
+        // leaves
+        leaves = [];
+        var n = 14;
+        for (var i = 0; i < n; i++) {
+          leaves.push({
+            x: Math.random() * W,
+            y: Math.random() * H * 0.8,
+            vy: 0.3 + Math.random() * 0.7,
+            vx: (dir > 0 ? 1 : -1) * (1.2 + Math.random() * 1.5),
+            rot: Math.random() * Math.PI,
+            color: Math.random() < 0.5 ? '#a7f3d0' : '#fde68a',
+            alpha: 0.4 + Math.random() * 0.4
+          });
+        }
+        setStatus('A gentle breeze stirs the garden...', 'breeze');
+      }
+
+      function updateBreeze() {
+        if (!breeze) return;
+        breeze.prevFront = breeze.front;
+        breeze.front += breeze.speed * breeze.dir;
+        breeze.duration = (performance.now() - breeze.start) / 1000;
+
+        // ring chimes the front crosses
+        var rungThisSweep = 0;
+        for (var i = 0; i < chimes.length; i++) {
+          var c = chimes[i];
+          if (breeze.rung[i]) continue;
+          var before = breeze.prevFront - c.x;
+          var after = breeze.front - c.x;
+          if (before === 0 || (before < 0) !== (after < 0)) {
+            breeze.rung[i] = true;
+            ringChime(c, 0.7);
+            rungThisSweep++;
+          }
+        }
+
+        // move leaves
+        for (var j = 0; j < leaves.length; j++) {
+          var lf = leaves[j];
+          lf.x += lf.vx;
+          lf.y += lf.vy;
+          lf.rot += 0.05;
+          if (lf.y > H) lf.y = -5;
+          if (lf.x < -10) lf.x = W + 10;
+          if (lf.x > W + 10) lf.x = -10;
+        }
+
+        // end when front leaves the canvas
+        if ((breeze.dir > 0 && breeze.front > W + 70) ||
+            (breeze.dir < 0 && breeze.front < -70)) {
+          var totalRung = Object.keys(breeze.rung).length;
+          breeze = null;
+          leaves = [];
+          if (chimes.length >= 3 && totalRung >= 3) {
+            setStatus('Lovely harmony fills the air. ', 'harmony');
+          } else if (chimes.length === 0) {
+            setStatus('Tap the canvas to plant your first chime.', '');
+          } else {
+            setStatus('The breeze passes. The garden rests.', 'active');
+          }
+          scheduleNextBreeze();
+        }
+      }
+
+      function scheduleNextBreeze() {
+        nextBreezeAt = performance.now() + (4000 + Math.random() * 4500);
+      }
+
+      // ---------- Animation loop ----------
+      var lastT = 0;
+      function loop(now) {
+        if (ctx) {
+          // decay ring boosts
+          for (var i = 0; i < chimes.length; i++) {
+            var c = chimes[i];
+            if (c.ringBoost) {
+              var age = (now - c.ringAt) / 1000;
+              c.ringBoost = Math.max(0, 1 - age / 0.9);
+            }
+          }
+          drawGarden(now);
+          if (autoBreeze && !breeze && now > nextBreezeAt && chimes.length > 0) {
+            startBreeze();
+          }
+          updateBreeze();
+          drawBreeze(now);
+          for (var k = 0; k < chimes.length; k++) drawChime(chimes[k], now);
+          drawRipples(now);
+        }
+        requestAnimationFrame(loop);
+      }
+
+      // ---------- Palette UI ----------
+      function buildPalette() {
+        var pal = $('palette');
+        if (!pal) return;
+        pal.innerHTML = '';
+        NOTES.forEach(function (n, idx) {
+          var sw = document.createElement('button');
+          sw.className = 'swatch' + (idx === selectedIndex ? ' selected' : '');
+          sw.style.setProperty('--swatch-color', n.color);
+          sw.innerHTML =
+            '<span class="dot"></span>' +
+            '<span class="note">' + n.name + '</span>' +
+            '<span class="hz">' + Math.round(n.freq) + ' Hz</span>';
+          sw.addEventListener('click', function () {
+            selectedIndex = idx;
+            var all = pal.querySelectorAll('.swatch');
+            for (var i = 0; i < all.length; i++) all[i].classList.remove('selected');
+            sw.classList.add('selected');
+            ensureAudio();
+            playChime(n.freq, 0.6); // preview
+          });
+          pal.appendChild(sw);
+        });
+      }
+
+      // ---------- Controls ----------
+      function clearGarden() {
+        chimes = [];
+        ripples = [];
+        breeze = null;
+        leaves = [];
+        setStatus('The garden is cleared. Plant anew whenever you like.', 'active');
+      }
+
+      function toggleBreeze() {
+        autoBreeze = !autoBreeze;
+        var b = $('breezeBtn');
+        if (b) {
+          if (autoBreeze) {
+            b.textContent = 'Auto Breeze: ON';
+            b.classList.add('btn-glow');
+          } else {
+            b.textContent = 'Auto Breeze: OFF';
+            b.classList.remove('btn-glow');
+          }
+        }
+        if (autoBreeze) scheduleNextBreeze();
+        setStatus(autoBreeze ? 'Auto breeze enabled. The wind will visit soon.' : 'Auto breeze paused.', 'active');
+      }
+
+      function toggleMute() {
+        muted = !muted;
+        var b = $('mute-btn');
+        if (b) b.textContent = muted ? '🔇' : '🔊';
+        if (!muted) ensureAudio();
+      }
+
+      // ---------- Init ----------
+      function init() {
+        loadTotal();
+        buildPalette();
+
+        if (cv && ctx) cv.addEventListener('pointerdown', onCanvasDown);
+        if ($('clearBtn')) $('clearBtn').addEventListener('click', clearGarden);
+        if ($('breezeBtn')) $('breezeBtn').addEventListener('click', toggleBreeze);
+        if ($('sweepBtn')) $('sweepBtn').addEventListener('click', function () { ensureAudio(); startBreeze(); });
+        if ($('mute-btn')) $('mute-btn').addEventListener('click', toggleMute);
+
+        scheduleNextBreeze();
+        requestAnimationFrame(loop);
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+    })();
+  </script>
+</body>
+</html>

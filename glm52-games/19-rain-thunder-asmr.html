@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>GLM 5.2 · Rain &amp; Thunder ASMR</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --g:#05060f;        /* deep night */
+  --gb:#0a0e22;       /* slightly lifted night */
+  --a:#7aa2ff;        /* soft indigo-blue accent */
+  --r:#ff5e8a;        /* rose */
+  --rb:#ff91b0;       /* light rose */
+  --s:rgba(255,255,255,.08);
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow-x:hidden}
+body{font-family:'Inter',system-ui,sans-serif;background:#000;color:#e2e8f0}
+.mono{font-family:'JetBrains Mono',monospace}
+.glass{background:rgba(18,24,48,.55);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(122,162,255,.12)}
+.glass-strong{background:rgba(14,19,40,.72);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(122,162,255,.18)}
+.orb{position:fixed;border-radius:50%;filter:blur(90px);pointer-events:none;z-index:0;opacity:.5}
+.orb-1{width:460px;height:460px;top:-160px;right:-140px;background:radial-gradient(circle,rgba(122,162,255,.45),transparent 70%);animation:f1 22s ease-in-out infinite}
+.orb-2{width:420px;height:420px;bottom:-180px;left:-150px;background:radial-gradient(circle,rgba(123,90,246,.4),transparent 70%);animation:f2 27s ease-in-out infinite}
+@keyframes f1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-50px,40px) scale(1.1)}}
+@keyframes f2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(40px,-40px) scale(1.08)}}
+.btn{transition:all .15s ease;cursor:pointer;border:none;font-family:'Inter',sans-serif}
+.btn:hover{transform:translateY(-1px)}
+.btn:active{transform:translateY(0) scale(.98)}
+.btn-glow{box-shadow:0 0 22px rgba(122,162,255,.25)}
+.btn-glow:hover{box-shadow:0 0 34px rgba(122,162,255,.4)}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:999px;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.chip-cyan{background:rgba(122,162,255,.12);color:#9db8ff;border:1px solid rgba(122,162,255,.25)}
+.chip-rose{background:rgba(255,94,138,.13);color:#ff91b0;border:1px solid rgba(255,94,138,.28)}
+.chip-emerald{background:rgba(52,211,153,.12);color:#34d399;border:1px solid rgba(52,211,153,.25)}
+.h1-grad{background:linear-gradient(135deg,#bcd0ff 0%,#8aa2ff 45%,#c4a6ff 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+
+/* glass sliders */
+.slider-wrap{display:flex;flex-direction:column;gap:8px}
+.slider-top{display:flex;align-items:center;justify-content:space-between}
+.slider-label{font-size:12px;font-weight:600;letter-spacing:.04em;color:#aab6e0}
+.slider-val{font-size:12px;font-weight:700;color:#9db8ff;font-family:'JetBrains Mono',monospace}
+input[type=range].slider{
+  -webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:999px;outline:none;cursor:pointer;
+  background:linear-gradient(90deg,var(--a) var(--p,50%),rgba(255,255,255,.1) var(--p,50%));
+}
+input[type=range].slider::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;
+  background:#fff;border:2px solid var(--a);box-shadow:0 0 12px rgba(122,162,255,.6);cursor:pointer;transition:transform .1s;
+}
+input[type=range].slider::-webkit-slider-thumb:hover{transform:scale(1.15)}
+input[type=range].slider::-moz-range-thumb{
+  width:18px;height:18px;border-radius:50%;background:#fff;border:2px solid var(--a);box-shadow:0 0 12px rgba(122,162,255,.6);cursor:pointer;
+}
+canvas#cv{display:block;width:100%;aspect-ratio:600/450;touch-action:none;border-radius:18px}
+.status-dot{width:9px;height:9px;border-radius:50%;background:var(--a);box-shadow:0 0 10px var(--a);flex-shrink:0}
+</style>
+</head>
+<body class="min-h-screen relative">
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+
+<nav class="glass-strong sticky top-0 z-50 border-b border-l-0 border-r-0 border-t-0">
+  <div class="max-w-3xl mx-auto px-4 py-3 flex items-center justify-between">
+    <a href="/" class="flex items-center gap-2.5 btn">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center mono text-xs font-bold" style="background:rgba(122,162,255,.1);border:1px solid rgba(122,162,255,.25);color:#9db8ff">R</div>
+      <span class="text-sm font-semibold text-slate-300">rommark<span class="text-[#9db8ff]">.dev</span></span>
+    </a>
+    <div class="flex items-center gap-2">
+      <a href="/playground/" class="btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white" style="background:var(--s)">&#8592; Playground</a>
+      <button id="mute-btn" class="btn px-2.5 py-1.5 rounded-lg text-xs glass" title="Mute / Unmute" aria-label="Mute toggle">&#128266;</button>
+    </div>
+  </div>
+</nav>
+
+<main class="relative z-10 max-w-3xl mx-auto px-4 pt-5 pb-20">
+  <div class="flex items-center gap-2 mb-3">
+    <span class="chip chip-cyan">GLM 5.2</span>
+    <span class="chip chip-rose">ASMR</span>
+  </div>
+  <h1 class="text-3xl md:text-4xl font-extrabold h1-grad leading-tight tracking-tight mb-1">Rain &amp; Thunder ASMR</h1>
+  <p class="text-slate-400 text-sm mb-5 max-w-lg">Tune the storm. Let the rain wash it all away.</p>
+
+  <div class="glass-strong rounded-2xl overflow-hidden mb-5">
+    <canvas id="cv" width="600" height="450"></canvas>
+  </div>
+
+  <!-- Status bar -->
+  <div id="status-bar" class="glass rounded-xl px-4 py-3 mb-5">
+    <div class="flex items-center gap-2.5">
+      <div id="status-dot" class="status-dot animate-pulse"></div>
+      <span id="status-text" class="text-xs text-slate-300">Press play to drift into the storm.</span>
+    </div>
+  </div>
+
+  <!-- Transport -->
+  <div class="flex items-center gap-2 mb-5 flex-wrap">
+    <button id="play-btn" class="btn btn-glow px-6 py-2.5 rounded-xl text-sm font-bold text-black" style="background:linear-gradient(135deg,#7aa2ff,#6d5cf0)">&#9654; Play</button>
+    <button id="storm-btn" class="btn glass px-4 py-2.5 rounded-xl text-sm font-semibold text-rose-200">&#9928; Storm</button>
+    <button id="drizzle-btn" class="btn glass px-4 py-2.5 rounded-xl text-sm font-semibold text-sky-200">&#127782; Drizzle</button>
+    <div class="flex-1"></div>
+    <span id="minutes-chip" class="chip chip-emerald mono">0 min relaxed</span>
+  </div>
+
+  <!-- Sliders -->
+  <div class="glass rounded-2xl p-5 mb-5 space-y-5">
+    <div class="slider-wrap">
+      <div class="slider-top">
+        <span class="slider-label">&#127783; Intensity &mdash; rain density</span>
+        <span class="slider-val" id="intensity-val">55</span>
+      </div>
+      <input type="range" class="slider" id="intensity" min="0" max="100" value="55">
+    </div>
+    <div class="slider-wrap">
+      <div class="slider-top">
+        <span class="slider-label">&#9889; Thunder &mdash; frequency of rolls</span>
+        <span class="slider-val" id="thunder-val">35</span>
+      </div>
+      <input type="range" class="slider" id="thunder" min="0" max="100" value="35">
+    </div>
+  </div>
+
+  <div class="glass rounded-xl p-4 mt-5">
+    <p class="text-xs font-bold text-slate-300 mb-2">How to relax</p>
+    <ul class="text-xs text-slate-400 space-y-1">
+      <li>&#8226; Press <b class="text-slate-200">Play</b> and let the soundscape settle in.</li>
+      <li>&#8226; Slide <b class="text-slate-200">Intensity</b> for a soft drizzle or a driving downpour.</li>
+      <li>&#8226; Slide <b class="text-slate-200">Thunder</b> to summon distant rumbles &amp; lightning.</li>
+      <li>&#8226; Try <b class="text-slate-200">Storm</b> for the full tempest or <b class="text-slate-200">Drizzle</b> for a whisper.</li>
+      <li>&#8226; No fail state &mdash; just breathe. Your relaxed minutes are saved.</li>
+    </ul>
+  </div>
+
+  <footer class="text-center text-white/40 text-xs pt-8">GLM 5.2 &middot; Built with precision</footer>
+</main>
+
+<script>
+(function(){
+  'use strict';
+
+  // ---------- Safe element access ----------
+  function $(id){ return document.getElementById(id); }
+  var cv = $('cv');
+  if(!cv) return;
+  var ctx = cv.getContext('2d');
+  var W = 600, H = 450;
+
+  var intensityEl = $('intensity');
+  var thunderEl  = $('thunder');
+  var intensityVal = $('intensity-val');
+  var thunderVal  = $('thunder-val');
+  var playBtn = $('play-btn');
+  var stormBtn = $('storm-btn');
+  var drizzleBtn = $('drizzle-btn');
+  var muteBtn = $('mute-btn');
+  var statusText = $('status-text');
+  var statusDot = $('status-dot');
+  var minutesChip = $('minutes-chip');
+
+  // ---------- State ----------
+  var intensity = 55, thunder = 35;
+  var playing = false, muted = false;
+  var flash = 0;                // lightning overlay alpha 0..1
+  var nextThunderAt = 0;        // timestamp ms
+  var pendingFlashAt = 0;       // lightning slightly precedes thunder
+  var pendingRumbleAt = 0;
+  var statusHoldUntil = 0;
+
+  // ---------- localStorage minutes ----------
+  var minutesKey = 'glm-19-minutes';
+  var totalMinutes = 0;
+  try { totalMinutes = parseInt(localStorage.getItem(minutesKey) || '0', 10) || 0; } catch(e){}
+  var playSeconds = 0;
+  function renderMinutes(){
+    if(minutesChip) minutesChip.textContent = totalMinutes + ' min relaxed';
+  }
+  renderMinutes();
+  setInterval(function(){
+    if(playing && !muted){
+      playSeconds++;
+      if(playSeconds >= 60){ playSeconds -= 60; totalMinutes++; renderMinutes(); try{ localStorage.setItem(minutesKey, String(totalMinutes)); }catch(e){} }
+    }
+  }, 1000);
+
+  // ---------- Slider fill ----------
+  function setFill(el){
+    if(!el) return;
+    var p = (el.value - el.min) / (el.max - el.min) * 100;
+    el.style.setProperty('--p', p + '%');
+  }
+
+  function onIntensity(){
+    intensity = parseInt(intensityEl.value, 10);
+    intensityVal.textContent = intensity;
+    setFill(intensityEl);
+    if(rainGain && AC){ rainGain.gain.setTargetAtTime(rainTarget(), AC.currentTime, 0.3); }
+    if(windGain && AC){ windGain.gain.setTargetAtTime(windTarget(), AC.currentTime, 0.4); }
+    if(!playing) flashStatus(softStatus(), 0);
+  }
+  function onThunder(){
+    thunder = parseInt(thunderEl.value, 10);
+    thunderVal.textContent = thunder;
+    setFill(thunderEl);
+    if(windGain && AC){ windGain.gain.setTargetAtTime(windTarget(), AC.currentTime, 0.4); }
+    if(!playing) flashStatus(softStatus(), 0);
+  }
+  intensityEl.addEventListener('input', onIntensity);
+  thunderEl.addEventListener('input', onThunder);
+
+  // ====================================================================
+  //  AUDIO  (Web Audio API, fully guarded)
+  // ====================================================================
+  var AC = null, master = null, rainGain = null, windGain = null;
+  var noiseBuf = null, graphBuilt = false;
+
+  function makeNoiseBuffer(seconds){
+    var len = Math.floor(AC.sampleRate * seconds);
+    var buf = AC.createBuffer(1, len, AC.sampleRate);
+    var d = buf.getChannelData(0);
+    // pinkish-ish white noise
+    var b0=0,b1=0,b2=0;
+    for(var i=0;i<len;i++){
+      var white = Math.random()*2 - 1;
+      b0 = 0.99765*b0 + white*0.0990460;
+      b1 = 0.96300*b1 + white*0.2965164;
+      b2 = 0.57000*b2 + white*1.0526913;
+      var pink = b0 + b1 + b2 + white*0.1848;
+      d[i] = pink*0.18;
+    }
+    return buf;
+  }
+
+  function audioCtx(){
+    if(!AC){
+      try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){ AC = null; }
+    }
+    if(AC && AC.state === 'suspended'){ try { AC.resume(); } catch(e){} }
+    return AC;
+  }
+
+  function rainTarget(){ return Math.pow(intensity/100, 1.2) * 0.45; }
+  function windTarget(){ return 0.02 + (intensity/100)*0.05 + (thunder/100)*0.05; }
+
+  function buildGraph(){
+    if(!AC || graphBuilt) return;
+    try {
+      master = AC.createGain();
+      master.gain.value = muted ? 0 : (playing ? 1 : 0);
+      master.connect(AC.destination);
+
+      noiseBuf = makeNoiseBuffer(3);
+
+      // --- Rain: looping noise -> highpass -> bandpass -> gain -> master
+      var rainSrc = AC.createBufferSource();
+      rainSrc.buffer = noiseBuf; rainSrc.loop = true;
+      var rHP = AC.createBiquadFilter(); rHP.type='highpass'; rHP.frequency.value=420;
+      var rBP = AC.createBiquadFilter(); rBP.type='bandpass'; rBP.frequency.value=1400; rBP.Q.value=0.5;
+      var rLP = AC.createBiquadFilter(); rLP.type='lowpass'; rLP.frequency.value=5200;
+      rainGain = AC.createGain(); rainGain.gain.value = rainTarget();
+      rainSrc.connect(rHP); rHP.connect(rBP); rBP.connect(rLP); rLP.connect(rainGain); rainGain.connect(master);
+      rainSrc.start();
+
+      // --- Wind: looping noise -> lowpass -> gain -> master (with slow gust LFO)
+      var windSrc = AC.createBufferSource();
+      windSrc.buffer = noiseBuf; windSrc.loop = true;
+      var wLP = AC.createBiquadFilter(); wLP.type='lowpass'; wLP.frequency.value=480; wLP.Q.value=0.6;
+      windGain = AC.createGain(); windGain.gain.value = windTarget();
+      var lfo = AC.createOscillator(); lfo.frequency.value = 0.08 + Math.random()*0.05;
+      var lfoG = AC.createGain(); lfoG.gain.value = 0.03;
+      lfo.connect(lfoG); lfoG.connect(windGain.gain);
+      windSrc.connect(wLP); wLP.connect(windGain); windGain.connect(master);
+      windSrc.start(); lfo.start();
+
+      graphBuilt = true;
+    } catch(e){ graphBuilt = false; }
+  }
+
+  // Thunder: low-frequency rumble with long exponential decay + a small crack
+  function triggerThunder(){
+    if(!AC || muted || !playing) return;
+    if(!graphBuilt) return;
+    try {
+      var now = AC.currentTime;
+      var dur = 2.6 + Math.random()*2.8;
+
+      // rumble
+      var src = AC.createBufferSource(); src.buffer = noiseBuf; src.loop = true;
+      var lp = AC.createBiquadFilter(); lp.type='lowpass';
+      lp.frequency.setValueAtTime(170 + Math.random()*120, now);
+      lp.frequency.exponentialRampToValueAtTime(55, now + dur);
+      lp.Q.value = 0.8;
+      var g = AC.createGain();
+      g.gain.setValueAtTime(0.0001, now);
+      g.gain.exponentialRampToValueAtTime(0.5 + Math.random()*0.35, now + 0.04 + Math.random()*0.12);
+      g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+      src.connect(lp); lp.connect(g); g.connect(master);
+      src.start(now); src.stop(now + dur + 0.2);
+
+      // crack (initial snap)
+      var c = AC.createBufferSource(); c.buffer = noiseBuf; c.loop = false;
+      var chp = AC.createBiquadFilter(); chp.type='highpass'; chp.frequency.value=900;
+      var cg = AC.createGain();
+      cg.gain.setValueAtTime(0.22 + Math.random()*0.12, now);
+      cg.gain.exponentialRampToValueAtTime(0.0001, now + 0.35 + Math.random()*0.3);
+      c.connect(chp); chp.connect(cg); cg.connect(master);
+      c.start(now); c.stop(now + 0.8);
+    } catch(e){}
+  }
+
+  // ====================================================================
+  //  STATUS TEXT
+  // ====================================================================
+  function softStatus(){
+    if(intensity < 22) return "Calm drizzle... a gentle patter on the glass.";
+    if(thunder > 60 && intensity > 60) return "Storm building... the clouds are restless tonight.";
+    if(thunder > 42) return "A distant roll of thunder echoes through the valley.";
+    if(intensity > 70) return "Heavy rain now — let it drown the day away.";
+    return "Soft rain falling. Breathe slowly, you're safe.";
+  }
+  function flashStatus(txt, holdMs){
+    if(!statusText) return;
+    statusText.textContent = txt;
+    if(holdMs) statusHoldUntil = performance.now() + holdMs;
+    else statusHoldUntil = 0;
+  }
+
+  // ====================================================================
+  //  PLAY / PAUSE / PRESETS / MUTE
+  // ====================================================================
+  function play(){
+    playing = true;
+    audioCtx();
+    if(AC){ AC.resume(); buildGraph();
+      var now = AC.currentTime;
+      master.gain.cancelScheduledValues(now);
+      master.gain.setTargetAtTime(muted ? 0 : 1, now, 0.4);
+    }
+    if(playBtn) playBtn.innerHTML = '&#10073;&#10073; Pause';
+    if(statusDot) statusDot.classList.add('animate-pulse');
+    flashStatus(softStatus(), 0);
+    scheduleNextThunder();
+  }
+  function pause(){
+    playing = false;
+    if(AC){ var now = AC.currentTime;
+      master.gain.cancelScheduledValues(now);
+      master.gain.setTargetAtTime(0, now, 0.4);
+    }
+    if(playBtn) playBtn.innerHTML = '&#9654; Play';
+    flashStatus("Paused — press play whenever you're ready.", 0);
+  }
+  if(playBtn) playBtn.addEventListener('click', function(){
+    if(playing) pause(); else play();
+  });
+
+  function applyPreset(i, t){
+    intensity = i; thunder = t;
+    intensityEl.value = i; thunderEl.value = t;
+    setFill(intensityEl); setFill(thunderEl);
+    intensityVal.textContent = i; thunderVal.textContent = t;
+    if(rainGain && AC) rainGain.gain.setTargetAtTime(rainTarget(), AC.currentTime, 0.3);
+    if(windGain && AC) windGain.gain.setTargetAtTime(windTarget(), AC.currentTime, 0.4);
+    if(!playing){ play(); }
+    else { scheduleNextThunder(); flashStatus(softStatus(), 0); }
+  }
+  if(stormBtn) stormBtn.addEventListener('click', function(){ applyPreset(100, 90); });
+  if(drizzleBtn) drizzleBtn.addEventListener('click', function(){ applyPreset(22, 8); });
+
+  if(muteBtn) muteBtn.addEventListener('click', function(){
+    muted = !muted;
+    muteBtn.innerHTML = muted ? '&#128263;' : '&#128266;';
+    if(AC){ var now = AC.currentTime;
+      master.gain.cancelScheduledValues(now);
+      master.gain.setTargetAtTime((muted || !playing) ? 0 : 1, now, 0.2);
+    }
+    if(statusText) statusText.textContent = muted ? "Muted — the storm is silent." : softStatus();
+  });
+
+  // ====================================================================
+  //  THUNDER SCHEDULING
+  // ====================================================================
+  function scheduleNextThunder(){
+    var t = thunder/100;
+    var base = 22 - t*18;                 // higher thunder => shorter gap (seconds)
+    if(base < 3) base = 3;
+    var jitter = 0.6 + Math.random()*0.9;
+    nextThunderAt = performance.now() + base*1000*jitter;
+  }
+
+  function maybeThunder(now){
+    if(!playing || muted || thunder <= 0) return;
+    if(now < nextThunderAt) return;
+    // lightning flash slightly before the rumble is heard
+    pendingFlashAt = now + 60 + Math.random()*120;
+    pendingRumbleAt = pendingFlashAt + 120 + Math.random()*380;
+    scheduleNextThunder();
+  }
+
+  // ====================================================================
+  //  RAIN PARTICLES
+  // ====================================================================
+  var drops = [];
+  var MAX_DROPS = 360;
+  function spawnDrop(){
+    return {
+      x: Math.random()*W,
+      y: Math.random()*H,
+      speed: 4 + Math.random()*6,
+      len: 9 + Math.random()*16,
+      a: 0.25 + Math.random()*0.5
+    };
+  }
+  for(var i=0;i<MAX_DROPS;i++) drops.push(spawnDrop());
+
+  var frame = 0;
+  // window geometry
+  var frameW = 24;
+  var winX = frameW, winY = frameW, winW = W - frameW*2, winH = H - frameW*2;
+  var stars = [];
+  for(var s=0;s<60;s++){
+    stars.push({x: Math.random()*winW, y: Math.random()*winH*0.6, r: Math.random()*1.2+0.3, tw: Math.random()*Math.PI*2});
+  }
+
+  function draw(){
+    frame++;
+    var now = performance.now();
+
+    // schedule thunder
+    maybeThunder(now);
+
+    // pending lightning flash
+    if(pendingFlashAt && now >= pendingFlashAt){ flash = 0.85; pendingFlashAt = 0; }
+    if(pendingRumbleAt && now >= pendingRumbleAt){ triggerThunder(); pendingRumbleAt = 0; flashStatus("A distant roll of thunder...", 4500); }
+
+    // restore soft status after a hold
+    if(statusHoldUntil && now > statusHoldUntil && playing){
+      statusHoldUntil = 0;
+      flashStatus(softStatus(), 0);
+    }
+
+    // ---- Room background (dark warm) ----
+    ctx.fillStyle = '#06070f';
+    ctx.fillRect(0,0,W,H);
+
+    // ---- Window interior (clipped) ----
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(winX, winY, winW, winH);
+    ctx.clip();
+
+    // night sky gradient
+    var sky = ctx.createLinearGradient(0, winY, 0, winY+winH);
+    sky.addColorStop(0, '#0a1230');
+    sky.addColorStop(0.45, '#0c1a44');
+    sky.addColorStop(1, '#0a1430');
+    ctx.fillStyle = sky;
+    ctx.fillRect(winX, winY, winW, winH);
+
+    // moon glow
+    var mg = ctx.createRadialGradient(winX+winW*0.74, winY+winH*0.26, 4, winX+winW*0.74, winY+winH*0.26, 120);
+    mg.addColorStop(0, 'rgba(200,214,255,0.55)');
+    mg.addColorStop(0.4, 'rgba(150,170,230,0.18)');
+    mg.addColorStop(1, 'rgba(150,170,230,0)');
+    ctx.fillStyle = mg;
+    ctx.fillRect(winX, winY, winW, winH);
+    ctx.beginPath();
+    ctx.arc(winX+winW*0.74, winY+winH*0.26, 16, 0, Math.PI*2);
+    ctx.fillStyle = 'rgba(225,232,255,0.9)';
+    ctx.fill();
+
+    // stars
+    for(var si=0; si<stars.length; si++){
+      var st = stars[si];
+      var tw = 0.4 + 0.6*Math.abs(Math.sin(now*0.0008 + st.tw));
+      ctx.beginPath();
+      ctx.arc(winX+st.x, winY+st.y, st.r, 0, Math.PI*2);
+      ctx.fillStyle = 'rgba(200,214,255,'+(0.5*tw)+')';
+      ctx.fill();
+    }
+
+    // ---- Rain ----
+    var active = Math.round(MAX_DROPS * (intensity/100));
+    var windx = 1.1 + (thunder/100)*1.6;   // wind pushes drops sideways
+    var speedScale = 0.5 + (intensity/100)*1.7;
+    var rainAlpha = 0.18 + (intensity/100)*0.5;
+    for(var d=0; d<active; d++){
+      var dr = drops[d];
+      dr.y += dr.speed * speedScale;
+      dr.x += windx * dr.speed * 0.12;
+      if(dr.y > winY+winH + dr.len){ dr.y = winY - dr.len - Math.random()*40; dr.x = Math.random()*winW; }
+      if(dr.x > winX+winW) dr.x = winX;
+      ctx.beginPath();
+      ctx.moveTo(winX+dr.x, winY+dr.y);
+      ctx.lineTo(winX+dr.x - windx*1.4, winY+dr.y + dr.len);
+      ctx.strokeStyle = 'rgba(174,200,255,'+(rainAlpha*dr.a)+')';
+      ctx.lineWidth = 1.1;
+      ctx.stroke();
+    }
+
+    // ---- Lightning flash overlay ----
+    if(flash > 0.001){
+      ctx.fillStyle = 'rgba(220,232,255,'+(flash*0.8)+')';
+      ctx.fillRect(winX, winY, winW, winH);
+      flash *= 0.86;
+      if(flash < 0.02) flash = 0;
+    }
+
+    ctx.restore(); // end window clip
+
+    // ---- Window frame ----
+    ctx.lineJoin = 'miter';
+    ctx.fillStyle = '#15110c';
+    ctx.fillRect(0,0,W,frameW);
+    ctx.fillRect(0,H-frameW,W,frameW);
+    ctx.fillRect(0,0,frameW,H);
+    ctx.fillRect(W-frameW,0,frameW,H);
+    // inner frame highlight
+    ctx.strokeStyle = 'rgba(122,162,255,0.18)';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(winX-1, winY-1, winW+2, winH+2);
+    // mullions (cross bars) — drawn over window
+    ctx.fillStyle = '#15110c';
+    var mw = 10;
+    ctx.fillRect(W/2 - mw/2, winY, mw, winH);
+    ctx.fillRect(winX, H/2 - mw/2, winW, mw);
+
+    // ---- Warm lamp glow in room corner ----
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    var lamp = ctx.createRadialGradient(0, H, 10, 0, H, 260);
+    lamp.addColorStop(0, 'rgba(255,176,92,0.30)');
+    lamp.addColorStop(0.5, 'rgba(255,150,70,0.10)');
+    lamp.addColorStop(1, 'rgba(255,150,70,0)');
+    ctx.fillStyle = lamp;
+    ctx.fillRect(0,0,W,H);
+    ctx.restore();
+
+    requestAnimationFrame(draw);
+  }
+
+  // ---------- Init ----------
+  setFill(intensityEl);
+  setFill(thunderEl);
+  flashStatus("Press play to drift into the storm.", 0);
+  requestAnimationFrame(draw);
+})();
+</script>
+</body>
+</html>

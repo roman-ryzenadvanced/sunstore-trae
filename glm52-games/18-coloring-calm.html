@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>GLM 5.2 · Coloring Calm</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--g:rgba(34,211,238,.12);--gb:rgba(34,211,238,.25);--a:#22d3ee;--r:rgba(244,114,182,.15);--rb:rgba(244,114,182,.3);--s:rgba(148,163,184,.08)}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow-x:hidden}
+body{font-family:'Inter',system-ui,sans-serif;background:#000;color:#e2e8f0}
+.mono{font-family:'JetBrains Mono',monospace}
+.glass{background:rgba(15,23,42,.7);backdrop-filter:blur(20px);border:1px solid rgba(34,211,238,.1)}
+.glass-strong{background:rgba(15,23,42,.85);backdrop-filter:blur(24px);border:1px solid rgba(34,211,238,.15)}
+.orb{position:fixed;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:0}
+.orb-1{width:400px;height:400px;top:-10%;left:-10%;background:radial-gradient(circle,rgba(244,114,182,.07),transparent 70%);animation:f1 20s ease-in-out infinite}
+.orb-2{width:350px;height:350px;bottom:-10%;right:-10%;background:radial-gradient(circle,rgba(34,211,238,.06),transparent 70%);animation:f2 25s ease-in-out infinite}
+@keyframes f1{0%,100%{transform:translate(0,0)}50%{transform:translate(60px,40px)}}
+@keyframes f2{0%,100%{transform:translate(0,0)}50%{transform:translate(-50px,-30px)}}
+.btn{transition:all .15s ease}.btn:hover{transform:translateY(-1px)}.btn:active{transform:translateY(0) scale(.98)}
+.btn-glow{box-shadow:0 0 20px rgba(244,114,182,.15)}.btn-glow:hover{box-shadow:0 0 30px rgba(244,114,182,.25)}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
+.chip-cyan{background:rgba(34,211,238,.12);color:#22d3ee;border:1px solid rgba(34,211,238,.2)}
+.chip-rose{background:rgba(244,114,182,.12);color:#f472b6;border:1px solid rgba(244,114,182,.2)}
+.chip-emerald{background:rgba(52,211,153,.12);color:#34d399;border:1px solid rgba(52,211,153,.2)}
+.h1-grad{background:linear-gradient(135deg,#f472b6 0%,#22d3ee 50%,#a78bfa 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+canvas{touch-action:none}
+.sw{width:34px;height:34px;border-radius:10px;cursor:pointer;transition:all .15s ease;border:2px solid transparent}
+.sw.active{border-color:#fff;transform:scale(1.12)}
+.range{accent-color:#22d3ee}
+</style>
+</head>
+<body class="min-h-screen relative">
+<div class="orb orb-1"></div>
+<div class="orb orb-2"></div>
+<nav class="glass-strong sticky top-0 z-50 border-b border-l-0 border-r-0 border-t-0">
+  <div class="max-w-2xl mx-auto px-4 py-3 flex items-center justify-between">
+    <a href="/" class="flex items-center gap-2.5 btn">
+      <div class="w-8 h-8 rounded-lg flex items-center justify-center mono text-xs font-bold" style="background:rgba(34,211,238,.1);border:1px solid rgba(34,211,238,.2);color:#22d3ee">R</div>
+      <span class="text-sm font-semibold text-slate-300">rommark<span class="text-cyan-400">.dev</span></span>
+    </a>
+    <div class="flex items-center gap-2">
+      <a href="/playground/" class="btn px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white" style="background:var(--s)">← Playground</a>
+      <button id="mute-btn" class="btn px-2.5 py-1.5 rounded-lg text-xs glass" title="Toggle sound">🔊</button>
+    </div>
+  </div>
+</nav>
+<main class="relative z-10 max-w-2xl mx-auto px-4 pt-5 pb-20">
+  <div class="flex items-center gap-2 mb-3">
+    <span class="chip chip-cyan">GLM 5.2</span>
+    <span class="chip chip-rose">ASMR</span>
+  </div>
+  <h1 class="text-2xl font-extrabold h1-grad leading-tight tracking-tight mb-1">Coloring Calm</h1>
+  <p class="text-slate-500 text-xs mb-5 max-w-lg">Fill the lines. Breathe. Watch the picture bloom.</p>
+
+  <div class="flex items-center gap-2 mb-4 flex-wrap">
+    <button class="scene-btn btn glass px-3 py-1.5 rounded-lg text-xs font-semibold text-cyan-400" data-scene="mandala" style="border-color:rgba(34,211,238,.3)">Mandala</button>
+    <button class="scene-btn btn glass px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400" data-scene="garden">Garden</button>
+    <button class="scene-btn btn glass px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400" data-scene="ocean">Ocean</button>
+    <div class="flex-1"></div>
+    <button id="btn-undo" class="btn glass px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400">Undo</button>
+    <button id="btn-reset" class="btn glass px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400">Reset</button>
+    <button id="btn-auto" class="btn glass px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-400">Auto-fill</button>
+  </div>
+
+  <div class="flex items-center gap-2 mb-4 flex-wrap">
+    <div id="progress-wrap" class="glass rounded-xl px-4 py-2 flex-1 min-w-[180px]">
+      <div class="flex justify-between mb-1">
+        <span class="text-xs font-semibold text-slate-400">Filled</span>
+        <span id="progress-text" class="text-xs font-bold text-pink-400 mono">0%</span>
+      </div>
+      <div class="w-full h-1.5 rounded-full" style="background:rgba(244,114,182,.08)">
+        <div id="progress-bar" class="h-full rounded-full transition-all duration-500" style="width:0%;background:linear-gradient(90deg,#f472b6,#22d3ee)"></div>
+      </div>
+    </div>
+    <div id="made-display" class="chip chip-rose mono hidden">0 done</div>
+  </div>
+
+  <div id="status-bar" class="glass rounded-xl px-4 py-3 mb-4">
+    <div class="flex items-center gap-2">
+      <div id="status-dot" class="w-2 h-2 rounded-full bg-pink-400 animate-pulse flex-shrink-0"></div>
+      <span id="status-text" class="text-xs text-slate-400">Choose a color, then tap a shape.</span>
+    </div>
+  </div>
+
+  <div class="glass-strong rounded-2xl overflow-hidden mb-4">
+    <canvas id="cv" width="600" height="450" class="w-full block cursor-pointer" style="aspect-ratio:600/450"></canvas>
+  </div>
+
+  <p class="text-xs font-bold text-slate-400 mb-2">Palette</p>
+  <div id="palette" class="flex items-center gap-2 flex-wrap mb-4"></div>
+
+  <div class="glass rounded-xl p-4 mt-4">
+    <p class="text-xs font-bold text-slate-300 mb-2">How to Play</p>
+    <ul class="text-xs text-slate-500 space-y-1">
+      <li>• Pick a color from the palette</li>
+      <li>• Tap any shape to fill it</li>
+      <li>• Undo recalls your last fill</li>
+      <li>• No timer, no wrong moves. Just breathe.</li>
+    </ul>
+  </div>
+</main>
+<footer class="relative z-10 max-w-2xl mx-auto px-4 pb-8">
+  <div class="glass rounded-xl p-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+    <p class="text-xs text-slate-500">Built with <span class="text-cyan-400 font-semibold">GLM 5.2</span></p>
+    <p class="text-xs text-slate-600 mono">rommark.dev/playground</p>
+  </div>
+</footer>
+<script>
+(function(){
+  "use strict";
+  const $ = function(id){ return document.getElementById(id); };
+
+  // ---- Audio ----
+  let actx = null, master = null, muted = false;
+  function ensureAudio(){
+    if(actx) return;
+    try{
+      actx = new (window.AudioContext||window.webkitAudioContext)();
+      master = actx.createGain();
+      master.gain.value = muted ? 0 : 0.9;
+      master.connect(actx.destination);
+    }catch(e){ actx = null; }
+  }
+  function brush(){
+    if(!actx || muted) return;
+    try{
+      const dur = 0.22, t = actx.currentTime;
+      const buf = actx.createBuffer(1, actx.sampleRate*dur, actx.sampleRate);
+      const d = buf.getChannelData(0);
+      for(let i=0;i<d.length;i++){ d[i] = (Math.random()*2-1) * (1 - i/d.length); }
+      const src = actx.createBufferSource(); src.buffer = buf;
+      const lp = actx.createBiquadFilter(); lp.type="lowpass"; lp.frequency.setValueAtTime(3000,t); lp.frequency.exponentialRampToValueAtTime(600,t+dur);
+      const g = actx.createGain(); g.gain.setValueAtTime(0.0,t); g.gain.linearRampToValueAtTime(0.25,t+0.03); g.gain.exponentialRampToValueAtTime(0.001,t+dur);
+      src.connect(lp); lp.connect(g); g.connect(master); src.start(t); src.stop(t+dur);
+    }catch(e){}
+  }
+  function chime(){
+    if(!actx || muted) return;
+    try{
+      const t = actx.currentTime;
+      [523.25, 659.25, 783.99].forEach(function(f,i){
+        const o = actx.createOscillator(); o.type="sine"; o.frequency.value=f;
+        const g = actx.createGain(); const s = t + i*0.12;
+        g.gain.setValueAtTime(0,s); g.gain.linearRampToValueAtTime(0.18,s+0.02); g.gain.exponentialRampToValueAtTime(0.001,s+1.1);
+        o.connect(g); g.connect(master); o.start(s); o.stop(s+1.2);
+      });
+    }catch(e){}
+  }
+  const muteBtn = $("mute-btn");
+  if(muteBtn){ muteBtn.addEventListener("click", function(){
+    muted = !muted;
+    muteBtn.textContent = muted ? "🔇" : "🔊";
+    if(master && actx){ try{ master.gain.setTargetAtTime(muted?0:0.9, actx.currentTime, 0.05); }catch(e){} }
+  }); }
+
+  // ---- Palette ----
+  const COLORS = ["#fca5a5","#f9a8d4","#c4b5fd","#a5b4fc","#93c5fd","#67e8f9","#6ee7b7","#fcd34d","#fdba74","#f0abfc","#a3e635","#fda4af"];
+  let selColor = COLORS[5];
+  const pal = $("palette");
+  if(pal){
+    COLORS.forEach(function(c){
+      const sw = document.createElement("div");
+      sw.className = "sw"; sw.style.background = c; sw.dataset.c = c;
+      if(c===selColor) sw.classList.add("active");
+      sw.addEventListener("click", function(){
+        selColor = c;
+        [].forEach.call(pal.children, function(ch){ ch.classList.remove("active"); });
+        sw.classList.add("active");
+        setStatus("Color ready — tap a shape.");
+      });
+      pal.appendChild(sw);
+    });
+  }
+
+  // ---- Canvas ----
+  const cv = $("cv");
+  if(!cv) return;
+  const ctx = cv.getContext("2d");
+  const W = 600, H = 450;
+
+  // Scenes: each region is a Path2D plus we track fill state
+  let scene = "mandala";
+  let regions = []; // {path, filled:color|null, base:stroke}
+  let completed = 0;
+  let history = [];
+
+  function buildMandala(){
+    const r = [];
+    const cx = 300, cy = 225;
+    function ring(rOuter, rInner, n, color){
+      for(let i=0;i<n;i++){
+        const a0 = (i/n)*Math.PI*2, a1 = ((i+0.5)/n)*Math.PI*2;
+        const p = new Path2D();
+        p.arc(cx, cy, rOuter, a0, (a1)*0.999);
+        p.arc(cx, cy, rInner, (a1)*0.999, a0, true);
+        p.closePath();
+        r.push({path:p, filled:null});
+      }
+    }
+    // outer petals
+    ring(200, 150, 12);
+    ring(148, 105, 12);
+    ring(103, 68, 8);
+    // center circle
+    const cp = new Path2D(); cp.arc(cx,cy,66,0,Math.PI*2); r.push({path:cp, filled:null});
+    return r;
+  }
+  function buildGarden(){
+    const r = [];
+    // sky
+    let p = new Path2D(); p.rect(0,0,600,300); r.push({path:p, filled:null});
+    // sun
+    p = new Path2D(); p.arc(110,90,42,0,Math.PI*2); r.push({path:p, filled:null});
+    // hills
+    p = new Path2D(); p.moveTo(0,300); p.quadraticCurveTo(150,210,300,300); p.lineTo(0,300); p.closePath(); r.push({path:p, filled:null});
+    p = new Path2D(); p.moveTo(300,300); p.quadraticCurveTo(450,220,600,300); p.lineTo(300,300); p.closePath(); r.push({path:p, filled:null});
+    // ground
+    p = new Path2D(); p.rect(0,300,600,150); r.push({path:p, filled:null});
+    // tree trunk
+    p = new Path2D(); p.rect(470,210,22,120); r.push({path:p, filled:null});
+    // tree top
+    p = new Path2D(); p.arc(481,190,55,0,Math.PI*2); r.push({path:p, filled:null});
+    // flower 1
+    p = new Path2D(); p.arc(160,360,24,0,Math.PI*2); r.push({path:p, filled:null});
+    // flower 2
+    p = new Path2D(); p.arc(250,400,20,0,Math.PI*2); r.push({path:p, filled:null});
+    return r;
+  }
+  function buildOcean(){
+    const r = [];
+    let p = new Path2D(); p.rect(0,0,600,160); r.push({path:p, filled:null}); // sky
+    p = new Path2D(); p.arc(500,70,38,0,Math.PI*2); r.push({path:p, filled:null}); // sun
+    // waves
+    p = new Path2D(); p.moveTo(0,160); p.quadraticCurveTo(150,130,300,160); p.quadraticCurveTo(450,190,600,160); p.lineTo(600,250); p.lineTo(0,250); p.closePath(); r.push({path:p, filled:null});
+    p = new Path2D(); p.moveTo(0,250); p.quadraticCurveTo(150,220,300,250); p.quadraticCurveTo(450,280,600,250); p.lineTo(600,340); p.lineTo(0,340); p.closePath(); r.push({path:p, filled:null});
+    p = new Path2D(); p.moveTo(0,340); p.quadraticCurveTo(150,310,300,340); p.quadraticCurveTo(450,370,600,340); p.lineTo(600,450); p.lineTo(0,450); p.closePath(); r.push({path:p, filled:null});
+    // fish
+    p = new Path2D(); p.ellipse(200,300,28,16,0,0,Math.PI*2); r.push({path:p, filled:null});
+    p = new Path2D(); p.moveTo(228,300); p.lineTo(252,288); p.lineTo(252,312); p.closePath(); r.push({path:p, filled:null});
+    // bubble
+    p = new Path2D(); p.arc(380,210,14,0,Math.PI*2); r.push({path:p, filled:null});
+    return r;
+  }
+
+  function loadScene(name){
+    scene = name;
+    history = [];
+    if(name==="garden") regions = buildGarden();
+    else if(name==="ocean") regions = buildOcean();
+    else regions = buildMandala();
+    completed = 0;
+    render();
+    updateProgress();
+    setStatus("A fresh " + name + " waits. Choose a color.");
+  }
+
+  function render(){
+    ctx.clearRect(0,0,W,H);
+    // soft background
+    const bg = ctx.createLinearGradient(0,0,0,H);
+    if(scene==="ocean"){ bg.addColorStop(0,"#0b1f33"); bg.addColorStop(1,"#06121f"); }
+    else if(scene==="garden"){ bg.addColorStop(0,"#10231a"); bg.addColorStop(1,"#0a1a13"); }
+    else { bg.addColorStop(0,"#1a1430"); bg.addColorStop(1,"#0e0a1f"); }
+    ctx.fillStyle = bg; ctx.fillRect(0,0,W,H);
+
+    regions.forEach(function(rg){
+      ctx.save();
+      if(rg.filled){
+        ctx.fillStyle = rg.filled;
+        ctx.fill(rg.path);
+      }
+      ctx.lineWidth = 1.6;
+      ctx.strokeStyle = "rgba(226,232,240,0.55)";
+      ctx.stroke(rg.path);
+      ctx.restore();
+    });
+  }
+
+  function pointFromEvent(e){
+    const rect = cv.getBoundingClientRect();
+    let cx, cy;
+    if(e.touches && e.touches.length){ cx = e.touches[0].clientX; cy = e.touches[0].clientY; }
+    else if(e.changedTouches && e.changedTouches.length){ cx = e.changedTouches[0].clientX; cy = e.changedTouches[0].clientY; }
+    else { cx = e.clientX; cy = e.clientY; }
+    return { x:(cx-rect.left)*(W/rect.width), y:(cy-rect.top)*(H/rect.height) };
+  }
+
+  function fillAt(pt){
+    ensureAudio();
+    for(let i=regions.length-1;i>=0;i--){
+      const rg = regions[i];
+      if(rg.filled) continue;
+      if(ctx.isPointInPath(rg.path, pt.x, pt.y)){
+        rg.filled = selColor;
+        history.push(i);
+        completed++;
+        render();
+        brush();
+        updateProgress();
+        if(completed === regions.length){ onComplete(); }
+        else { setStatus("Lovely. " + (regions.length-completed) + " left."); }
+        return;
+      }
+    }
+  }
+
+  function onComplete(){
+    const key = "glm-18-completed";
+    let n = 0; try{ n = parseInt(localStorage.getItem(key)||"0",10)||0; }catch(e){}
+    n++; try{ localStorage.setItem(key, String(n)); }catch(e){}
+    const md = $("made-display"); if(md){ md.classList.remove("hidden"); md.textContent = n + " done"; }
+    chime();
+    setStatus("All filled — lovely work. ✿");
+  }
+
+  function updateProgress(){
+    const pct = regions.length ? Math.round(completed/regions.length*100) : 0;
+    const t = $("progress-text"); if(t) t.textContent = pct + "%";
+    const bar = $("progress-bar"); if(bar) bar.style.width = pct + "%";
+  }
+
+  function setStatus(msg){
+    const s = $("status-text"); if(s) s.textContent = msg;
+  }
+
+  // ---- Events ----
+  if(cv){
+    cv.addEventListener("click", function(e){ e.preventDefault(); fillAt(pointFromEvent(e)); });
+    cv.addEventListener("touchend", function(e){ e.preventDefault(); fillAt(pointFromEvent(e)); }, {passive:false});
+  }
+
+  [].forEach.call(document.querySelectorAll(".scene-btn"), function(b){
+    b.addEventListener("click", function(){
+      [].forEach.call(document.querySelectorAll(".scene-btn"), function(x){ x.classList.remove("text-cyan-400"); x.classList.add("text-slate-400"); x.style.borderColor=""; });
+      b.classList.add("text-cyan-400"); b.classList.remove("text-slate-400"); b.style.borderColor="rgba(34,211,238,.3)";
+      loadScene(b.dataset.scene);
+    });
+  });
+
+  const undo = $("btn-undo"); if(undo){ undo.addEventListener("click", function(){
+    if(!history.length) return;
+    const i = history.pop();
+    if(regions[i]){ if(regions[i].filled) completed--; regions[i].filled = null; }
+    render(); updateProgress(); setStatus("Undo.");
+  }); }
+  const reset = $("btn-reset"); if(reset){ reset.addEventListener("click", function(){ loadScene(scene); }); }
+  const auto = $("btn-auto"); if(auto){ auto.addEventListener("click", function(){
+    ensureAudio();
+    let k = 0;
+    const iv = setInterval(function(){
+      let idx = -1;
+      for(let i=0;i<regions.length;i++){ if(!regions[i].filled){ idx=i; break; } }
+      if(idx<0 || k>=regions.length){ clearInterval(iv); if(completed===regions.length) onComplete(); return; }
+      regions[idx].filled = COLORS[(k*3+1)%COLORS.length];
+      completed++; k++;
+      render(); brush(); updateProgress();
+      if(completed===regions.length){ clearInterval(iv); onComplete(); }
+    }, 180);
+    setStatus("Blooming, one petal at a time...");
+  }); }
+
+  loadScene("mandala");
+})();
+</script>
+</body>
+</html>

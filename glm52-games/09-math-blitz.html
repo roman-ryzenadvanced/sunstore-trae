@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GLM 5.2 · Math Blitz</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --g: #0a0a0a;
+      --gb: #1a1a1a;
+      --a: #00d4ff;
+      --r: #ff3e3e;
+      --rb: #ff6b6b;
+      --s: #888;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--g);
+      color: #fff;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    
+    .glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .glass-strong {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.3;
+      z-index: 0;
+      pointer-events: none;
+    }
+    
+    .orb-1 {
+      width: 400px;
+      height: 400px;
+      background: var(--a);
+      top: -100px;
+      right: -100px;
+    }
+    
+    .orb-2 {
+      width: 300px;
+      height: 300px;
+      background: #a855f7;
+      bottom: -50px;
+      left: -50px;
+    }
+    
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.75rem;
+      font-weight: 600;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+      font-family: 'Inter', sans-serif;
+    }
+    
+    .btn-glow {
+      background: linear-gradient(135deg, #00d4ff, #0099cc);
+      color: #000;
+      box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
+    }
+    
+    .btn-glow:hover {
+      box-shadow: 0 0 30px rgba(0, 212, 255, 0.6);
+      transform: translateY(-2px);
+    }
+    
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.375rem 0.75rem;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      gap: 0.375rem;
+    }
+    
+    .chip-cyan {
+      background: rgba(0, 212, 255, 0.15);
+      color: var(--a);
+      border: 1px solid rgba(0, 212, 255, 0.3);
+    }
+    
+    .chip-rose {
+      background: rgba(255, 62, 62, 0.15);
+      color: var(--rb);
+      border: 1px solid rgba(255, 62, 62, 0.3);
+    }
+    
+    .chip-emerald {
+      background: rgba(16, 185, 129, 0.15);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    
+    .h1-grad {
+      background: linear-gradient(135deg, #fff 0%, #888 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--s);
+    }
+    
+    .status-dot.active {
+      background: var(--a);
+      box-shadow: 0 0 10px var(--a);
+    }
+    
+    .status-dot.success {
+      background: #10b981;
+      box-shadow: 0 0 10px #10b981;
+    }
+    
+    .status-dot.error {
+      background: var(--r);
+      box-shadow: 0 0 10px var(--r);
+    }
+    
+    .problem-display {
+      font-size: 3rem;
+      font-weight: 700;
+      padding: 2rem;
+      text-align: center;
+      min-height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    @media (max-width: 640px) {
+      .problem-display {
+        font-size: 2rem;
+        padding: 1.5rem;
+        min-height: 100px;
+      }
+    }
+    
+    .answer-btn {
+      padding: 1.5rem;
+      border-radius: 0.75rem;
+      font-size: 1.5rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      user-select: none;
+      border: none;
+      font-family: 'JetBrains Mono', monospace;
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+    
+    @media (max-width: 640px) {
+      .answer-btn {
+        padding: 1rem;
+        font-size: 1.25rem;
+      }
+    }
+    
+    .answer-btn:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+    
+    .answer-btn:disabled {
+      cursor: not-allowed;
+    }
+    
+    .answer-btn.correct {
+      background: rgba(16, 185, 129, 0.4);
+      border-color: #10b981;
+      color: #10b981;
+      box-shadow: 0 0 30px rgba(16, 185, 129, 0.6);
+      animation: pulse 0.3s;
+    }
+    
+    .answer-btn.wrong {
+      background: rgba(255, 62, 62, 0.4);
+      border-color: var(--r);
+      color: var(--r);
+      box-shadow: 0 0 30px rgba(255, 62, 62, 0.6);
+      animation: shake 0.4s;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-8px); }
+      75% { transform: translateX(8px); }
+    }
+    
+    .timer-critical {
+      color: var(--r);
+      animation: timerPulse 0.5s infinite;
+    }
+    
+    @keyframes timerPulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  
+  <nav class="glass fixed top-0 left-0 right-0 z-50 px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center font-bold text-black">
+        R
+      </div>
+      <a href="https://rommark.dev" class="text-white font-semibold hover:text-cyan-400 transition">rommark.dev</a>
+    </div>
+    <div class="flex items-center gap-4">
+      <a href="#" class="text-white/60 hover:text-white transition flex items-center gap-2">
+        <span>←</span>
+        <span>Playground</span>
+      </a>
+      <button id="muteBtn" class="glass rounded-lg px-3 py-2 text-sm hover:bg-white/10 transition">
+        🔊
+      </button>
+    </div>
+  </nav>
+  
+  <main class="relative z-10 pt-32 pb-16 px-6 max-w-4xl mx-auto">
+    <div class="text-center mb-12">
+      <h1 class="text-5xl md:text-6xl font-bold mb-4 h1-grad">Math Blitz</h1>
+      <p class="text-white/60 text-lg mb-6">60 seconds. Solve as many as you can. Speed meets accuracy.</p>
+      <div class="flex items-center justify-center gap-3 flex-wrap">
+        <span class="chip chip-cyan">
+          <span>●</span>
+          <span>GLM 5.2</span>
+        </span>
+        <span class="chip chip-emerald">
+          <span>🧠</span>
+          <span>Brain</span>
+        </span>
+      </div>
+    </div>
+    
+    <div id="startScreen" class="glass-strong rounded-2xl p-8 text-center">
+      <h2 class="text-2xl font-bold mb-4">Ready to test your math speed?</h2>
+      <p class="text-white/60 mb-6">Solve arithmetic problems as fast as you can. Difficulty increases as you progress.</p>
+      <button id="startBtn" class="btn btn-glow text-lg">Start Game</button>
+      <div id="bestScoreDisplay" class="mt-6 text-white/60 mono"></div>
+    </div>
+    
+    <div id="gameScreen" class="hidden">
+      <div class="flex items-center justify-between gap-4 mb-6 flex-wrap">
+        <div class="chip chip-emerald mono">
+          <span>Score:</span>
+          <span id="scoreDisplay">0</span>
+        </div>
+        <div id="timerDisplay" class="text-4xl font-bold mono">60</div>
+        <div class="chip chip-cyan mono">
+          <span>Streak:</span>
+          <span id="streakDisplay">0</span>
+        </div>
+      </div>
+      
+      <div class="glass-strong rounded-2xl p-6 mb-6">
+        <div id="statusBar" class="flex items-center gap-3 mb-4">
+          <div class="status-dot active"></div>
+          <span class="text-white/60 text-sm">Solve the problem</span>
+        </div>
+        <div id="problemDisplay" class="problem-display mono">? + ? = ?</div>
+      </div>
+      
+      <div class="grid grid-cols-2 gap-4">
+        <button class="answer-btn" data-answer="0">A</button>
+        <button class="answer-btn" data-answer="1">B</button>
+        <button class="answer-btn" data-answer="2">C</button>
+        <button class="answer-btn" data-answer="3">D</button>
+      </div>
+    </div>
+    
+    <div id="resultsScreen" class="hidden glass-strong rounded-2xl p-8">
+      <h2 class="text-3xl font-bold mb-6 text-center h1-grad">Time's Up!</h2>
+      <div class="grid grid-cols-2 gap-6 mb-8">
+        <div class="text-center">
+          <div class="text-4xl font-bold mono mb-2" id="finalScore">0</div>
+          <div class="text-white/60 text-sm">Problems Solved</div>
+        </div>
+        <div class="text-center">
+          <div class="text-4xl font-bold mono mb-2" id="finalAccuracy">0%</div>
+          <div class="text-white/60 text-sm">Accuracy</div>
+        </div>
+        <div class="text-center">
+          <div class="text-4xl font-bold mono mb-2" id="finalStreak">0</div>
+          <div class="text-white/60 text-sm">Best Streak</div>
+        </div>
+        <div class="text-center">
+          <div class="text-4xl font-bold mono mb-2" id="finalAvgTime">0s</div>
+          <div class="text-white/60 text-sm">Avg Answer Time</div>
+        </div>
+      </div>
+      <div id="newBestMessage" class="hidden text-center mb-6">
+        <div class="chip chip-emerald">
+          <span>🏆</span>
+          <span>New Best Score!</span>
+        </div>
+      </div>
+      <div class="text-center">
+        <button id="playAgainBtn" class="btn btn-glow text-lg">Play Again</button>
+      </div>
+    </div>
+    
+    <div class="glass-strong rounded-2xl p-6 mt-8">
+      <h3 class="text-xl font-bold mb-4">How to Play</h3>
+      <ul class="space-y-2 text-white/60">
+        <li class="flex items-start gap-2">
+          <span class="text-cyan-400">•</span>
+          <span>Click Start to begin the 60-second countdown</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="text-cyan-400">•</span>
+          <span>Solve each arithmetic problem by clicking the correct answer (A, B, C, or D)</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="text-cyan-400">•</span>
+          <span>Difficulty increases as you solve more problems: addition → subtraction → multiplication</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="text-cyan-400">•</span>
+          <span>Build streaks by answering consecutive questions correctly</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="text-cyan-400">•</span>
+          <span>Timer turns red at 10 seconds remaining</span>
+        </li>
+        <li class="flex items-start gap-2">
+          <span class="text-cyan-400">•</span>
+          <span>Try to beat your best score!</span>
+        </li>
+      </ul>
+    </div>
+  </main>
+  
+  <footer class="glass fixed bottom-0 left-0 right-0 z-50 px-6 py-4 text-center text-white/60 text-sm">
+    <p>GLM 5.2 · Built with precision</p>
+  </footer>
+  
+  <script>
+    const startScreen = document.getElementById('startScreen');
+    const gameScreen = document.getElementById('gameScreen');
+    const resultsScreen = document.getElementById('resultsScreen');
+    const startBtn = document.getElementById('startBtn');
+    const playAgainBtn = document.getElementById('playAgainBtn');
+    const muteBtn = document.getElementById('muteBtn');
+    const scoreDisplay = document.getElementById('scoreDisplay');
+    const streakDisplay = document.getElementById('streakDisplay');
+    const timerDisplay = document.getElementById('timerDisplay');
+    const problemDisplay = document.getElementById('problemDisplay');
+    const statusBar = document.getElementById('statusBar');
+    const bestScoreDisplay = document.getElementById('bestScoreDisplay');
+    const finalScore = document.getElementById('finalScore');
+    const finalAccuracy = document.getElementById('finalAccuracy');
+    const finalStreak = document.getElementById('finalStreak');
+    const finalAvgTime = document.getElementById('finalAvgTime');
+    const newBestMessage = document.getElementById('newBestMessage');
+    const answerButtons = document.querySelectorAll('.answer-btn');
+    
+    let audioCtx = null;
+    let muted = false;
+    let score = 0;
+    let streak = 0;
+    let bestStreak = 0;
+    let totalAttempted = 0;
+    let totalCorrect = 0;
+    let timeLeft = 60;
+    let timerInterval = null;
+    let currentProblem = null;
+    let questionStartTime = 0;
+    let totalAnswerTime = 0;
+    let bestScore = parseInt(localStorage.getItem('glm-09-best-score')) || 0;
+    
+    function initAudio() {
+      try {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      } catch (e) {
+        console.log('Audio not available');
+      }
+    }
+    
+    function playSound(type) {
+      if (muted || !audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        
+        if (type === 'correct') {
+          osc.frequency.value = 880;
+          gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+          osc.start(audioCtx.currentTime);
+          osc.stop(audioCtx.currentTime + 0.1);
+        } else if (type === 'wrong') {
+          osc.frequency.value = 220;
+          osc.type = 'sawtooth';
+          gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+          osc.start(audioCtx.currentTime);
+          osc.stop(audioCtx.currentTime + 0.2);
+        } else if (type === 'tick') {
+          osc.frequency.value = 440;
+          gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.05);
+          osc.start(audioCtx.currentTime);
+          osc.stop(audioCtx.currentTime + 0.05);
+        }
+      } catch (e) {
+        console.log('Sound error:', e);
+      }
+    }
+    
+    function updateBestScoreDisplay() {
+      if (bestScoreDisplay) {
+        bestScoreDisplay.textContent = bestScore > 0 ? `Best Score: ${bestScore}` : '';
+      }
+    }
+    
+    function generateProblem() {
+      let a, b, op, answer;
+      
+      if (score <= 5) {
+        a = Math.floor(Math.random() * 19) + 2;
+        b = Math.floor(Math.random() * 19) + 2;
+        op = '+';
+        answer = a + b;
+      } else if (score <= 12) {
+        a = Math.floor(Math.random() * 41) + 10;
+        b = Math.floor(Math.random() * 29) + 2;
+        op = '-';
+        answer = a - b;
+      } else if (score <= 20) {
+        a = Math.floor(Math.random() * 11) + 2;
+        b = Math.floor(Math.random() * 11) + 2;
+        op = '×';
+        answer = a * b;
+      } else {
+        a = Math.floor(Math.random() * 16) + 5;
+        b = Math.floor(Math.random() * 16) + 5;
+        op = '×';
+        answer = a * b;
+      }
+      
+      const choices = generateChoices(answer);
+      return { text: `${a} ${op} ${b} = ?`, answer, choices };
+    }
+    
+    function generateChoices(correct) {
+      const choices = [correct];
+      const used = new Set([correct]);
+      
+      while (choices.length < 4) {
+        let offset = Math.floor(Math.random() * 5) + 1;
+        if (Math.random() > 0.5) offset = -offset;
+        let wrong = correct + offset;
+        
+        if (wrong < 0) wrong = correct + Math.abs(offset);
+        if (!used.has(wrong)) {
+          choices.push(wrong);
+          used.add(wrong);
+        }
+      }
+      
+      for (let i = choices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [choices[i], choices[j]] = [choices[j], choices[i]];
+      }
+      
+      return choices;
+    }
+    
+    function displayProblem() {
+      currentProblem = generateProblem();
+      questionStartTime = Date.now();
+      
+      if (problemDisplay) {
+        problemDisplay.textContent = currentProblem.text;
+      }
+      
+      answerButtons.forEach((btn, idx) => {
+        if (btn) {
+          btn.textContent = currentProblem.choices[idx];
+          btn.disabled = false;
+          btn.classList.remove('correct', 'wrong');
+        }
+      });
+      
+      updateStatus('Solve the problem', 'active');
+    }
+    
+    function updateStatus(text, dotClass) {
+      if (statusBar) {
+        statusBar.innerHTML = `
+          <div class="status-dot ${dotClass}"></div>
+          <span class="text-white/60 text-sm">${text}</span>
+        `;
+      }
+    }
+    
+    function handleAnswer(choiceIdx) {
+      const answerTime = (Date.now() - questionStartTime) / 1000;
+      totalAnswerTime += answerTime;
+      totalAttempted++;
+      
+      const selected = currentProblem.choices[choiceIdx];
+      const correct = currentProblem.answer;
+      const isCorrect = selected === correct;
+      
+      answerButtons.forEach(btn => {
+        if (btn) btn.disabled = true;
+      });
+      
+      if (isCorrect) {
+        score++;
+        streak++;
+        totalCorrect++;
+        if (streak > bestStreak) bestStreak = streak;
+        
+        answerButtons[choiceIdx]?.classList.add('correct');
+        playSound('correct');
+        updateStatus('Correct!', 'success');
+      } else {
+        streak = 0;
+        
+        answerButtons[choiceIdx]?.classList.add('wrong');
+        
+        answerButtons.forEach((btn, idx) => {
+          if (btn && currentProblem.choices[idx] === correct) {
+            btn.classList.add('correct');
+          }
+        });
+        
+        playSound('wrong');
+        updateStatus(`Wrong! Answer: ${correct}`, 'error');
+      }
+      
+      if (scoreDisplay) scoreDisplay.textContent = score;
+      if (streakDisplay) streakDisplay.textContent = streak;
+      
+      setTimeout(() => {
+        if (timeLeft > 0) {
+          displayProblem();
+        }
+      }, 200);
+    }
+    
+    function startGame() {
+      initAudio();
+      
+      score = 0;
+      streak = 0;
+      bestStreak = 0;
+      totalAttempted = 0;
+      totalCorrect = 0;
+      totalAnswerTime = 0;
+      timeLeft = 60;
+      
+      if (scoreDisplay) scoreDisplay.textContent = '0';
+      if (streakDisplay) streakDisplay.textContent = '0';
+      if (timerDisplay) {
+        timerDisplay.textContent = '60';
+        timerDisplay.classList.remove('timer-critical');
+      }
+      
+      startScreen?.classList.add('hidden');
+      resultsScreen?.classList.add('hidden');
+      gameScreen?.classList.remove('hidden');
+      
+      displayProblem();
+      
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        
+        if (timerDisplay) {
+          timerDisplay.textContent = timeLeft;
+          
+          if (timeLeft <= 10) {
+            timerDisplay.classList.add('timer-critical');
+            playSound('tick');
+          }
+        }
+        
+        if (timeLeft <= 0) {
+          endGame();
+        }
+      }, 1000);
+    }
+    
+    function endGame() {
+      clearInterval(timerInterval);
+      
+      gameScreen?.classList.add('hidden');
+      resultsScreen?.classList.remove('hidden');
+      
+      const accuracy = totalAttempted > 0 ? Math.round((totalCorrect / totalAttempted) * 100) : 0;
+      const avgTime = totalCorrect > 0 ? (totalAnswerTime / totalCorrect).toFixed(2) : '0';
+      
+      if (finalScore) finalScore.textContent = score;
+      if (finalAccuracy) finalAccuracy.textContent = `${accuracy}%`;
+      if (finalStreak) finalStreak.textContent = bestStreak;
+      if (finalAvgTime) finalAvgTime.textContent = `${avgTime}s`;
+      
+      if (score > bestScore) {
+        bestScore = score;
+        localStorage.setItem('glm-09-best-score', bestScore.toString());
+        newBestMessage?.classList.remove('hidden');
+      } else {
+        newBestMessage?.classList.add('hidden');
+      }
+      
+      updateBestScoreDisplay();
+    }
+    
+    startBtn?.addEventListener('click', startGame);
+    playAgainBtn?.addEventListener('click', startGame);
+    
+    answerButtons.forEach((btn, idx) => {
+      btn?.addEventListener('click', () => handleAnswer(idx));
+    });
+    
+    muteBtn?.addEventListener('click', () => {
+      muted = !muted;
+      if (muteBtn) {
+        muteBtn.textContent = muted ? '🔇' : '🔊';
+      }
+    });
+    
+    updateBestScoreDisplay();
+  </script>
+</body>
+</html>

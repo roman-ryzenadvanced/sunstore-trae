@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GLM 5.2 · Tile Connect Match</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --g: #0a0a0a;
+      --gb: #1a1a1a;
+      --a: #00d4ff;
+      --r: #ff3e3e;
+      --rb: #ff6b6b;
+      --s: #888;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--g);
+      color: #fff;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .glass-strong {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.3;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .orb-1 {
+      width: 400px;
+      height: 400px;
+      background: var(--a);
+      top: -100px;
+      right: -100px;
+    }
+
+    .orb-2 {
+      width: 300px;
+      height: 300px;
+      background: #a855f7;
+      bottom: -50px;
+      left: -50px;
+    }
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.75rem;
+      font-weight: 600;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+      font-family: 'Inter', sans-serif;
+    }
+
+    .btn-glow {
+      background: linear-gradient(135deg, #00d4ff, #0099cc);
+      color: #000;
+      box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
+    }
+
+    .btn-glow:hover {
+      box-shadow: 0 0 30px rgba(0, 212, 255, 0.6);
+      transform: translateY(-2px);
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.375rem 0.75rem;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      gap: 0.375rem;
+    }
+
+    .chip-cyan {
+      background: rgba(0, 212, 255, 0.15);
+      color: var(--a);
+      border: 1px solid rgba(0, 212, 255, 0.3);
+    }
+
+    .chip-rose {
+      background: rgba(255, 62, 62, 0.15);
+      color: var(--rb);
+      border: 1px solid rgba(255, 62, 62, 0.3);
+    }
+
+    .chip-emerald {
+      background: rgba(16, 185, 129, 0.15);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .h1-grad {
+      background: linear-gradient(135deg, #fff 0%, #888 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--s);
+    }
+
+    .status-dot.active {
+      background: var(--a);
+      box-shadow: 0 0 10px var(--a);
+    }
+
+    .status-dot.success {
+      background: #10b981;
+      box-shadow: 0 0 10px #10b981;
+    }
+
+    .status-dot.error {
+      background: var(--r);
+      box-shadow: 0 0 10px var(--r);
+    }
+
+    .difficulty-btn {
+      padding: 0.625rem 1.25rem;
+      border-radius: 0.75rem;
+      font-weight: 600;
+      font-size: 0.875rem;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      color: rgba(255, 255, 255, 0.7);
+      font-family: 'Inter', sans-serif;
+    }
+
+    .difficulty-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    .difficulty-btn.active {
+      border-color: var(--a);
+      color: var(--a);
+      background: rgba(0, 212, 255, 0.1);
+      box-shadow: 0 0 15px rgba(0, 212, 255, 0.2);
+    }
+
+    .game-grid {
+      display: grid;
+      gap: 0.75rem;
+      max-width: 600px;
+      margin: 0 auto;
+      perspective: 1000px;
+    }
+
+    .game-grid.cols-4 {
+      grid-template-columns: repeat(4, 1fr);
+    }
+
+    .game-grid.cols-6 {
+      grid-template-columns: repeat(6, 1fr);
+    }
+
+    .card {
+      aspect-ratio: 1;
+      position: relative;
+      cursor: pointer;
+      transform-style: preserve-3d;
+      transition: transform 0.5s ease;
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .card.flipped {
+      transform: rotateY(180deg);
+    }
+
+    .card.matched {
+      transform: rotateY(180deg);
+    }
+
+    .card.matched .card-front {
+      border-color: #10b981;
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.5), inset 0 0 20px rgba(16, 185, 129, 0.1);
+    }
+
+    .card.mismatched .card-front {
+      border-color: var(--r);
+      box-shadow: 0 0 20px rgba(255, 62, 62, 0.5);
+    }
+
+    .card.matched {
+      cursor: default;
+      pointer-events: none;
+    }
+
+    .card-face {
+      position: absolute;
+      inset: 0;
+      border-radius: 0.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+
+    .card-back {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      font-size: 1.5rem;
+      color: rgba(255, 255, 255, 0.2);
+    }
+
+    .card-back::before {
+      content: '?';
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 700;
+      font-size: 1.75rem;
+    }
+
+    .card:hover:not(.flipped):not(.matched) .card-back {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    .card-front {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      transform: rotateY(180deg);
+      font-size: 2.5rem;
+    }
+
+    @media (max-width: 640px) {
+      .game-grid {
+        gap: 0.5rem;
+      }
+
+      .card-back::before {
+        font-size: 1.25rem;
+      }
+
+      .card-front {
+        font-size: 1.75rem;
+      }
+    }
+
+    .star {
+      font-size: 2.5rem;
+      opacity: 0.2;
+      transition: all 0.3s;
+    }
+
+    .star.filled {
+      opacity: 1;
+      filter: drop-shadow(0 0 8px rgba(250, 204, 21, 0.6));
+    }
+
+    @keyframes cardMatch {
+      0% { transform: rotateY(180deg) scale(1); }
+      50% { transform: rotateY(180deg) scale(1.1); }
+      100% { transform: rotateY(180deg) scale(1); }
+    }
+
+    .card.match-anim {
+      animation: cardMatch 0.4s ease;
+    }
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <nav class="glass fixed top-0 left-0 right-0 z-50 px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center font-bold text-black">
+        R
+      </div>
+      <a href="https://rommark.dev" class="text-white font-semibold hover:text-cyan-400 transition">rommark.dev</a>
+    </div>
+    <div class="flex items-center gap-4">
+      <a href="#" class="text-white/60 hover:text-white transition flex items-center gap-2">
+        <span>&larr;</span>
+        <span>Playground</span>
+      </a>
+      <button id="muteBtn" class="glass rounded-lg px-3 py-2 text-sm hover:bg-white/10 transition">
+        &#x1F50A;
+      </button>
+    </div>
+  </nav>
+
+  <main class="relative z-10 pt-32 pb-16 px-6 max-w-4xl mx-auto">
+    <div class="text-center mb-12">
+      <h1 class="text-5xl md:text-6xl font-bold mb-4 h1-grad">Tile Connect Match</h1>
+      <p class="text-white/60 text-lg mb-6">Flip cards and find matching pairs. Fewest moves wins.</p>
+      <div class="flex items-center justify-center gap-3 flex-wrap">
+        <span class="chip chip-cyan">
+          <span>&#x25CF;</span>
+          <span>GLM 5.2</span>
+        </span>
+        <span class="chip chip-emerald">
+          <span>&#x1F9E0;</span>
+          <span>Brain</span>
+        </span>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-center gap-3 mb-6 flex-wrap">
+      <button class="difficulty-btn active" data-difficulty="easy">Easy 4&times;3</button>
+      <button class="difficulty-btn" data-difficulty="medium">Medium 4&times;4</button>
+      <button class="difficulty-btn" data-difficulty="hard">Hard 6&times;4</button>
+    </div>
+
+    <div class="text-center mb-8">
+      <button id="startBtn" class="btn btn-glow text-lg px-8 py-4">
+        Start Game
+      </button>
+    </div>
+
+    <div id="gameInfo" class="hidden items-center justify-center gap-4 mb-8 flex-wrap">
+      <span class="chip chip-cyan mono">
+        <span>Moves:</span>
+        <span id="movesCount">0</span>
+      </span>
+      <span class="chip chip-emerald mono">
+        <span>Time:</span>
+        <span id="timerDisplay">0s</span>
+      </span>
+      <span class="chip chip-cyan mono">
+        <span>Pairs:</span>
+        <span id="pairsFound">0</span>
+        <span>/</span>
+        <span id="pairsTotal">6</span>
+      </span>
+    </div>
+
+    <div id="statusBar" class="glass rounded-xl px-6 py-4 mb-8 flex items-center gap-3">
+      <div id="statusDot" class="status-dot"></div>
+      <span id="statusText" class="text-white/80">Select difficulty and start</span>
+    </div>
+
+    <div id="gameScreen" class="hidden mb-12">
+      <div class="glass-strong rounded-2xl p-6 md:p-8">
+        <div id="gameGrid" class="game-grid cols-4"></div>
+      </div>
+    </div>
+
+    <div id="winScreen" class="hidden text-center mb-12">
+      <div class="glass-strong rounded-2xl p-8 max-w-md mx-auto">
+        <h2 class="text-4xl font-bold mb-2 text-emerald-400">You Win!</h2>
+        <div class="flex justify-center gap-2 mb-6">
+          <span class="star" id="star1">&#x2B50;</span>
+          <span class="star" id="star2">&#x2B50;</span>
+          <span class="star" id="star3">&#x2B50;</span>
+        </div>
+        <div class="space-y-3 mb-6">
+          <p class="text-white/80">
+            Time: <span id="winTime" class="mono font-semibold text-white">0s</span>
+          </p>
+          <p class="text-white/80">
+            Moves: <span id="winMoves" class="mono font-semibold text-white">0</span>
+          </p>
+          <p class="text-white/80">
+            Best Moves: <span id="winBestMoves" class="mono font-semibold text-cyan-400">&mdash;</span>
+          </p>
+          <p class="text-white/80">
+            Best Time: <span id="winBestTime" class="mono font-semibold text-emerald-400">&mdash;</span>
+          </p>
+        </div>
+        <button id="playAgainBtn" class="btn btn-glow">
+          Play Again
+        </button>
+      </div>
+    </div>
+
+    <div class="glass rounded-2xl p-8 mt-12">
+      <h2 class="text-2xl font-bold mb-4">How to Play</h2>
+      <ul class="space-y-3 text-white/80">
+        <li class="flex items-start gap-3">
+          <span class="text-cyan-400 font-bold">1.</span>
+          <span>Choose a difficulty level: Easy (4&times;3, 6 pairs), Medium (4&times;4, 8 pairs), or Hard (6&times;4, 12 pairs).</span>
+        </li>
+        <li class="flex items-start gap-3">
+          <span class="text-cyan-400 font-bold">2.</span>
+          <span>Click or tap a card to flip it face-up, revealing its emoji icon.</span>
+        </li>
+        <li class="flex items-start gap-3">
+          <span class="text-cyan-400 font-bold">3.</span>
+          <span>Flip a second card. If the two emojis match, they stay revealed with a green glow.</span>
+        </li>
+        <li class="flex items-start gap-3">
+          <span class="text-cyan-400 font-bold">4.</span>
+          <span>If they don't match, both cards flip back face-down after a short delay.</span>
+        </li>
+        <li class="flex items-start gap-3">
+          <span class="text-cyan-400 font-bold">5.</span>
+          <span>Clear all pairs to win. Aim for the fewest moves and fastest time for a 3-star rating!</span>
+        </li>
+      </ul>
+    </div>
+  </main>
+
+  <footer class="glass fixed bottom-0 left-0 right-0 z-50 px-6 py-4 text-center text-white/60 text-sm">
+    <p>GLM 5.2 &middot; Built with precision</p>
+  </footer>
+
+  <script>
+    (function() {
+      'use strict';
+
+      var EMOJIS = ['\u{1F52E}', '\u26A1', '\u{1F319}', '\u{1F525}', '\u{1F48E}', '\u{1F30A}', '\u{1F3AF}', '\u{1F338}', '\u{1F3B2}', '\u{1F3AD}', '\u{1F98B}', '\u{1F31F}'];
+
+      var DIFFICULTIES = {
+        easy:   { cols: 4, rows: 3, pairs: 6 },
+        medium: { cols: 4, rows: 4, pairs: 8 },
+        hard:   { cols: 6, rows: 4, pairs: 12 }
+      };
+
+      var difficulty = 'easy';
+      var cards = [];
+      var flippedCards = [];
+      var matchedPairs = 0;
+      var totalPairs = 6;
+      var moves = 0;
+      var timerSeconds = 0;
+      var timerInterval = null;
+      var timerStarted = false;
+      var isLocked = false;
+      var isMuted = false;
+      var audioContext = null;
+
+      try {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      } catch (e) {
+        audioContext = null;
+      }
+
+      function $(id) { return document.getElementById(id); }
+
+      function playSound(freq, duration, type) {
+        if (isMuted || !audioContext) return;
+        try {
+          var osc = audioContext.createOscillator();
+          var gain = audioContext.createGain();
+          osc.connect(gain);
+          gain.connect(audioContext.destination);
+          osc.frequency.value = freq;
+          osc.type = type || 'sine';
+          gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+          osc.start(audioContext.currentTime);
+          osc.stop(audioContext.currentTime + duration);
+        } catch (e) {}
+      }
+
+      function playFlip() {
+        playSound(600, 0.05, 'sine');
+      }
+
+      function playMatch() {
+        playSound(880, 0.1, 'sine');
+        setTimeout(function() { playSound(1100, 0.15, 'sine'); }, 80);
+        setTimeout(function() { playSound(1320, 0.2, 'sine'); }, 160);
+      }
+
+      function playMismatch() {
+        playSound(200, 0.2, 'sawtooth');
+      }
+
+      function playWin() {
+        var notes = [523, 659, 784, 1047];
+        for (var i = 0; i < notes.length; i++) {
+          (function(idx) {
+            setTimeout(function() { playSound(notes[idx], 0.2, 'sine'); }, idx * 120);
+          })(i);
+        }
+      }
+
+      function setStatus(text, state) {
+        var statusText = $('statusText');
+        var statusDot = $('statusDot');
+        if (statusText) statusText.textContent = text;
+        if (statusDot) {
+          statusDot.className = 'status-dot';
+          if (state === 'active') statusDot.classList.add('active');
+          else if (state === 'success') statusDot.classList.add('success');
+          else if (state === 'error') statusDot.classList.add('error');
+        }
+      }
+
+      function shuffle(arr) {
+        var a = arr.slice();
+        for (var i = a.length - 1; i > 0; i--) {
+          var j = Math.floor(Math.random() * (i + 1));
+          var tmp = a[i];
+          a[i] = a[j];
+          a[j] = tmp;
+        }
+        return a;
+      }
+
+      function startTimer() {
+        if (timerStarted) return;
+        timerStarted = true;
+        timerSeconds = 0;
+        timerInterval = setInterval(function() {
+          timerSeconds++;
+          var td = $('timerDisplay');
+          if (td) td.textContent = timerSeconds + 's';
+        }, 1000);
+      }
+
+      function stopTimer() {
+        if (timerInterval) {
+          clearInterval(timerInterval);
+          timerInterval = null;
+        }
+      }
+
+      function getBestMovesKey() {
+        return 'glm-08-best-moves-' + difficulty;
+      }
+
+      function getBestTimeKey() {
+        return 'glm-08-best-time-' + difficulty;
+      }
+
+      function loadBest(key) {
+        try {
+          var v = localStorage.getItem(key);
+          return v !== null ? parseInt(v, 10) : null;
+        } catch (e) {
+          return null;
+        }
+      }
+
+      function saveBest(key, val) {
+        try {
+          var current = loadBest(key);
+          if (current === null || val < current) {
+            localStorage.setItem(key, String(val));
+          }
+        } catch (e) {}
+      }
+
+      function computeStars(movesCount, pairs) {
+        if (movesCount < pairs * 1.5) return 3;
+        if (movesCount < pairs * 2) return 2;
+        return 1;
+      }
+
+      function setStars(count) {
+        for (var i = 1; i <= 3; i++) {
+          var el = $('star' + i);
+          if (el) {
+            if (i <= count) el.classList.add('filled');
+            else el.classList.remove('filled');
+          }
+        }
+      }
+
+      function resetGame() {
+        stopTimer();
+        timerStarted = false;
+        timerSeconds = 0;
+        moves = 0;
+        matchedPairs = 0;
+        flippedCards = [];
+        isLocked = false;
+        cards = [];
+
+        var mc = $('movesCount');
+        var td = $('timerDisplay');
+        var pf = $('pairsFound');
+        var pt = $('pairsTotal');
+
+        if (mc) mc.textContent = '0';
+        if (td) td.textContent = '0s';
+        if (pf) pf.textContent = '0';
+
+        var config = DIFFICULTIES[difficulty];
+        totalPairs = config.pairs;
+        if (pt) pt.textContent = String(totalPairs);
+      }
+
+      function buildGrid() {
+        var grid = $('gameGrid');
+        if (!grid) return;
+        grid.innerHTML = '';
+
+        var config = DIFFICULTIES[difficulty];
+        grid.className = 'game-grid cols-' + config.cols;
+
+        var emojis = shuffle(EMOJIS).slice(0, config.pairs);
+        var deck = shuffle(emojis.concat(emojis));
+
+        cards = [];
+        for (var i = 0; i < deck.length; i++) {
+          var card = document.createElement('div');
+          card.className = 'card';
+          card.setAttribute('data-index', String(i));
+          card.setAttribute('data-emoji', deck[i]);
+
+          var back = document.createElement('div');
+          back.className = 'card-face card-back';
+
+          var front = document.createElement('div');
+          front.className = 'card-face card-front';
+          front.textContent = deck[i];
+
+          card.appendChild(back);
+          card.appendChild(front);
+          grid.appendChild(card);
+          cards.push(card);
+
+          (function(c) {
+            c.addEventListener('click', function() { onCardClick(c); });
+          })(card);
+        }
+      }
+
+      function onCardClick(card) {
+        if (isLocked) return;
+        if (card.classList.contains('flipped')) return;
+        if (card.classList.contains('matched')) return;
+
+        if (!timerStarted) startTimer();
+
+        card.classList.add('flipped');
+        flippedCards.push(card);
+        playFlip();
+
+        if (flippedCards.length === 2) {
+          moves++;
+          var mc = $('movesCount');
+          if (mc) mc.textContent = String(moves);
+
+          var c1 = flippedCards[0];
+          var c2 = flippedCards[1];
+          var e1 = c1.getAttribute('data-emoji');
+          var e2 = c2.getAttribute('data-emoji');
+
+          if (e1 === e2) {
+            isLocked = true;
+            setTimeout(function() {
+              c1.classList.add('matched', 'match-anim');
+              c2.classList.add('matched', 'match-anim');
+              playMatch();
+              matchedPairs++;
+              var pf = $('pairsFound');
+              if (pf) pf.textContent = String(matchedPairs);
+              flippedCards = [];
+              isLocked = false;
+              setStatus('Match found! ' + matchedPairs + '/' + totalPairs + ' pairs', 'success');
+
+              if (matchedPairs === totalPairs) {
+                handleWin();
+              }
+            }, 300);
+          } else {
+            isLocked = true;
+            c1.classList.add('mismatched');
+            c2.classList.add('mismatched');
+            playMismatch();
+            setStatus('No match. Cards will flip back...', 'error');
+            setTimeout(function() {
+              c1.classList.remove('flipped', 'mismatched');
+              c2.classList.remove('flipped', 'mismatched');
+              flippedCards = [];
+              isLocked = false;
+              setStatus('Keep looking! ' + matchedPairs + '/' + totalPairs + ' pairs found', 'active');
+            }, 800);
+          }
+        }
+      }
+
+      function handleWin() {
+        stopTimer();
+        playWin();
+
+        saveBest(getBestMovesKey(), moves);
+        saveBest(getBestTimeKey(), timerSeconds);
+
+        var stars = computeStars(moves, totalPairs);
+        setStars(stars);
+
+        var wt = $('winTime');
+        var wm = $('winMoves');
+        var wb = $('winBestMoves');
+        var wbt = $('winBestTime');
+
+        if (wt) wt.textContent = timerSeconds + 's';
+        if (wm) wm.textContent = String(moves);
+
+        var bestMoves = loadBest(getBestMovesKey());
+        var bestTime = loadBest(getBestTimeKey());
+
+        if (wb) wb.textContent = bestMoves !== null ? String(bestMoves) : '\u2014';
+        if (wbt) wbt.textContent = bestTime !== null ? bestTime + 's' : '\u2014';
+
+        var gs = $('gameScreen');
+        var ws = $('winScreen');
+        var gi = $('gameInfo');
+        if (gs) gs.classList.add('hidden');
+        if (gi) gi.classList.add('hidden');
+        if (ws) ws.classList.remove('hidden');
+
+        setStatus('Congratulations! All pairs matched in ' + moves + ' moves and ' + timerSeconds + 's!', 'success');
+      }
+
+      function startGame() {
+        resetGame();
+        buildGrid();
+
+        var ss = $('gameScreen');
+        var ws = $('winScreen');
+        var gi = $('gameInfo');
+
+        if (ss) ss.classList.remove('hidden');
+        if (gi) { gi.classList.remove('hidden'); gi.style.display = 'flex'; }
+        if (ws) ws.classList.add('hidden');
+
+        setStatus('Flip two cards to find matching pairs', 'active');
+      }
+
+      function setDifficulty(diff) {
+        difficulty = diff;
+        var btns = document.querySelectorAll('.difficulty-btn');
+        for (var i = 0; i < btns.length; i++) {
+          btns[i].classList.remove('active');
+          if (btns[i].getAttribute('data-difficulty') === diff) {
+            btns[i].classList.add('active');
+          }
+        }
+      }
+
+      function init() {
+        var diffBtns = document.querySelectorAll('.difficulty-btn');
+        for (var i = 0; i < diffBtns.length; i++) {
+          (function(btn) {
+            btn.addEventListener('click', function() {
+              setDifficulty(btn.getAttribute('data-difficulty'));
+            });
+          })(diffBtns[i]);
+        }
+
+        var startBtn = $('startBtn');
+        if (startBtn) startBtn.addEventListener('click', startGame);
+
+        var playAgainBtn = $('playAgainBtn');
+        if (playAgainBtn) playAgainBtn.addEventListener('click', startGame);
+
+        var muteBtn = $('muteBtn');
+        if (muteBtn) {
+          muteBtn.addEventListener('click', function() {
+            isMuted = !isMuted;
+            muteBtn.textContent = isMuted ? '\u{1F507}' : '\u{1F50A}';
+          });
+        }
+      }
+
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GLM 5.2 · Pattern Predictor</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --g: #0a0a0a;
+      --gb: #1a1a1a;
+      --a: #00d4ff;
+      --r: #ff3e3e;
+      --rb: #ff6b6b;
+      --s: #888;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--g);
+      color: #fff;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    
+    .glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .glass-strong {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+    
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.3;
+      z-index: 0;
+      pointer-events: none;
+    }
+    
+    .orb-1 {
+      width: 400px;
+      height: 400px;
+      background: var(--a);
+      top: -100px;
+      right: -100px;
+    }
+    
+    .orb-2 {
+      width: 300px;
+      height: 300px;
+      background: #a855f7;
+      bottom: -50px;
+      left: -50px;
+    }
+    
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.75rem;
+      font-weight: 600;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+      font-family: 'Inter', sans-serif;
+    }
+    
+    .btn-glow {
+      background: linear-gradient(135deg, #00d4ff, #0099cc);
+      color: #000;
+      box-shadow: 0 0 20px rgba(0, 212, 255, 0.4);
+    }
+    
+    .btn-glow:hover {
+      box-shadow: 0 0 30px rgba(0, 212, 255, 0.6);
+      transform: translateY(-2px);
+    }
+    
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.375rem 0.75rem;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      gap: 0.375rem;
+    }
+    
+    .chip-cyan {
+      background: rgba(0, 212, 255, 0.15);
+      color: var(--a);
+      border: 1px solid rgba(0, 212, 255, 0.3);
+    }
+    
+    .chip-rose {
+      background: rgba(255, 62, 62, 0.15);
+      color: var(--rb);
+      border: 1px solid rgba(255, 62, 62, 0.3);
+    }
+    
+    .chip-emerald {
+      background: rgba(16, 185, 129, 0.15);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    
+    .h1-grad {
+      background: linear-gradient(135deg, #fff 0%, #888 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--s);
+    }
+    
+    .status-dot.active {
+      background: var(--a);
+      box-shadow: 0 0 10px var(--a);
+    }
+    
+    .status-dot.success {
+      background: #10b981;
+      box-shadow: 0 0 10px #10b981;
+    }
+    
+    .status-dot.error {
+      background: var(--r);
+      box-shadow: 0 0 10px var(--r);
+    }
+    
+    .shape-item {
+      width: 50px;
+      height: 50px;
+      border-radius: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.75rem;
+      transition: all 0.2s;
+    }
+    
+    @media (max-width: 640px) {
+      .shape-item {
+        width: 40px;
+        height: 40px;
+        font-size: 1.25rem;
+      }
+    }
+    
+    .shape-question {
+      animation: pulse 1.5s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(0.95); }
+    }
+    
+    .choice-btn {
+      padding: 1rem;
+      border-radius: 0.75rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .choice-btn:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.1);
+      border-color: rgba(255, 255, 255, 0.3);
+      transform: translateY(-2px);
+    }
+    
+    .choice-btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.7;
+    }
+    
+    .choice-btn.correct {
+      background: rgba(16, 185, 129, 0.3);
+      border-color: #10b981;
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+    }
+    
+    .choice-btn.wrong {
+      background: rgba(255, 62, 62, 0.3);
+      border-color: var(--r);
+      box-shadow: 0 0 20px rgba(255, 62, 62, 0.4);
+      animation: shake 0.4s;
+    }
+    
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-8px); }
+      75% { transform: translateX(8px); }
+    }
+    
+    .heart {
+      font-size: 1.5rem;
+      transition: all 0.3s;
+    }
+    
+    .heart.lost {
+      opacity: 0.3;
+      transform: scale(0.8);
+    }
+    
+    .pattern-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      justify-content: center;
+      align-items: center;
+    }
+    
+    .explanation {
+      animation: fadeIn 0.3s ease-in;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  
+  <nav class="glass fixed top-0 left-0 right-0 z-50 px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center font-bold text-black">
+        R
+      </div>
+      <a href="https://rommark.dev" class="text-white font-semibold hover:text-cyan-400 transition">rommark.dev</a>
+    </div>
+    <div class="flex items-center gap-4">
+      <a href="#" class="text-white/60 hover:text-white transition flex items-center gap-2">
+        <span>←</span>
+        <span>Playground</span>
+      </a>
+      <button id="muteBtn" class="glass rounded-lg px-3 py-2 text-sm hover:bg-white/10 transition">
+        🔊
+      </button>
+    </div>
+  </nav>
+  
+  <main class="relative z-10 pt-32 pb-16 px-6 max-w-4xl mx-auto">
+    <div class="text-center mb-12">
+      <h1 class="text-5xl md:text-6xl font-bold mb-4 h1-grad">Pattern Predictor</h1>
+      <p class="text-white/60 text-lg mb-6">Spot the pattern. Predict what comes next.</p>
+      <div class="flex items-center justify-center gap-3 flex-wrap">
+        <span class="chip chip-cyan">
+          <span>●</span>
+          <span>GLM 5.2</span>
+        </span>
+        <span class="chip chip-emerald">
+          <span>🧠</span>
+          <span>Brain</span>
+        </span>
+      </div>
+    </div>
+    
+    <div id="startScreen" class="text-center mb-12">
+      <button id="startBtn" class="btn btn-glow text-lg px-8 py-4">
+        Start Game
+      </button>
+    </div>
+    
+    <div id="gameInfo" class="hidden flex items-center justify-center gap-4 mb-8 flex-wrap">
+      <span id="levelDisplay" class="chip chip-cyan mono">
+        <span>Level:</span>
+        <span id="levelNum">1</span>
+      </span>
+      <span id="scoreDisplay" class="chip chip-emerald mono">
+        <span>Score:</span>
+        <span id="scoreNum">0</span>
+      </span>
+      <span id="livesDisplay" class="flex items-center gap-1">
+        <span class="heart" id="heart1">❤️</span>
+        <span class="heart" id="heart2">❤️</span>
+        <span class="heart" id="heart3">❤️</span>
+      </span>
+    </div>
+    
+    <div id="statusBar" class="glass rounded-xl px-6 py-4 mb-8 flex items-center gap-3">
+      <div id="statusDot" class="status-dot"></div>
+      <span id="statusText" class="text-white/80">Ready to start</span>
+    </div>
+    
+    <div id="gameScreen" class="hidden mb-12">
+      <div class="glass-strong rounded-2xl p-8 mb-6">
+        <p class="text-center text-white/60 mb-4 text-sm">What comes next in the pattern?</p>
+        <div id="patternDisplay" class="pattern-container"></div>
+      </div>
+      
+      <div id="choicesContainer" class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto"></div>
+      
+      <div id="explanationBox" class="hidden glass rounded-xl px-6 py-4 mt-6 text-center explanation">
+        <p id="explanationText" class="text-white/80"></p>
+      </div>
+    </div>
+    
+    <div id="gameOverScreen" class="hidden text-center mb-12">
+      <div class="glass-strong rounded-2xl p-8 max-w-md mx-auto">
+        <h2 class="text-4xl font-bold mb-4 text-red-400">Game Over!</h2>
+        <div class="space-y-3 mb-6">
+          <p class="text-white/80">
+            Final Level: <span id="finalLevel" class="mono font-semibold text-white">1</span>
+          </p>
+          <p class="text-white/80">
+            Final Score: <span id="finalScore" class="mono font-semibold text-cyan-400">0</span>
+          </p>
+          <p class="text-white/80">
+            Best Level: <span id="bestLevel" class="mono font-semibold text-emerald-400">1</span>
+          </p>
+        </div>
+        <button id="playAgainBtn" class="btn btn-glow">
+          Play Again
+        </button>
+      </div>
+    </div>
+    
+    <div class="glass rounded-2xl p-8 mt-12">
+      <h2 class="text-2xl font-bold mb-4">How to Play</h2>
+      <ul class="space-y-3 text-white/80">
+        <li class="flex items-start gap-3">
+          <span class="text-cyan-400 font-bold">1.</span>
+          <span>Study the sequence of colored shapes displayed.</span>
+        </li>
+        <li class="flex items-start gap-3">
+          <span class="text-cyan-400 font-bold">2.</span>
+          <span>Identify the pattern rule (e.g., AB, ABC, AABB).</span>
+        </li>
+        <li class="flex items-start gap-3">
+          <span class="text-cyan-400 font-bold">3.</span>
+          <span>Predict which shape comes next from the 4 choices.</span>
+        </li>
+        <li class="flex items-start gap-3">
+          <span class="text-cyan-400 font-bold">4.</span>
+          <span>You have 3 lives. Wrong answer loses a life.</span>
+        </li>
+        <li class="flex items-start gap-3">
+          <span class="text-cyan-400 font-bold">5.</span>
+          <span>Patterns get more complex as you level up. Reach Level 10!</span>
+        </li>
+      </ul>
+    </div>
+  </main>
+  
+  <footer class="glass fixed bottom-0 left-0 right-0 z-50 px-6 py-4 text-center text-white/60 text-sm">
+    <p>GLM 5.2 · Built with precision</p>
+  </footer>
+  
+  <script>
+    (function() {
+      'use strict';
+      
+      // Audio context
+      let audioCtx = null;
+      let muted = false;
+      
+      // Game state
+      let currentLevel = 1;
+      let score = 0;
+      let lives = 3;
+      let currentPattern = [];
+      let correctAnswer = null;
+      let choices = [];
+      let gameActive = false;
+      
+      // Shape definitions
+      const shapes = [
+        { icon: '●', name: 'circle' },
+        { icon: '■', name: 'square' },
+        { icon: '▲', name: 'triangle' },
+        { icon: '◆', name: 'diamond' },
+        { icon: '★', name: 'star' }
+      ];
+      
+      // Color definitions
+      const colors = [
+        { bg: 'rgba(0, 212, 255, 0.3)', text: '#00d4ff', name: 'cyan' },
+        { bg: 'rgba(168, 85, 247, 0.3)', text: '#a855f7', name: 'purple' },
+        { bg: 'rgba(236, 72, 153, 0.3)', text: '#ec4899', name: 'pink' },
+        { bg: 'rgba(16, 185, 129, 0.3)', text: '#10b981', name: 'emerald' },
+        { bg: 'rgba(245, 158, 11, 0.3)', text: '#f59e0b', name: 'amber' }
+      ];
+      
+      // DOM elements
+      const startScreen = document.getElementById('startScreen');
+      const gameInfo = document.getElementById('gameInfo');
+      const gameScreen = document.getElementById('gameScreen');
+      const gameOverScreen = document.getElementById('gameOverScreen');
+      const startBtn = document.getElementById('startBtn');
+      const playAgainBtn = document.getElementById('playAgainBtn');
+      const muteBtn = document.getElementById('muteBtn');
+      const levelNum = document.getElementById('levelNum');
+      const scoreNum = document.getElementById('scoreNum');
+      const statusDot = document.getElementById('statusDot');
+      const statusText = document.getElementById('statusText');
+      const patternDisplay = document.getElementById('patternDisplay');
+      const choicesContainer = document.getElementById('choicesContainer');
+      const explanationBox = document.getElementById('explanationBox');
+      const explanationText = document.getElementById('explanationText');
+      const finalLevel = document.getElementById('finalLevel');
+      const finalScore = document.getElementById('finalScore');
+      const bestLevel = document.getElementById('bestLevel');
+      const heart1 = document.getElementById('heart1');
+      const heart2 = document.getElementById('heart2');
+      const heart3 = document.getElementById('heart3');
+      
+      // Initialize audio
+      function initAudio() {
+        try {
+          audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        } catch (e) {
+          console.log('Audio not available');
+        }
+      }
+      
+      // Play sound
+      function playSound(type) {
+        if (muted || !audioCtx) return;
+        
+        try {
+          const oscillator = audioCtx.createOscillator();
+          const gainNode = audioCtx.createGain();
+          
+          oscillator.connect(gainNode);
+          gainNode.connect(audioCtx.destination);
+          
+          if (type === 'correct') {
+            oscillator.frequency.setValueAtTime(523.25, audioCtx.currentTime);
+            oscillator.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1);
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 0.3);
+          } else if (type === 'wrong') {
+            oscillator.type = 'sawtooth';
+            oscillator.frequency.setValueAtTime(150, audioCtx.currentTime);
+            gainNode.gain.setValueAtTime(0.2, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 0.4);
+          } else if (type === 'levelup') {
+            oscillator.frequency.setValueAtTime(440, audioCtx.currentTime);
+            oscillator.frequency.setValueAtTime(554.37, audioCtx.currentTime + 0.1);
+            oscillator.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.2);
+            gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + 0.5);
+          }
+        } catch (e) {
+          console.log('Sound error:', e);
+        }
+      }
+      
+      // Generate pattern based on level
+      function generatePattern(level) {
+        let basePattern = [];
+        let patternLength = 0;
+        
+        // Create base elements (unique shape+color combos)
+        function createElements(count) {
+          const elements = [];
+          const usedCombos = new Set();
+          
+          while (elements.length < count) {
+            const shapeIdx = Math.floor(Math.random() * shapes.length);
+            const colorIdx = Math.floor(Math.random() * colors.length);
+            const combo = `${shapeIdx}-${colorIdx}`;
+            
+            if (!usedCombos.has(combo)) {
+              usedCombos.add(combo);
+              elements.push({ shapeIdx, colorIdx });
+            }
+          }
+          return elements;
+        }
+        
+        let baseElements;
+        
+        switch (level) {
+          case 1: // AB repeat
+            baseElements = createElements(2);
+            basePattern = [...baseElements];
+            patternLength = 6;
+            break;
+          case 2: // ABC repeat
+            baseElements = createElements(3);
+            basePattern = [...baseElements];
+            patternLength = 7;
+            break;
+          case 3: // AABB repeat
+            baseElements = createElements(2);
+            basePattern = [baseElements[0], baseElements[0], baseElements[1], baseElements[1]];
+            patternLength = 8;
+            break;
+          case 4: // ABAB (longer)
+            baseElements = createElements(2);
+            basePattern = [baseElements[0], baseElements[1], baseElements[0], baseElements[1]];
+            patternLength = 9;
+            break;
+          case 5: // ABCABC
+            baseElements = createElements(3);
+            basePattern = [...baseElements, ...baseElements];
+            patternLength = 9;
+            break;
+          case 6: // AABBAABB
+            baseElements = createElements(2);
+            basePattern = [baseElements[0], baseElements[0], baseElements[1], baseElements[1],
+                          baseElements[0], baseElements[0], baseElements[1], baseElements[1]];
+            patternLength = 10;
+            break;
+          case 7: // ABCD repeat
+            baseElements = createElements(4);
+            basePattern = [...baseElements];
+            patternLength = 9;
+            break;
+          case 8: // ABABC repeat
+            baseElements = createElements(3);
+            basePattern = [baseElements[0], baseElements[1], baseElements[0], baseElements[1], baseElements[2]];
+            patternLength = 11;
+            break;
+          case 9: // AABBCC repeat
+            baseElements = createElements(3);
+            basePattern = [baseElements[0], baseElements[0], baseElements[1], baseElements[1],
+                          baseElements[2], baseElements[2]];
+            patternLength = 10;
+            break;
+          case 10: // Complex mixed
+            baseElements = createElements(4);
+            basePattern = [baseElements[0], baseElements[1], baseElements[2], baseElements[0],
+                          baseElements[3], baseElements[1], baseElements[2], baseElements[3]];
+            patternLength = 12;
+            break;
+          default:
+            baseElements = createElements(2);
+            basePattern = [...baseElements];
+            patternLength = 6;
+        }
+        
+        // Extend pattern to desired length
+        const fullPattern = [];
+        while (fullPattern.length < patternLength - 1) {
+          for (let i = 0; i < basePattern.length && fullPattern.length < patternLength - 1; i++) {
+            fullPattern.push({...basePattern[i]});
+          }
+        }
+        
+        // The answer is the next element in the pattern
+        const answerIdx = fullPattern.length % basePattern.length;
+        const answer = {...basePattern[answerIdx]};
+        
+        return { pattern: fullPattern, answer, basePattern };
+      }
+      
+      // Generate choices (1 correct + 3 wrong)
+      function generateChoices(correct) {
+        const choiceList = [{...correct, isCorrect: true}];
+        const usedCombos = new Set([`${correct.shapeIdx}-${correct.colorIdx}`]);
+        
+        while (choiceList.length < 4) {
+          const shapeIdx = Math.floor(Math.random() * shapes.length);
+          const colorIdx = Math.floor(Math.random() * colors.length);
+          const combo = `${shapeIdx}-${colorIdx}`;
+          
+          if (!usedCombos.has(combo)) {
+            usedCombos.add(combo);
+            choiceList.push({ shapeIdx, colorIdx, isCorrect: false });
+          }
+        }
+        
+        // Shuffle choices
+        for (let i = choiceList.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [choiceList[i], choiceList[j]] = [choiceList[j], choiceList[i]];
+        }
+        
+        return choiceList;
+      }
+      
+      // Update status
+      function updateStatus(text, type) {
+        if (statusText) statusText.textContent = text;
+        if (statusDot) {
+          statusDot.className = 'status-dot';
+          if (type === 'active') statusDot.classList.add('active');
+          else if (type === 'success') statusDot.classList.add('success');
+          else if (type === 'error') statusDot.classList.add('error');
+        }
+      }
+      
+      // Update lives display
+      function updateLivesDisplay() {
+        if (heart1) heart1.classList.toggle('lost', lives < 1);
+        if (heart2) heart2.classList.toggle('lost', lives < 2);
+        if (heart3) heart3.classList.toggle('lost', lives < 3);
+      }
+      
+      // Render pattern
+      function renderPattern() {
+        if (!patternDisplay) return;
+        
+        patternDisplay.innerHTML = '';
+        
+        currentPattern.forEach((item) => {
+          const div = document.createElement('div');
+          div.className = 'shape-item';
+          div.style.background = colors[item.colorIdx].bg;
+          div.style.color = colors[item.colorIdx].text;
+          div.textContent = shapes[item.shapeIdx].icon;
+          patternDisplay.appendChild(div);
+        });
+        
+        // Add question mark
+        const questionDiv = document.createElement('div');
+        questionDiv.className = 'shape-item shape-question';
+        questionDiv.style.background = 'rgba(255, 255, 255, 0.1)';
+        questionDiv.style.color = '#fff';
+        questionDiv.style.border = '2px dashed rgba(255, 255, 255, 0.3)';
+        questionDiv.textContent = '?';
+        patternDisplay.appendChild(questionDiv);
+      }
+      
+      // Render choices
+      function renderChoices() {
+        if (!choicesContainer) return;
+        
+        choicesContainer.innerHTML = '';
+        
+        choices.forEach((choice, index) => {
+          const btn = document.createElement('button');
+          btn.className = 'choice-btn';
+          
+          const shapeDiv = document.createElement('div');
+          shapeDiv.className = 'shape-item';
+          shapeDiv.style.background = colors[choice.colorIdx].bg;
+          shapeDiv.style.color = colors[choice.colorIdx].text;
+          shapeDiv.textContent = shapes[choice.shapeIdx].icon;
+          
+          btn.appendChild(shapeDiv);
+          
+          btn.addEventListener('click', () => handleChoice(index, btn));
+          choicesContainer.appendChild(btn);
+        });
+      }
+      
+      // Handle choice selection
+      function handleChoice(index, btn) {
+        if (!gameActive) return;
+        
+        const choice = choices[index];
+        const allBtns = choicesContainer ? choicesContainer.querySelectorAll('.choice-btn') : [];
+        
+        // Disable all buttons
+        allBtns.forEach(b => b.disabled = true);
+        
+        if (choice.isCorrect) {
+          // Correct answer
+          btn.classList.add('correct');
+          playSound('correct');
+          
+          // Update score
+          const points = 10 + (currentLevel * 5);
+          score += points;
+          if (scoreNum) scoreNum.textContent = score;
+          
+          updateStatus(`Correct! +${points} points`, 'success');
+          
+          // Hide explanation
+          if (explanationBox) explanationBox.classList.add('hidden');
+          
+          // Next level after delay
+          setTimeout(() => {
+            if (currentLevel < 10) {
+              currentLevel++;
+              if (levelNum) levelNum.textContent = currentLevel;
+              playSound('levelup');
+              updateStatus(`Level ${currentLevel}! Pattern gets harder...`, 'active');
+            } else {
+              updateStatus('You completed all 10 levels! Amazing!', 'success');
+            }
+            startRound();
+          }, 1500);
+        } else {
+          // Wrong answer
+          btn.classList.add('wrong');
+          playSound('wrong');
+          lives--;
+          updateLivesDisplay();
+          
+          // Show correct answer
+          allBtns.forEach((b, i) => {
+            if (choices[i].isCorrect) {
+              b.classList.add('correct');
+            }
+          });
+          
+          updateStatus('Wrong! Lost a life.', 'error');
+          
+          // Show explanation
+          showExplanation();
+          
+          if (lives <= 0) {
+            // Game over
+            setTimeout(() => endGame(), 2000);
+          } else {
+            // Continue after delay
+            setTimeout(() => {
+              if (explanationBox) explanationBox.classList.add('hidden');
+              startRound();
+            }, 2500);
+          }
+        }
+      }
+      
+      // Show explanation for wrong answer
+      function showExplanation() {
+        if (!explanationBox || !explanationText) return;
+        
+        const patternNames = {
+          1: 'AB repeat (alternating two elements)',
+          2: 'ABC repeat (cycle of three)',
+          3: 'AABB repeat (pairs alternating)',
+          4: 'ABAB pattern (longer alternation)',
+          5: 'ABCABC (double cycle of three)',
+          6: 'AABBAABB (double pairs)',
+          7: 'ABCD repeat (cycle of four)',
+          8: 'ABABC (complex five-element pattern)',
+          9: 'AABBCC (triple pairs)',
+          10: 'Complex mixed pattern'
+        };
+        
+        explanationText.textContent = `Pattern rule: ${patternNames[currentLevel] || 'Unknown pattern'}`;
+        explanationBox.classList.remove('hidden');
+      }
+      
+      // Start a new round
+      function startRound() {
+        const result = generatePattern(currentLevel);
+        currentPattern = result.pattern;
+        correctAnswer = result.answer;
+        choices = generateChoices(correctAnswer);
+        
+        renderPattern();
+        renderChoices();
+        
+        if (explanationBox) explanationBox.classList.add('hidden');
+        updateStatus('What comes next?', 'active');
+      }
+      
+      // Start game
+      function startGame() {
+        initAudio();
+        
+        currentLevel = 1;
+        score = 0;
+        lives = 3;
+        gameActive = true;
+        
+        if (levelNum) levelNum.textContent = currentLevel;
+        if (scoreNum) scoreNum.textContent = score;
+        updateLivesDisplay();
+        
+        if (startScreen) startScreen.classList.add('hidden');
+        if (gameInfo) gameInfo.classList.remove('hidden');
+        if (gameScreen) gameScreen.classList.remove('hidden');
+        if (gameOverScreen) gameOverScreen.classList.add('hidden');
+        
+        updateStatus('Game started! Spot the pattern.', 'active');
+        startRound();
+      }
+      
+      // End game
+      function endGame() {
+        gameActive = false;
+        
+        // Save best level
+        let savedBest = 0;
+        try {
+          savedBest = parseInt(localStorage.getItem('glm-10-best-level') || '0');
+        } catch (e) {}
+        
+        if (currentLevel > savedBest) {
+          try {
+            localStorage.setItem('glm-10-best-level', currentLevel.toString());
+          } catch (e) {}
+          savedBest = currentLevel;
+        }
+        
+        if (finalLevel) finalLevel.textContent = currentLevel;
+        if (finalScore) finalScore.textContent = score;
+        if (bestLevel) bestLevel.textContent = savedBest;
+        
+        if (gameScreen) gameScreen.classList.add('hidden');
+        if (gameOverScreen) gameOverScreen.classList.remove('hidden');
+        
+        updateStatus('Game over!', 'error');
+      }
+      
+      // Toggle mute
+      function toggleMute() {
+        muted = !muted;
+        if (muteBtn) muteBtn.textContent = muted ? '🔇' : '🔊';
+      }
+      
+      // Event listeners
+      if (startBtn) startBtn.addEventListener('click', startGame);
+      if (playAgainBtn) playAgainBtn.addEventListener('click', startGame);
+      if (muteBtn) muteBtn.addEventListener('click', toggleMute);
+      
+      // Load best level on start
+      (function loadBestLevel() {
+        try {
+          const saved = localStorage.getItem('glm-10-best-level');
+          if (saved && bestLevel) {
+            bestLevel.textContent = saved;
+          }
+        } catch (e) {}
+      })();
+    })();
+  </script>
+</body>
+</html>

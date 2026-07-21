@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GLM 5.2 · Power Wash ASMR</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --g: #06090f;
+      --gb: #0e141f;
+      --a: #38bdf8;
+      --r: #ff3e3e;
+      --rb: #ff6b6b;
+      --s: #64748b;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background:
+        radial-gradient(1200px 600px at 80% -10%, rgba(56,189,248,0.10), transparent 60%),
+        radial-gradient(900px 500px at 0% 110%, rgba(99,102,241,0.10), transparent 60%),
+        var(--g);
+      color: #e2e8f0;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .glass-strong {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(90px);
+      opacity: 0.35;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .orb-1 {
+      width: 460px;
+      height: 460px;
+      background: radial-gradient(circle, #38bdf8, #0ea5e9);
+      top: -160px;
+      right: -120px;
+    }
+
+    .orb-2 {
+      width: 380px;
+      height: 380px;
+      background: radial-gradient(circle, #6366f1, #4338ca);
+      bottom: -120px;
+      left: -120px;
+    }
+
+    .btn {
+      padding: 0.7rem 1.4rem;
+      border-radius: 0.75rem;
+      font-weight: 600;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.05);
+      color: #e2e8f0;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.875rem;
+    }
+
+    .btn:hover {
+      background: rgba(255, 255, 255, 0.12);
+      transform: translateY(-1px);
+    }
+
+    .btn:active {
+      transform: translateY(0) scale(0.97);
+    }
+
+    .btn-glow {
+      background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+      color: #04121c;
+      border-color: transparent;
+      box-shadow: 0 0 22px rgba(56, 189, 248, 0.45);
+    }
+
+    .btn-glow:hover {
+      box-shadow: 0 0 34px rgba(56, 189, 248, 0.65);
+      transform: translateY(-2px);
+    }
+
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.375rem 0.75rem;
+      border-radius: 0.5rem;
+      font-size: 0.8rem;
+      font-weight: 600;
+      gap: 0.4rem;
+      letter-spacing: 0.02em;
+    }
+
+    .chip-cyan {
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--a);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    .chip-rose {
+      background: rgba(255, 62, 62, 0.15);
+      color: var(--rb);
+      border: 1px solid rgba(255, 62, 62, 0.3);
+    }
+
+    .chip-emerald {
+      background: rgba(16, 185, 129, 0.15);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .h1-grad {
+      background: linear-gradient(135deg, #e0f2fe 0%, #7dd3fc 45%, #38bdf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .surface-btn {
+      padding: 0.625rem 1.4rem;
+      border-radius: 0.75rem;
+      font-weight: 600;
+      font-size: 0.875rem;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: rgba(226, 232, 240, 0.7);
+      font-family: 'Inter', sans-serif;
+    }
+
+    .surface-btn:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: #fff;
+    }
+
+    .surface-btn.active {
+      border-color: var(--a);
+      color: var(--a);
+      background: rgba(56, 189, 248, 0.12);
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.25);
+    }
+
+    #stage {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 600 / 450;
+      border-radius: 24px;
+      overflow: hidden;
+      touch-action: none;
+      cursor: none;
+      background: #0b1220;
+      box-shadow: inset 0 0 80px rgba(0,0,0,0.6);
+    }
+
+    #cv {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      touch-action: none;
+    }
+
+    /* nozzle cursor */
+    #nozzle {
+      position: absolute;
+      width: 56px;
+      height: 56px;
+      margin: -28px 0 0 -28px;
+      pointer-events: none;
+      z-index: 6;
+      transition: opacity 0.2s;
+      opacity: 0;
+    }
+    #nozzle.on { opacity: 1; }
+
+    #sprayFx {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: var(--s);
+      transition: background 0.3s, box-shadow 0.3s;
+    }
+    .status-dot.active {
+      background: var(--a);
+      box-shadow: 0 0 10px var(--a);
+    }
+    .status-dot.success {
+      background: #10b981;
+      box-shadow: 0 0 12px #10b981;
+    }
+
+    .progress-track {
+      position: relative;
+      height: 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .progress-fill {
+      position: absolute;
+      inset: 0;
+      width: 0%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #38bdf8, #7dd3fc 60%, #e0f2fe);
+      box-shadow: 0 0 16px rgba(56, 189, 248, 0.6);
+      transition: width 0.18s ease;
+    }
+
+    .win-banner {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 0.5rem;
+      z-index: 8;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.5s ease;
+    }
+    .win-banner.show { opacity: 1; }
+    .win-banner span.title {
+      font-size: clamp(28px, 6vw, 52px);
+      font-weight: 900;
+      letter-spacing: -0.02em;
+      background: linear-gradient(120deg, #7dd3fc, #e0f2fe 55%, #a5f3fc);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      animation: winPop 0.9s cubic-bezier(.18,.89,.32,1.28);
+      text-align: center;
+    }
+    @keyframes winPop {
+      0% { transform: scale(0.4); opacity: 0; }
+      60% { transform: scale(1.12); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    .shimmer {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.18) 50%, transparent 70%);
+      background-size: 250% 250%;
+      animation: shimmerMove 2.6s linear infinite;
+      pointer-events: none;
+      z-index: 7;
+      opacity: 0;
+      transition: opacity 0.6s;
+    }
+    .shimmer.show { opacity: 1; }
+    @keyframes shimmerMove {
+      0% { background-position: 150% 0; }
+      100% { background-position: -150% 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <nav class="glass fixed top-0 left-0 right-0 z-50 px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center font-bold text-black">
+        R
+      </div>
+      <a href="https://rommark.dev" class="text-white font-semibold hover:text-cyan-400 transition">rommark.dev</a>
+    </div>
+    <div class="flex items-center gap-4">
+      <a href="#" class="text-white/60 hover:text-white transition flex items-center gap-2">
+        <span>&larr;</span>
+        <span>Playground</span>
+      </a>
+      <button id="mute-btn" class="glass rounded-lg px-3 py-2 text-sm hover:bg-white/10 transition" title="Mute / Unmute" aria-label="Mute toggle">
+        &#x1F50A;
+      </button>
+    </div>
+  </nav>
+
+  <main class="relative z-10 pt-32 pb-28 px-6 max-w-4xl mx-auto">
+    <header class="text-center mb-10">
+      <div class="flex items-center justify-center gap-3 flex-wrap mb-5">
+        <span class="chip chip-cyan">
+          <span>&#x25CF;</span>
+          <span>GLM 5.2</span>
+        </span>
+        <span class="chip chip-rose">
+          <span>&#x1F4A6;</span>
+          <span>ASMR</span>
+        </span>
+      </div>
+      <h1 class="text-5xl md:text-6xl font-black mb-4 h1-grad">Power Wash ASMR</h1>
+      <p class="text-white/60 text-lg md:text-xl max-w-2xl mx-auto">Wash away the grime. Hiss, spray, and reveal clean.</p>
+    </header>
+
+    <section class="glass-strong rounded-3xl p-6 md:p-8 mb-6">
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
+        <div class="flex items-center gap-2 flex-wrap">
+          <button class="surface-btn active" data-surface="patio">Patio</button>
+          <button class="surface-btn" data-surface="car">Car</button>
+          <button class="surface-btn" data-surface="wall">Wall</button>
+        </div>
+        <button id="resetBtn" class="btn">Clean Again</button>
+      </div>
+
+      <div id="stage">
+        <canvas id="cv" width="600" height="450"></canvas>
+        <canvas id="sprayFx"></canvas>
+        <div id="nozzle">
+          <svg viewBox="0 0 56 56" width="56" height="56" xmlns="http://www.w3.org/2000/svg">
+            <g fill="none" stroke="#bae6fd" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M30 8 L42 8 L42 20 L30 20 Z" fill="rgba(56,189,248,0.18)"/>
+              <line x1="42" y1="12" x2="48" y2="12"/>
+              <line x1="42" y1="16" x2="48" y2="16"/>
+              <path d="M30 11 L18 11 L10 22 L10 30 L18 41 L30 41 Z" fill="rgba(255,255,255,0.10)"/>
+            </g>
+            <circle cx="28" cy="24" r="3" fill="#7dd3fc"/>
+          </svg>
+        </div>
+        <div class="shimmer" id="shimmer"></div>
+        <div class="win-banner" id="winBanner">
+          <span class="title">Sparkling Clean!</span>
+        </div>
+      </div>
+
+      <div class="mt-5">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-sm text-white/70">Cleaned</span>
+          <span class="mono text-sm text-cyan-300 font-semibold" id="pctLabel">0%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progressFill"></div>
+        </div>
+      </div>
+
+      <div id="statusBar" class="glass rounded-xl px-6 py-4 mt-5 flex items-center gap-3">
+        <div id="statusDot" class="status-dot"></div>
+        <span id="statusText" class="text-white/80">Hold and drag over the surface to spray.</span>
+      </div>
+    </section>
+
+    <section class="glass rounded-2xl p-6 md:p-8">
+      <h2 class="text-xl font-bold mb-3 text-cyan-200">Why this feels good</h2>
+      <p class="text-white/75 text-sm leading-relaxed mb-4">
+        The steady hiss of pressurised water, the slow reveal of a clean surface beneath the grime — it is pure,
+        low-stakes relief. No scores, no clocks, no failure. Just the satisfying visual and audio transformation from
+        murky to gleaming. Breathe, spray, and watch the dirt melt away.
+      </p>
+      <div class="flex flex-wrap gap-2">
+        <span class="chip chip-cyan"><span>&#x25CF;</span> Tactile Spray</span>
+        <span class="chip chip-cyan"><span>&#x25CF;</span> Visual Reveal</span>
+        <span class="chip chip-rose"><span>&#x1F4A6;</span> ASMR Hiss</span>
+        <span class="chip chip-emerald"><span>&#x25CF;</span> Zero Pressure</span>
+      </div>
+    </section>
+  </main>
+
+  <footer class="glass fixed bottom-0 left-0 right-0 z-50 px-6 py-4 text-center text-white/60 text-sm">
+    <p>GLM 5.2 &middot; Powered by Z.AI &middot; Wash away the stress</p>
+  </footer>
+
+  <script>
+  (function () {
+    'use strict';
+
+    // ---- Null-safe helpers ----
+    function $(id) { return document.getElementById(id); }
+    var cv = $('cv');
+    var fx = $('sprayFx');
+    var stage = $('stage');
+    var nozzle = $('nozzle');
+    var shimmer = $('shimmer');
+    var winBanner = $('winBanner');
+    var progressFill = $('progressFill');
+    var pctLabel = $('pctLabel');
+    var statusDot = $('statusDot');
+    var statusText = $('statusText');
+    var resetBtn = $('resetBtn');
+    var muteBtn = $('mute-btn');
+
+    if (!cv || !fx || !stage) return; // guard
+
+    var ctx = cv.getContext('2d');
+    var fxc = fx.getContext('2d');
+
+    var W = 600, H = 450;
+    var DPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+
+    // offscreen layers
+    var baseCanvas = document.createElement('canvas');
+    var dirtCanvas = document.createElement('canvas');
+    baseCanvas.width = dirtCanvas.width = W;
+    baseCanvas.height = dirtCanvas.height = H;
+    var bctx = baseCanvas.getContext('2d');
+    var dctx = dirtCanvas.getContext('2d');
+
+    // ---- Audio (Web Audio, ASMR spray) ----
+    var AC = null, muted = false;
+    var spray = null; // {src, bp, hp, master, rumble, rumbleGain}
+
+    function audioCtx() {
+      if (!AC) {
+        try { AC = new (window.AudioContext || window.webkitAudioContext)(); }
+        catch (e) { AC = null; }
+      }
+      if (AC && AC.state === 'suspended') {
+        try { AC.resume(); } catch (e) {}
+      }
+      return AC;
+    }
+
+    function makeNoiseBuffer(ctxObj, seconds) {
+      var len = Math.floor(ctxObj.sampleRate * seconds);
+      var buf = ctxObj.createBuffer(1, len, ctxObj.sampleRate);
+      var data = buf.getChannelData(0);
+      for (var i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+      return buf;
+    }
+
+    function startSpray() {
+      if (muted) return;
+      var a = audioCtx();
+      if (!a || spray) return;
+      try {
+        var now = a.currentTime;
+        // white noise source
+        var src = a.createBufferSource();
+        src.buffer = makeNoiseBuffer(a, 2);
+        src.loop = true;
+
+        // bandpass for airy hiss 2-4kHz
+        var bp = a.createBiquadFilter();
+        bp.type = 'bandpass';
+        bp.frequency.value = 3000;
+        bp.Q.value = 0.9;
+
+        // highpass to cut rumble from hiss
+        var hp = a.createBiquadFilter();
+        hp.type = 'highpass';
+        hp.frequency.value = 1800;
+
+        // subtle LFO on bandpass freq for "pressure" warble
+        var lfo = a.createOscillator();
+        lfo.frequency.value = 7;
+        var lfoGain = a.createGain();
+        lfoGain.gain.value = 500;
+        lfo.connect(lfoGain);
+        lfoGain.connect(bp.frequency);
+
+        var hissGain = a.createGain();
+        hissGain.gain.setValueAtTime(0.0001, now);
+        hissGain.gain.linearRampToValueAtTime(0.16, now + 0.12);
+
+        // low rumble layer
+        var rumble = a.createBufferSource();
+        rumble.buffer = makeNoiseBuffer(a, 2);
+        rumble.loop = true;
+        var lp = a.createBiquadFilter();
+        lp.type = 'lowpass';
+        lp.frequency.value = 140;
+        var rumbleGain = a.createGain();
+        rumbleGain.gain.setValueAtTime(0.0001, now);
+        rumbleGain.gain.linearRampToValueAtTime(0.10, now + 0.18);
+
+        src.connect(bp); bp.connect(hp); hp.connect(hissGain); hissGain.connect(a.destination);
+        rumble.connect(lp); lp.connect(rumbleGain); rumbleGain.connect(a.destination);
+
+        src.start(now); rumble.start(now); lfo.start(now);
+        spray = { src: src, bp: bp, hp: hp, hissGain: hissGain, rumble: rumble, rumbleGain: rumbleGain, lfo: lfo };
+      } catch (e) {}
+    }
+
+    function stopSpray() {
+      if (!spray || !AC) return;
+      try {
+        var now = AC.currentTime;
+        spray.hissGain.gain.cancelScheduledValues(now);
+        spray.hissGain.gain.setValueAtTime(spray.hissGain.gain.value, now);
+        spray.hissGain.gain.linearRampToValueAtTime(0.0001, now + 0.14);
+        spray.rumbleGain.gain.cancelScheduledValues(now);
+        spray.rumbleGain.gain.setValueAtTime(spray.rumbleGain.gain.value, now);
+        spray.rumbleGain.gain.linearRampToValueAtTime(0.0001, now + 0.2);
+        var s = spray;
+        setTimeout(function () {
+          try { s.src.stop(); s.rumble.stop(); s.lfo.stop(); } catch (e) {}
+        }, 260);
+      } catch (e) {}
+      spray = null;
+    }
+
+    function chime() {
+      if (muted) return;
+      var a = audioCtx();
+      if (!a) return;
+      try {
+        var now = a.currentTime;
+        var notes = [523.25, 659.25, 783.99, 1046.5]; // C5 E5 G5 C6
+        notes.forEach(function (f, i) {
+          var o = a.createOscillator();
+          var g = a.createGain();
+          o.type = 'sine';
+          o.frequency.value = f;
+          var t = now + i * 0.11;
+          g.gain.setValueAtTime(0.0001, t);
+          g.gain.exponentialRampToValueAtTime(0.22, t + 0.03);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + 0.9);
+          o.connect(g); g.connect(a.destination);
+          o.start(t); o.stop(t + 1.0);
+        });
+      } catch (e) {}
+    }
+
+    // ---- Surfaces ----
+    var surfaces = {
+      patio: {
+        name: 'Patio',
+        base: ['#b9a888', '#a8946f', '#c7b694'],
+        mortar: '#8a7a5c',
+        type: 'tiles',
+        dirt: ['rgba(86,64,38,0.92)', 'rgba(70,52,34,0.9)', 'rgba(102,84,52,0.88)']
+      },
+      car: {
+        name: 'Car',
+        base: ['#1e3a5f', '#274b75', '#16304d'],
+        mortar: '#0f2236',
+        type: 'curved',
+        dirt: ['rgba(60,48,30,0.9)', 'rgba(78,64,40,0.88)', 'rgba(48,40,28,0.9)']
+      },
+      wall: {
+        name: 'Wall',
+        base: ['#9aa0a6', '#a8aeb4', '#8b9197'],
+        mortar: '#6f757b',
+        type: 'bricks',
+        dirt: ['rgba(74,58,38,0.9)', 'rgba(92,72,46,0.88)', 'rgba(60,52,36,0.9)']
+      }
+    };
+    var curSurface = 'patio';
+
+    function drawBase() {
+      var s = surfaces[curSurface];
+      bctx.clearRect(0, 0, W, H);
+      if (s.type === 'tiles') {
+        // patio tiles
+        var t = 75;
+        for (var y = 0; y < H; y += t) {
+          for (var x = 0; x < W; x += t) {
+            var c = s.base[(x / t + y / t) % s.base.length | 0];
+            bctx.fillStyle = c;
+            bctx.fillRect(x, y, t, t);
+            // subtle grain
+            var grad = bctx.createLinearGradient(x, y, x + t, y + t);
+            grad.addColorStop(0, 'rgba(255,255,255,0.05)');
+            grad.addColorStop(1, 'rgba(0,0,0,0.08)');
+            bctx.fillStyle = grad;
+            bctx.fillRect(x, y, t, t);
+          }
+        }
+        bctx.strokeStyle = s.mortar;
+        bctx.lineWidth = 3;
+        for (var y2 = 0; y2 <= H; y2 += t) { bctx.beginPath(); bctx.moveTo(0, y2); bctx.lineTo(W, y2); bctx.stroke(); }
+        for (var x2 = 0; x2 <= W; x2 += t) { bctx.beginPath(); bctx.moveTo(x2, 0); bctx.lineTo(x2, H); bctx.stroke(); }
+      } else if (s.type === 'bricks') {
+        // brick wall
+        var bh = 38, bw = 96;
+        var row = 0;
+        for (var by = 0; by < H; by += bh) {
+          var offset = (row % 2) * (bw / 2);
+          for (var bx = -bw; bx < W + bw; bx += bw) {
+            var c2 = s.base[((bx / bw + row) | 0) % s.base.length];
+            bctx.fillStyle = c2;
+            bctx.fillRect(bx + offset, by, bw - 3, bh - 3);
+            var g2 = bctx.createLinearGradient(bx + offset, by, bx + offset, by + bh);
+            g2.addColorStop(0, 'rgba(255,255,255,0.08)');
+            g2.addColorStop(1, 'rgba(0,0,0,0.12)');
+            bctx.fillStyle = g2;
+            bctx.fillRect(bx + offset, by, bw - 3, bh - 3);
+          }
+          row++;
+        }
+        bctx.strokeStyle = s.mortar;
+        bctx.lineWidth = 3;
+        for (var by2 = 0; by2 <= H; by2 += bh) { bctx.beginPath(); bctx.moveTo(0, by2); bctx.lineTo(W, by2); bctx.stroke(); }
+      } else {
+        // car: glossy curved body
+        var bodyGrad = bctx.createLinearGradient(0, 60, 0, H);
+        bodyGrad.addColorStop(0, s.base[1]);
+        bodyGrad.addColorStop(1, s.base[2]);
+        bctx.fillStyle = bodyGrad;
+        bctx.fillRect(0, 0, W, H);
+        // roof curve
+        bctx.fillStyle = s.base[1];
+        bctx.beginPath();
+        bctx.moveTo(0, 0);
+        bctx.quadraticCurveTo(W * 0.5, 210, W, 0);
+        bctx.lineTo(W, 0); bctx.lineTo(0, 0);
+        bctx.fill();
+        // gloss highlight
+        var gloss = bctx.createLinearGradient(0, 120, 0, 230);
+        gloss.addColorStop(0, 'rgba(255,255,255,0.18)');
+        gloss.addColorStop(1, 'rgba(255,255,255,0)');
+        bctx.fillStyle = gloss;
+        bctx.fillRect(0, 120, W, 110);
+        // panel seam
+        bctx.strokeStyle = 'rgba(0,0,0,0.25)';
+        bctx.lineWidth = 2;
+        bctx.beginPath();
+        bctx.moveTo(0, 235); bctx.lineTo(W, 235); bctx.stroke();
+        // window strip
+        bctx.fillStyle = 'rgba(10,20,30,0.55)';
+        bctx.beginPath();
+        bctx.moveTo(80, 70); bctx.quadraticCurveTo(W * 0.5, 150, W - 80, 70);
+        bctx.lineTo(W - 80, 40); bctx.lineTo(80, 40); bctx.closePath();
+        bctx.fill();
+      }
+      // fine speckle for material texture
+      bctx.save();
+      bctx.globalAlpha = 0.06;
+      for (var i = 0; i < 2600; i++) {
+        bctx.fillStyle = Math.random() > 0.5 ? '#ffffff' : '#000000';
+        bctx.fillRect(Math.random() * W, Math.random() * H, 1.4, 1.4);
+      }
+      bctx.restore();
+    }
+
+    function applyDirt() {
+      var s = surfaces[curSurface];
+      dctx.clearRect(0, 0, W, H);
+      // base dirt fill
+      dctx.fillStyle = s.dirt[0];
+      dctx.fillRect(0, 0, W, H);
+      // blotches
+      for (var i = 0; i < 150; i++) {
+        var x = Math.random() * W, y = Math.random() * H;
+        var r = 18 + Math.random() * 70;
+        var col = s.dirt[(Math.random() * s.dirt.length) | 0];
+        var g = dctx.createRadialGradient(x, y, 0, x, y, r);
+        g.addColorStop(0, col);
+        g.addColorStop(1, 'rgba(0,0,0,0)');
+        dctx.fillStyle = g;
+        dctx.beginPath();
+        dctx.arc(x, y, r, 0, Math.PI * 2);
+        dctx.fill();
+      }
+      // streaks (drips)
+      dctx.save();
+      dctx.globalAlpha = 0.5;
+      for (var k = 0; k < 26; k++) {
+        var sx = Math.random() * W;
+        var sy = Math.random() * H * 0.5;
+        var len = 40 + Math.random() * 160;
+        var col2 = s.dirt[(Math.random() * s.dirt.length) | 0];
+        var lg = dctx.createLinearGradient(sx, sy, sx, sy + len);
+        lg.addColorStop(0, col2);
+        lg.addColorStop(1, 'rgba(0,0,0,0)');
+        dctx.fillStyle = lg;
+        dctx.fillRect(sx, sy, 4 + Math.random() * 9, len);
+      }
+      dctx.restore();
+      // grime vignette edges
+      var vg = dctx.createRadialGradient(W / 2, H / 2, H * 0.25, W / 2, H / 2, H * 0.8);
+      vg.addColorStop(0, 'rgba(0,0,0,0)');
+      vg.addColorStop(1, s.dirt[1]);
+      dctx.fillStyle = vg;
+      dctx.fillRect(0, 0, W, H);
+    }
+
+    function composite() {
+      ctx.clearRect(0, 0, W, H);
+      ctx.drawImage(baseCanvas, 0, 0);
+      ctx.drawImage(dirtCanvas, 0, 0);
+    }
+
+    // ---- Progress measurement ----
+    var totalDirt = 0;
+    function initProgress() {
+      var data = dctx.getImageData(0, 0, W, H).data;
+      var count = 0;
+      for (var i = 3; i < data.length; i += 4) { if (data[i] > 12) count++; }
+      totalDirt = count;
+    }
+    function measureProgress() {
+      var data = dctx.getImageData(0, 0, W, H).data;
+      var rem = 0;
+      // sample every 4th pixel for performance
+      for (var i = 3; i < data.length; i += 16) { if (data[i] > 12) rem++; }
+      var total = totalDirt / 4;
+      var pct = total > 0 ? (1 - rem / total) * 100 : 100;
+      if (pct < 0) pct = 0;
+      if (pct > 100) pct = 100;
+      return pct;
+    }
+
+    // ---- Spray erase ----
+    function sprayAt(px, py) {
+      // erase dirt within radius on dirt canvas
+      dctx.save();
+      dctx.globalCompositeOperation = 'destination-out';
+      var r = 30;
+      var g = dctx.createRadialGradient(px, py, 0, px, py, r);
+      g.addColorStop(0, 'rgba(0,0,0,1)');
+      g.addColorStop(0.7, 'rgba(0,0,0,0.85)');
+      g.addColorStop(1, 'rgba(0,0,0,0)');
+      dctx.fillStyle = g;
+      dctx.beginPath();
+      dctx.arc(px, py, r, 0, Math.PI * 2);
+      dctx.fill();
+      dctx.restore();
+      // spray FX
+      drawSprayFx(px, py);
+      composite();
+    }
+
+    function drawSprayFx(px, py) {
+      // additive mist around nozzle
+      var r = 34;
+      var g = fxc.createRadialGradient(px, py, 0, px, py, r);
+      g.addColorStop(0, 'rgba(186,230,253,0.55)');
+      g.addColorStop(0.5, 'rgba(125,211,252,0.25)');
+      g.addColorStop(1, 'rgba(125,211,252,0)');
+      fxc.fillStyle = g;
+      fxc.beginPath();
+      fxc.arc(px, py, r, 0, Math.PI * 2);
+      fxc.fill();
+    }
+
+    function clearFx() {
+      fxc.clearRect(0, 0, W, H);
+    }
+
+    // ---- Game state ----
+    var spraying = false;
+    var won = false;
+    var cleanedCount = parseInt(localStorage.getItem('glm-17-cleaned') || '0', 10) || 0;
+    var lastPct = 0;
+
+    function setStatus(text, cls) {
+      if (statusText) statusText.textContent = text;
+      if (statusDot) {
+        statusDot.className = 'status-dot' + (cls ? ' ' + cls : '');
+      }
+    }
+
+    function resetSurface() {
+      won = false;
+      spraying = false;
+      stopSpray();
+      winBanner && winBanner.classList.remove('show');
+      shimmer && shimmer.classList.remove('show');
+      drawBase();
+      applyDirt();
+      composite();
+      initProgress();
+      lastPct = 0;
+      updateProgress(0);
+      setStatus('Hold and drag over the surface to spray.', '');
+      nozzle && nozzle.classList.remove('on');
+    }
+
+    function updateProgress(pct) {
+      var p = Math.round(pct);
+      if (progressFill) progressFill.style.width = p + '%';
+      if (pctLabel) pctLabel.textContent = p + '%';
+    }
+
+    function onWin() {
+      if (won) return;
+      won = true;
+      stopSpray();
+      spraying = false;
+      nozzle && nozzle.classList.remove('on');
+      winBanner && winBanner.classList.add('show');
+      shimmer && shimmer.classList.add('show');
+      setStatus('Sparkling! Surface fully clean.', 'success');
+      cleanedCount += 1;
+      try { localStorage.setItem('glm-17-cleaned', String(cleanedCount)); } catch (e) {}
+      chime();
+    }
+
+    // ---- Coordinate scaling ----
+    function toCanvasCoords(clientX, clientY) {
+      var rect = cv.getBoundingClientRect();
+      var x = (clientX - rect.left) / rect.width * W;
+      var y = (clientY - rect.top) / rect.height * H;
+      return { x: x, y: y };
+    }
+
+    function positionNozzle(clientX, clientY) {
+      var rect = stage.getBoundingClientRect();
+      nozzle.style.left = (clientX - rect.left) + 'px';
+      nozzle.style.top = (clientY - rect.top) + 'px';
+    }
+
+    // ---- Input ----
+    function startSprayInput(e) {
+      e.preventDefault();
+      audioCtx();
+      spraying = true;
+      won = false;
+      winBanner && winBanner.classList.remove('show');
+      shimmer && shimmer.classList.remove('show');
+      nozzle && nozzle.classList.add('on');
+      startSpray();
+      var pt = pointFromEvent(e);
+      positionNozzle(pt.cx, pt.cy);
+      var c = toCanvasCoords(pt.cx, pt.cy);
+      sprayAt(c.x, c.y);
+      setStatus('Spraying...', 'active');
+    }
+
+    function moveSprayInput(e) {
+      var pt = pointFromEvent(e);
+      positionNozzle(pt.cx, pt.cy);
+      if (!spraying) return;
+      e.preventDefault();
+      var c = toCanvasCoords(pt.cx, pt.cy);
+      sprayAt(c.x, c.y);
+    }
+
+    function endSprayInput() {
+      if (!spraying) return;
+      spraying = false;
+      stopSpray();
+      nozzle && nozzle.classList.remove('on');
+      clearFx();
+      var pct = measureProgress();
+      updateProgress(pct);
+      if (pct >= 99.5) { onWin(); }
+      else if (pct > lastPct + 1.5) { setStatus('Looking clean!', 'active'); }
+      else { setStatus('Keep spraying — almost there.', 'active'); }
+      lastPct = pct;
+    }
+
+    function pointFromEvent(e) {
+      if (e.touches && e.touches.length) {
+        return { cx: e.touches[0].clientX, cy: e.touches[0].clientY };
+      }
+      if (e.changedTouches && e.changedTouches.length) {
+        return { cx: e.changedTouches[0].clientX, cy: e.changedTouches[0].clientY };
+      }
+      return { cx: e.clientX, cy: e.clientY };
+    }
+
+    cv.addEventListener('mousedown', startSprayInput);
+    window.addEventListener('mousemove', moveSprayInput);
+    window.addEventListener('mouseup', endSprayInput);
+    cv.addEventListener('touchstart', startSprayInput, { passive: false });
+    cv.addEventListener('touchmove', moveSprayInput, { passive: false });
+    cv.addEventListener('touchend', endSprayInput);
+    cv.addEventListener('touchcancel', endSprayInput);
+
+    // ---- Surface selector ----
+    var surfBtns = document.querySelectorAll('.surface-btn');
+    Array.prototype.forEach.call(surfBtns, function (b) {
+      b.addEventListener('click', function () {
+        audioCtx();
+        curSurface = b.getAttribute('data-surface');
+        Array.prototype.forEach.call(surfBtns, function (x) { x.classList.remove('active'); });
+        b.classList.add('active');
+        resetSurface();
+      });
+    });
+
+    if (resetBtn) {
+      resetBtn.addEventListener('click', function () {
+        audioCtx();
+        resetSurface();
+      });
+    }
+
+    // ---- Mute ----
+    if (muteBtn) {
+      muteBtn.addEventListener('click', function () {
+        muted = !muted;
+        if (muted) {
+          stopSpray();
+          muteBtn.innerHTML = '&#x1F507;'; // muted speaker
+        } else {
+          muteBtn.innerHTML = '&#x1F50A;'; // speaker
+          audioCtx();
+        }
+      });
+    }
+
+    // ---- FX decay loop ----
+    function fxLoop() {
+      if (!spraying) {
+        clearFx();
+      }
+      requestAnimationFrame(fxLoop);
+    }
+    requestAnimationFrame(fxLoop);
+
+    // ---- Periodic progress while spraying ----
+    var progTimer = setInterval(function () {
+      if (spraying) {
+        var pct = measureProgress();
+        updateProgress(pct);
+        if (pct >= 99.5) { onWin(); }
+        lastPct = pct;
+      }
+    }, 250);
+
+    // ---- Init ----
+    function init() {
+      drawBase();
+      applyDirt();
+      composite();
+      initProgress();
+      updateProgress(0);
+    }
+    init();
+  })();
+  </script>
+</body>
+</html>

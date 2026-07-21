@@ -137,16 +137,30 @@
     @apply btn bg-white text-black hover:bg-[#e8e8ed];
   }
   .btn-accent {
-    @apply btn bg-[color:var(--accent)] text-black hover:bg-[color:var(--accent-strong)];
+    @apply btn bg-[color:var(--accent)] text-black;
+  }
+  .btn-accent:hover {
+    background: var(--accent-strong);
   }
   .btn-ghost {
-    @apply btn border border-[color:var(--hairline-strong)] text-[color:var(--ink)] hover:border-white/40 hover:bg-white/[0.04];
+    @apply btn border border-[color:var(--hairline-strong)] text-[color:var(--ink)];
+  }
+  .btn-ghost:hover {
+    @apply border-white/40;
+    background: rgba(255, 255, 255, 0.04);
   }
   .btn-quiet {
-    @apply btn text-[color:var(--ink-2)] hover:text-white hover:bg-white/[0.06];
+    @apply btn text-[color:var(--ink-2)];
+  }
+  .btn-quiet:hover {
+    @apply text-white bg-white/[0.06];
   }
   .btn-danger {
-    @apply btn border border-[color:var(--hairline-strong)] text-[color:var(--danger)] hover:bg-[color:var(--danger)]/10;
+    @apply btn border border-[color:var(--hairline-strong)] text-[color:var(--danger)];
+  }
+  .btn-danger:hover {
+    background: var(--danger);
+    opacity: 0.1;
   }
   .btn-lg {
     @apply text-base px-7 h-12;
@@ -178,13 +192,13 @@
     @apply inline-flex items-center gap-1.5 rounded-full border border-[color:var(--hairline-strong)] px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-[color:var(--ink-2)];
   }
   .badge-accent {
-    @apply badge-ss border-[color:var(--accent)]/40 text-[color:var(--accent)];
+    @apply badge-ss border-[color:var(--accent)] text-[color:var(--accent)];
   }
   .badge-success {
-    @apply badge-ss border-[color:var(--success)]/40 text-[color:var(--success)];
+    @apply badge-ss border-[color:var(--success)] text-[color:var(--success)];
   }
   .badge-danger {
-    @apply badge-ss border-[color:var(--danger)]/40 text-[color:var(--danger)];
+    @apply badge-ss border-[color:var(--danger)] text-[color:var(--danger)];
   }
 
   /* ---------- Forms ---------- */

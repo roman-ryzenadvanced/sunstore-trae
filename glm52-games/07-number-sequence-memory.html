@@ -328,4 +328,232 @@
   </main>
   
   <footer class="glass fixed bottom-0 left-0 right-0 z-50 px-6 py-4 text-center text-white/60 text-sm">
-    <p>GLM 5
+    <p>GLM 5.2 · Built with precision</p>
+  </footer>
+  
+  <script>
+    const startScreen = document.getElementById('startScreen');
+    const startBtn = document.getElementById('startBtn');
+    const gameInfo = document.getElementById('gameInfo');
+    const roundDisplay = document.getElementById('roundDisplay');
+    const scoreDisplay = document.getElementById('scoreDisplay');
+    const roundNum = document.getElementById('roundNum');
+    const scoreNum = document.getElementById('scoreNum');
+    const statusBar = document.getElementById('statusBar');
+    const statusDot = document.getElementById('statusDot');
+    const statusText = document.getElementById('statusText');
+    const gameScreen = document.getElementById('gameScreen');
+    const grid = document.getElementById('grid');
+    const gameOverScreen = document.getElementById('gameOverScreen');
+    const finalRound = document.getElementById('finalRound');
+    const bestScore = document.getElementById('bestScore');
+    const playAgainBtn = document.getElementById('playAgainBtn');
+    const muteBtn = document.getElementById('muteBtn');
+    
+    let currentRound = 1;
+    let score = 0;
+    let sequence = [];
+    let playerIndex = 0;
+    let isShowingSequence = false;
+    let isMuted = false;
+    let audioContext = null;
+    
+    try {
+      audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    } catch (e) {
+      console.warn('Web Audio not supported');
+    }
+    
+    function playSound(freq, duration = 0.1, type = 'sine') {
+      if (isMuted || !audioContext) return;
+      try {
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+        osc.frequency.value = freq;
+        osc.type = type;
+        gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+        osc.start(audioContext.currentTime);
+        osc.stop(audioContext.currentTime + duration);
+      } catch (e) {}
+    }
+    
+    function playTick() {
+      playSound(800, 0.05, 'square');
+    }
+    
+    function playCorrect() {
+      playSound(1000, 0.15, 'sine');
+    }
+    
+    function playWrong() {
+      playSound(200, 0.3, 'sawtooth');
+    }
+    
+    function setStatus(text, state = 'idle') {
+      if (statusText) statusText.textContent = text;
+      if (statusDot) {
+        statusDot.className = 'status-dot';
+        if (state === 'active') statusDot.classList.add('active');
+        if (state === 'success') statusDot.classList.add('success');
+        if (state === 'error') statusDot.classList.add('error');
+      }
+    }
+    
+    function generateSequence(length) {
+      const seq = [];
+      const available = Array.from({length: 9}, (_, i) => i);
+      for (let i = 0; i < length && available.length > 0; i++) {
+        const idx = Math.floor(Math.random() * available.length);
+        seq.push(available[idx]);
+        available.splice(idx, 1);
+      }
+      return seq;
+    }
+    
+    function createGrid() {
+      if (!grid) return;
+      grid.innerHTML = '';
+      for (let i = 0; i < 9; i++) {
+        const tile = document.createElement('button');
+        tile.className = 'tile';
+        tile.textContent = i + 1;
+        tile.dataset.index = i;
+        tile.disabled = true;
+        tile.addEventListener('click', () => handleTileClick(i));
+        grid.appendChild(tile);
+      }
+    }
+    
+    function getTile(index) {
+      return grid?.querySelector(`[data-index="${index}"]`);
+    }
+    
+    async function showSequence() {
+      isShowingSequence = true;
+      setStatus('Watch carefully...', 'active');
+      
+      for (let i = 0; i < sequence.length; i++) {
+        const tile = getTile(sequence[i]);
+        if (tile) {
+          tile.classList.add('active');
+          playTick();
+          await new Promise(resolve => setTimeout(resolve, 500));
+          tile.classList.remove('active');
+          if (i < sequence.length - 1) {
+            await new Promise(resolve => setTimeout(resolve, 300));
+          }
+        }
+      }
+      
+      isShowingSequence = false;
+      enableTiles();
+      setStatus('Your turn! Repeat the sequence', 'active');
+    }
+    
+    function enableTiles() {
+      const tiles = grid?.querySelectorAll('.tile');
+      tiles?.forEach(tile => tile.disabled = false);
+    }
+    
+    function disableTiles() {
+      const tiles = grid?.querySelectorAll('.tile');
+      tiles?.forEach(tile => tile.disabled = true);
+    }
+    
+    function handleTileClick(index) {
+      if (isShowingSequence) return;
+      
+      const tile = getTile(index);
+      if (!tile) return;
+      
+      if (index === sequence[playerIndex]) {
+        tile.classList.add('correct');
+        playCorrect();
+        setTimeout(() => tile.classList.remove('correct'), 300);
+        
+        playerIndex++;
+        
+        if (playerIndex === sequence.length) {
+          score += sequence.length;
+          if (scoreNum) scoreNum.textContent = score;
+          currentRound++;
+          if (roundNum) roundNum.textContent = currentRound;
+          
+          setStatus('Correct! Next round...', 'success');
+          disableTiles();
+          
+          setTimeout(() => {
+            startRound();
+          }, 1500);
+        }
+      } else {
+        tile.classList.add('wrong');
+        playWrong();
+        setTimeout(() => gameOver(), 800);
+      }
+    }
+    
+    function startRound() {
+      const seqLength = Math.min(currentRound + 2, 9);
+      sequence = generateSequence(seqLength);
+      playerIndex = 0;
+      
+      createGrid();
+      showSequence();
+    }
+    
+    function startGame() {
+      currentRound = 1;
+      score = 0;
+      
+      if (roundNum) roundNum.textContent = currentRound;
+      if (scoreNum) scoreNum.textContent = score;
+      
+      if (startScreen) startScreen.classList.add('hidden');
+      if (gameInfo) gameInfo.classList.remove('hidden');
+      if (gameScreen) gameScreen.classList.remove('hidden');
+      if (gameOverScreen) gameOverScreen.classList.add('hidden');
+      
+      startRound();
+    }
+    
+    function gameOver() {
+      disableTiles();
+      setStatus('Game Over!', 'error');
+      
+      const bestRound = parseInt(localStorage.getItem('glm-07-best-round') || '0');
+      if (currentRound > bestRound) {
+        localStorage.setItem('glm-07-best-round', currentRound.toString());
+      }
+      
+      const newBest = parseInt(localStorage.getItem('glm-07-best-round') || '0');
+      
+      if (finalRound) finalRound.textContent = currentRound.toString();
+      if (bestScore) bestScore.textContent = newBest.toString();
+      
+      if (gameScreen) gameScreen.classList.add('hidden');
+      if (gameOverScreen) gameOverScreen.classList.remove('hidden');
+    }
+    
+    if (muteBtn) {
+      muteBtn.addEventListener('click', () => {
+        isMuted = !isMuted;
+        muteBtn.textContent = isMuted ? '🔇' : '🔊';
+      });
+    }
+    
+    if (startBtn) {
+      startBtn.addEventListener('click', startGame);
+    }
+    
+    if (playAgainBtn) {
+      playAgainBtn.addEventListener('click', startGame);
+    }
+    
+    createGrid();
+  </script>
+</body>
+</html>

@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GLM 5.2 · Tanghulu Candy Maker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --g: #0a0a0a;
+      --gb: #1a1a1a;
+      --a: #fda4af;   /* warm rose accent */
+      --r: #ff3e3e;
+      --rb: #ff6b6b;
+      --s: #888;
+      --amber: #f59e0b;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--g);
+      color: #fff;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .glass-strong {
+      background: rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: 0.30;
+      z-index: 0;
+      pointer-events: none;
+      animation: orbFloat 11s ease-in-out infinite;
+    }
+
+    .orb-1 {
+      width: 460px; height: 460px;
+      background: radial-gradient(circle at 30% 30%, #fbbf24, #f97316);
+      top: -140px; right: -120px;
+    }
+
+    .orb-2 {
+      width: 380px; height: 380px;
+      background: radial-gradient(circle at 30% 30%, #fb7185, #be185d);
+      bottom: -120px; left: -100px;
+      animation-delay: -5.5s;
+    }
+
+    @keyframes orbFloat {
+      0%, 100% { transform: scale(1) translateY(0); opacity: 0.30; }
+      50% { transform: scale(1.10) translateY(-14px); opacity: 0.42; }
+    }
+
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.75rem;
+      font-weight: 600;
+      transition: all 0.2s;
+      cursor: pointer;
+      border: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+    }
+
+    .btn-glow {
+      background: linear-gradient(135deg, #fb7185, #f59e0b);
+      color: #2a0a12;
+      box-shadow: 0 0 22px rgba(251, 113, 133, 0.45);
+    }
+
+    .btn-glow:hover {
+      box-shadow: 0 0 34px rgba(251, 113, 133, 0.7);
+      transform: translateY(-2px);
+    }
+
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.375rem 0.75rem;
+      border-radius: 0.5rem;
+      font-size: 0.875rem;
+      font-weight: 500;
+      gap: 0.375rem;
+    }
+
+    .chip-cyan {
+      background: rgba(56, 189, 248, 0.15);
+      color: #7dd3fc;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+
+    .chip-rose {
+      background: rgba(251, 113, 133, 0.15);
+      color: var(--a);
+      border: 1px solid rgba(251, 113, 133, 0.3);
+    }
+
+    .chip-emerald {
+      background: rgba(16, 185, 129, 0.15);
+      color: #10b981;
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+
+    .h1-grad {
+      background: linear-gradient(120deg, #fff 0%, #fda4af 55%, #fbbf24 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .mono { font-family: 'JetBrains Mono', monospace; }
+
+    .status-dot {
+      width: 9px; height: 9px; border-radius: 50%;
+      background: var(--s);
+      flex: 0 0 auto;
+    }
+    .status-dot.active { background: var(--a); box-shadow: 0 0 10px var(--a); }
+    .status-dot.success { background: #10b981; box-shadow: 0 0 10px #10b981; }
+
+    /* Step indicator chips */
+    .step-chip {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      padding: 0.4rem 0.85rem; border-radius: 999px;
+      font-size: 0.8rem; font-weight: 600;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.5);
+      transition: all 0.4s ease;
+    }
+    .step-chip .si {
+      width: 18px; height: 18px; border-radius: 50%;
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 0.7rem; font-weight: 700;
+      background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.6);
+    }
+    .step-chip.active {
+      color: #2a0a12;
+      background: linear-gradient(135deg, #fb7185, #f59e0b);
+      border-color: transparent;
+      box-shadow: 0 0 18px rgba(251,113,133,0.5);
+    }
+    .step-chip.active .si { background: rgba(0,0,0,0.18); color: #2a0a12; }
+    .step-chip.done {
+      color: var(--a);
+      background: rgba(251,113,133,0.12);
+      border-color: rgba(251,113,133,0.35);
+    }
+    .step-chip.done .si { background: var(--a); color: #2a0a12; }
+
+    /* Canvas stage with warm progress glow */
+    .stage-wrap {
+      position: relative;
+      border-radius: 1.25rem;
+      overflow: hidden;
+      padding: 14px;
+      background: rgba(0,0,0,0.25);
+      border: 1px solid rgba(255,255,255,0.08);
+      transition: box-shadow 0.6s ease, border-color 0.6s ease;
+    }
+    .stage-glow {
+      position: absolute; inset: -40%;
+      background: radial-gradient(circle at 50% 55%, rgba(251,113,133,0.55), rgba(245,158,11,0.25) 35%, transparent 65%);
+      opacity: 0.15;
+      pointer-events: none;
+      transition: opacity 0.7s ease;
+      z-index: 0;
+    }
+    #cv {
+      position: relative; z-index: 1;
+      display: block;
+      width: 100%;
+      aspect-ratio: 600 / 450;
+      touch-action: none;
+      border-radius: 0.75rem;
+      cursor: pointer;
+    }
+
+    .progress-track {
+      display: flex; gap: 4px; height: 5px; border-radius: 999px;
+      background: rgba(255,255,255,0.08); overflow: hidden;
+    }
+    .progress-seg { flex: 1; background: rgba(255,255,255,0.1); transition: background 0.5s ease; border-radius: 999px; }
+    .progress-seg.filled { background: linear-gradient(90deg, #fb7185, #f59e0b); }
+
+    @keyframes popIn {
+      0% { transform: scale(0.8); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .pop { animation: popIn 0.35s ease both; }
+
+    .hint-soft { font-size: 0.78rem; color: rgba(255,255,255,0.45); }
+  </style>
+</head>
+<body>
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+
+  <nav class="glass fixed top-0 left-0 right-0 z-50 px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center gap-4">
+      <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-rose-400 to-amber-400 flex items-center justify-center font-bold text-black">
+        R
+      </div>
+      <a href="https://rommark.dev" class="text-white font-semibold hover:text-rose-300 transition">rommark.dev</a>
+    </div>
+    <div class="flex items-center gap-4">
+      <a href="#" class="text-white/60 hover:text-white transition flex items-center gap-2">
+        <span>&larr;</span>
+        <span>Playground</span>
+      </a>
+      <button id="mute-btn" class="glass rounded-lg px-3 py-2 text-sm hover:bg-white/10 transition" title="Mute / Unmute" aria-label="Mute toggle">&#x1F50A;</button>
+    </div>
+  </nav>
+
+  <main class="relative z-10 pt-32 pb-16 px-6 max-w-4xl mx-auto">
+    <div class="text-center mb-10">
+      <h1 class="text-5xl md:text-6xl font-black tracking-tight mb-4 h1-grad leading-none">Tanghulu Candy Maker</h1>
+      <p class="text-white/60 text-lg mb-6">Coat, dip, and crack glossy candy skewers. Pure calm.</p>
+      <div class="flex items-center justify-center gap-3 flex-wrap">
+        <span class="chip chip-cyan"><span>&#x25CF;</span><span>GLM 5.2</span></span>
+        <span class="chip chip-rose"><span>&#x2764;</span><span>ASMR</span></span>
+      </div>
+    </div>
+
+    <section class="glass-strong rounded-3xl p-6 md:p-8 mb-6">
+      <!-- Step indicator + made count -->
+      <div class="flex items-center justify-between gap-3 mb-4 flex-wrap">
+        <div id="stepChips" class="flex items-center gap-2 flex-wrap">
+          <span class="step-chip" data-i="0"><span class="si">1</span>Coat</span>
+          <span class="step-chip" data-i="1"><span class="si">2</span>Dip</span>
+          <span class="step-chip" data-i="2"><span class="si">3</span>Cool</span>
+          <span class="step-chip" data-i="3"><span class="si">4</span>Crack</span>
+        </div>
+        <span id="madeChip" class="chip chip-rose mono">
+          <span>&#x1F36C;</span><span><b id="madeCount">0</b> made</span>
+        </span>
+      </div>
+
+      <div class="progress-track mb-4">
+        <div class="progress-seg" data-i="0"></div>
+        <div class="progress-seg" data-i="1"></div>
+        <div class="progress-seg" data-i="2"></div>
+        <div class="progress-seg" data-i="3"></div>
+      </div>
+
+      <!-- Canvas stage -->
+      <div class="stage-wrap" id="stageWrap">
+        <div class="stage-glow" id="stageGlow"></div>
+        <canvas id="cv" width="600" height="450"></canvas>
+      </div>
+
+      <!-- Status bar -->
+      <div id="statusBar" class="glass rounded-xl px-5 py-3 mt-4 flex items-center gap-3">
+        <div id="statusDot" class="status-dot"></div>
+        <span id="statusText" class="text-white/80 text-sm md:text-base">Drag across the fruit to coat it in warm syrup.</span>
+      </div>
+
+      <!-- Make Another -->
+      <div class="text-center mt-5">
+        <button id="makeAnother" class="btn btn-glow hidden">Make Another &#x1F36C;</button>
+      </div>
+    </section>
+
+    <section class="glass rounded-3xl p-6 md:p-8 mb-6">
+      <h2 class="text-xl font-bold mb-3">Why this feels good</h2>
+      <div class="flex flex-wrap gap-2 mb-3">
+        <span class="chip chip-rose"><span>&#x25CF;</span> Warm Syrup Pour</span>
+        <span class="chip chip-rose"><span>&#x25CF;</span> Crunchy Nut Dip</span>
+        <span class="chip chip-rose"><span>&#x25CF;</span> Glassy Cool-down</span>
+        <span class="chip chip-rose"><span>&#x25CF;</span> Satisfying Crack</span>
+      </div>
+      <p class="text-white/70 text-sm leading-relaxed">Tanghulu making is pure tactile calm: warm syrup poured in a slow stream, a roll through crushed peanuts, the quiet wait as sugar hardens into glass, and finally the crisp <span class="mono">crack</span>. No timer, no fail state &mdash; just one satisfying skewer at a time.</p>
+    </section>
+  </main>
+
+  <footer class="glass fixed bottom-0 left-0 right-0 z-50 px-6 py-4 text-center text-white/60 text-sm">
+    <p>GLM 5.2 &middot; ASMR Lab &middot; Tanghulu Candy Maker</p>
+  </footer>
+
+  <script>
+  (function() {
+    'use strict';
+
+    // ---------- DOM ----------
+    var cv = document.getElementById('cv');
+    var stageWrap = document.getElementById('stageWrap');
+    var stageGlow = document.getElementById('stageGlow');
+    var statusText = document.getElementById('statusText');
+    var statusDot = document.getElementById('statusDot');
+    var madeCountEl = document.getElementById('madeCount');
+    var makeAnother = document.getElementById('makeAnother');
+    var muteBtn = document.getElementById('mute-btn');
+    var stepChips = document.getElementById('stepChips');
+    var ctx = cv ? cv.getContext('2d') : null;
+
+    // ---------- Constants ----------
+    var W = 600, H = 450;
+    var STEPS = ['coat', 'dip', 'cool', 'crack'];
+    var STEP_LABEL = { coat: 'Coat', dip: 'Dip', cool: 'Cool', crack: 'Crack' };
+    var MADE_KEY = 'glm-16-made';
+
+    // ---------- Audio ----------
+    var AC = null, muted = false, ambientStarted = false, ambientNodes = null;
+    var pourNodes = null;
+
+    function audioCtx() {
+      if (!AC) {
+        try { AC = new (window.AudioContext || window.webkitAudioContext)(); }
+        catch (e) { AC = null; }
+      }
+      if (AC && AC.state === 'suspended') {
+        try { AC.resume(); } catch (e) {}
+      }
+      return AC;
+    }
+
+    function safeTone(freq, dur, type, vol, when) {
+      var c = audioCtx(); if (!c || muted) return;
+      try {
+        var t0 = c.currentTime + (when || 0);
+        var osc = c.createOscillator();
+        var g = c.createGain();
+        osc.type = type || 'sine';
+        osc.frequency.setValueAtTime(freq, t0);
+        g.gain.setValueAtTime(0.0001, t0);
+        g.gain.exponentialRampToValueAtTime(vol || 0.2, t0 + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+        osc.connect(g); g.connect(c.destination);
+        osc.start(t0); osc.stop(t0 + dur + 0.02);
+      } catch (e) {}
+    }
+
+    function noiseBuffer(c, dur) {
+      var len = Math.floor(c.sampleRate * dur);
+      var buf = c.createBuffer(1, len, c.sampleRate);
+      var d = buf.getChannelData(0);
+      var last = 0;
+      for (var i = 0; i < len; i++) {
+        // brown-ish noise
+        var white = Math.random() * 2 - 1;
+        last = (last + 0.02 * white) / 1.02;
+        d[i] = last * 3.2;
+      }
+      return buf;
+    }
+
+    // Pour: continuous filtered noise while holding
+    function startPour() {
+      var c = audioCtx(); if (!c || muted) return;
+      stopPour();
+      try {
+        var src = c.createBufferSource();
+        src.buffer = noiseBuffer(c, 2);
+        src.loop = true;
+        var lp = c.createBiquadFilter();
+        lp.type = 'lowpass';
+        lp.frequency.value = 520;
+        lp.Q.value = 0.6;
+        var g = c.createGain();
+        g.gain.setValueAtTime(0.0001, c.currentTime);
+        g.gain.linearRampToValueAtTime(0.16, c.currentTime + 0.12);
+        src.connect(lp); lp.connect(g); g.connect(c.destination);
+        src.start();
+        pourNodes = { src: src, g: g };
+      } catch (e) {}
+    }
+    function stopPour() {
+      if (!pourNodes) return;
+      try {
+        var c = AC, now = c ? c.currentTime : 0;
+        pourNodes.g.gain.linearRampToValueAtTime(0.0001, now + 0.12);
+        pourNodes.src.stop(now + 0.16);
+      } catch (e) {}
+      pourNodes = null;
+    }
+
+    // Nut dip: short crunchy burst
+    function playNutCrunch() {
+      var c = audioCtx(); if (!c || muted) return;
+      try {
+        var src = c.createBufferSource();
+        src.buffer = noiseBuffer(c, 0.16);
+        var bp = c.createBiquadFilter();
+        bp.type = 'bandpass';
+        bp.frequency.value = 1600;
+        bp.Q.value = 0.8;
+        var g = c.createGain();
+        var t0 = c.currentTime;
+        g.gain.setValueAtTime(0.0001, t0);
+        g.gain.exponentialRampToValueAtTime(0.22, t0 + 0.01);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.14);
+        src.connect(bp); bp.connect(g); g.connect(c.destination);
+        src.start(t0); src.stop(t0 + 0.16);
+      } catch (e) {}
+    }
+
+    // Cool: soft descending sine
+    function playCool() {
+      var c = audioCtx(); if (!c || muted) return;
+      try {
+        var t0 = c.currentTime;
+        var osc = c.createOscillator();
+        var g = c.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(420, t0);
+        osc.frequency.exponentialRampToValueAtTime(190, t0 + 1.0);
+        g.gain.setValueAtTime(0.0001, t0);
+        g.gain.exponentialRampToValueAtTime(0.18, t0 + 0.08);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + 1.1);
+        osc.connect(g); g.connect(c.destination);
+        osc.start(t0); osc.stop(t0 + 1.2);
+      } catch (e) {}
+    }
+
+    // Crack: sharp noise click + bright bell ping
+    function playCrack() {
+      var c = audioCtx(); if (!c || muted) return;
+      try {
+        // noise click
+        var src = c.createBufferSource();
+        src.buffer = noiseBuffer(c, 0.08);
+        var hp = c.createBiquadFilter();
+        hp.type = 'highpass';
+        hp.frequency.value = 2500;
+        var g = c.createGain();
+        var t0 = c.currentTime;
+        g.gain.setValueAtTime(0.32, t0);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.07);
+        src.connect(hp); hp.connect(g); g.connect(c.destination);
+        src.start(t0); src.stop(t0 + 0.09);
+        // bright bell ping (two partials)
+        safeTone(1280, 0.5, 'sine', 0.18, 0);
+        safeTone(1920, 0.4, 'sine', 0.10, 0.005);
+      } catch (e) {}
+    }
+
+    // Gentle ambient pad loop (very quiet)
+    function startAmbient() {
+      var c = audioCtx(); if (!c || muted || ambientStarted) return;
+      ambientStarted = true;
+      try {
+        var master = c.createGain();
+        master.gain.value = 0.025;
+        master.connect(c.destination);
+        var freqs = [110, 164.81, 220, 277.18];
+        var oscs = [];
+        for (var i = 0; i < freqs.length; i++) {
+          var o = c.createOscillator();
+          o.type = 'sine';
+          o.frequency.value = freqs[i];
+          var g = c.createGain();
+          g.gain.value = 0.25;
+          // slow tremolo
+          var lfo = c.createOscillator();
+          lfo.frequency.value = 0.07 + i * 0.013;
+          var lfoG = c.createGain();
+          lfoG.gain.value = 0.12;
+          lfo.connect(lfoG); lfoG.connect(g.gain);
+          o.connect(g); g.connect(master);
+          o.start(); lfo.start();
+          oscs.push(o); oscs.push(lfo);
+        }
+        ambientNodes = { master: master, nodes: oscs };
+      } catch (e) {}
+    }
+
+    // ---------- Game State ----------
+    var state = {
+      stepIndex: 0,          // 0 coat,1 dip,2 cool,3 crack
+      coat: 0,               // 0..1
+      nut: 0,                // 0..1
+      cool: 0,               // 0..1
+      cracked: false,
+      pouring: false,
+      pointer: { x: W / 2, y: H / 2, down: false },
+      coolTimer: 0,
+      particles: [],
+      made: 0,
+      lastT: 0
+    };
+
+    // Skewer geometry (logical 600x450 coords)
+    var SK = { x: 300, topY: 78, botY: 420 };
+    var FRUITS = [
+      { x: 300, y: 150, r: 33 },
+      { x: 300, y: 232, r: 35 },
+      { x: 300, y: 314, r: 32 }
+    ];
+    // Precompute nut speckles for each fruit
+    for (var fi = 0; fi < FRUITS.length; fi++) {
+      var f = FRUITS[fi];
+      f.speckles = [];
+      for (var s = 0; s < 26; s++) {
+        var ang = Math.random() * Math.PI * 2;
+        var rad = Math.sqrt(Math.random()) * (f.r - 3);
+        f.speckles.push({
+          x: f.x + Math.cos(ang) * rad,
+          y: f.y + Math.sin(ang) * rad,
+          r: 1.4 + Math.random() * 2.2
+        });
+      }
+      f.crackSplit = (Math.random() * 0.6 + 0.2); // where the split line sits (fraction of r)
+    }
+
+    // ---------- Canvas sizing (DPR aware) ----------
+    var DPR = Math.max(1, Math.min(2, window.devicePixelRatio || 1));
+    function resize() {
+      if (!cv || !ctx) return;
+      cv.width = W * DPR;
+      cv.height = H * DPR;
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    }
+    window.addEventListener('resize', resize);
+
+    // ---------- Helpers ----------
+    function setStatus(text, kind) {
+      if (statusText) statusText.textContent = text;
+      if (statusDot) {
+        statusDot.className = 'status-dot';
+        if (kind === 'active') statusDot.classList.add('active');
+        else if (kind === 'success') statusDot.classList.add('success');
+      }
+    }
+
+    function updateStepUI() {
+      if (!stepChips) return;
+      var chips = stepChips.querySelectorAll('.step-chip');
+      for (var i = 0; i < chips.length; i++) {
+        var idx = parseInt(chips[i].getAttribute('data-i'), 10);
+        chips[i].classList.remove('active', 'done');
+        if (idx < state.stepIndex) chips[i].classList.add('done');
+        else if (idx === state.stepIndex) chips[i].classList.add('active');
+      }
+      // progress segments
+      var segs = document.querySelectorAll('.progress-seg');
+      for (var j = 0; j < segs.length; j++) {
+        if (j <= state.stepIndex) segs[j].classList.add('filled');
+        else segs[j].classList.remove('filled');
+      }
+      // glow intensity
+      if (stageGlow) stageGlow.style.opacity = String(0.15 + state.stepIndex * 0.18);
+      if (stageWrap) {
+        var warm = 0.3 + state.stepIndex * 0.14;
+        stageWrap.style.boxShadow = '0 0 ' + (30 + state.stepIndex * 18) + 'px rgba(251,113,133,' + warm + ')';
+      }
+    }
+
+    function loadMade() {
+      try {
+        var v = localStorage.getItem(MADE_KEY);
+        state.made = v !== null ? (parseInt(v, 10) || 0) : 0;
+      } catch (e) { state.made = 0; }
+      if (madeCountEl) madeCountEl.textContent = String(state.made);
+    }
+    function bumpMade() {
+      state.made++;
+      try { localStorage.setItem(MADE_KEY, String(state.made)); } catch (e) {}
+      if (madeCountEl) madeCountEl.textContent = String(state.made);
+    }
+
+    function enterStep(idx) {
+      state.stepIndex = idx;
+      updateStepUI();
+      if (idx === 0) {
+        setStatus('Drag across the fruit to coat it in warm syrup.', 'active');
+      } else if (idx === 1) {
+        setStatus('Tap the crushed nuts to roll the skewer.', 'active');
+      } else if (idx === 2) {
+        state.coolTimer = 0; state.cool = 0;
+        playCool();
+        setStatus('Cooling...', 'active');
+      } else if (idx === 3) {
+        setStatus('Tap to crack!', 'active');
+      }
+    }
+
+    function resetSkewer() {
+      state.coat = 0; state.nut = 0; state.cool = 0;
+      state.cracked = false; state.pouring = false;
+      state.coolTimer = 0; state.particles = [];
+      if (makeAnother) makeAnother.classList.add('hidden');
+      enterStep(0);
+    }
+
+    // ---------- Input ----------
+    function toLocal(e) {
+      var rect = cv.getBoundingClientRect();
+      var cx, cy;
+      if (e.touches && e.touches.length) { cx = e.touches[0].clientX; cy = e.touches[0].clientY; }
+      else if (e.changedTouches && e.changedTouches.length) { cx = e.changedTouches[0].clientX; cy = e.changedTouches[0].clientY; }
+      else { cx = e.clientX; cy = e.clientY; }
+      return {
+        x: (cx - rect.left) / rect.width * W,
+        y: (cy - rect.top) / rect.height * H
+      };
+    }
+
+    function onDown(e) {
+      audioCtx();
+      startAmbient();
+      if (e.cancelable) e.preventDefault();
+      var p = toLocal(e);
+      state.pointer.x = p.x; state.pointer.y = p.y; state.pointer.down = true;
+
+      if (state.stepIndex === 0) {
+        state.pouring = true;
+        startPour();
+        setStatus('Pouring warm syrup...', 'active');
+      } else if (state.stepIndex === 1) {
+        // roll in nuts
+        state.nut = Math.min(1, state.nut + 0.34);
+        playNutCrunch();
+        spawnNutParticles(p.x, p.y);
+        setStatus('Rolling in crushed peanuts...', 'active');
+        if (state.nut >= 1) {
+          state.nut = 1;
+          setTimeout(function () { if (state.stepIndex === 1) enterStep(2); }, 250);
+        }
+      } else if (state.stepIndex === 3) {
+        doCrack(p.x, p.y);
+      }
+    }
+
+    function onMove(e) {
+      if (e.cancelable) e.preventDefault();
+      var p = toLocal(e);
+      state.pointer.x = p.x; state.pointer.y = p.y;
+    }
+
+    function onUp(e) {
+      if (e && e.cancelable) e.preventDefault();
+      state.pointer.down = false;
+      if (state.stepIndex === 0 && state.pouring) {
+        state.pouring = false;
+        stopPour();
+        if (state.coat < 1) {
+          setStatus('Drag again to add more syrup.', 'active');
+        }
+      }
+    }
+
+    function doCrack(x, y) {
+      if (state.cracked) return;
+      state.cracked = true;
+      playCrack();
+      spawnCrackParticles();
+      bumpMade();
+      setStatus('Crack! Beautiful glass candy. Made with care.', 'success');
+      if (makeAnother) { makeAnother.classList.remove('hidden'); makeAnother.classList.add('pop'); }
+    }
+
+    if (cv) {
+      cv.addEventListener('mousedown', onDown);
+      cv.addEventListener('mousemove', onMove);
+      window.addEventListener('mouseup', onUp);
+      cv.addEventListener('touchstart', onDown, { passive: false });
+      cv.addEventListener('touchmove', onMove, { passive: false });
+      window.addEventListener('touchend', onUp, { passive: false });
+      cv.addEventListener('touchcancel', onUp, { passive: false });
+    }
+
+    if (makeAnother) {
+      makeAnother.addEventListener('click', function () {
+        audioCtx();
+        resetSkewer();
+      });
+    }
+
+    // ---------- Particles ----------
+    function spawnNutParticles(x, y) {
+      for (var i = 0; i < 14; i++) {
+        var a = Math.random() * Math.PI * 2;
+        var sp = 30 + Math.random() * 90;
+        state.particles.push({
+          x: x, y: y,
+          vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 40,
+          life: 0, max: 0.6 + Math.random() * 0.4,
+          size: 1.5 + Math.random() * 2.5,
+          color: Math.random() > 0.5 ? '#7a4a22' : '#a9712f',
+          g: 380, kind: 'nut'
+        });
+      }
+    }
+    function spawnCrackParticles() {
+      var cols = ['#e23b4e', '#ff6b6b', '#ffd1d1', '#fff', '#c0182b'];
+      for (var i = 0; i < 56; i++) {
+        var f = FRUITS[(Math.random() * FRUITS.length) | 0];
+        var a = Math.random() * Math.PI * 2;
+        var sp = 60 + Math.random() * 240;
+        state.particles.push({
+          x: f.x + (Math.random() - 0.5) * f.r,
+          y: f.y + (Math.random() - 0.5) * f.r,
+          vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 60,
+          life: 0, max: 0.7 + Math.random() * 0.7,
+          size: 2 + Math.random() * 4,
+          color: cols[(Math.random() * cols.length) | 0],
+          g: 520, kind: 'shard'
+        });
+      }
+    }
+
+    // ---------- Update ----------
+    function update(dt) {
+      // step progression
+      if (state.stepIndex === 0) {
+        if (state.pouring) {
+          state.coat += dt / 1.6;
+          if (state.coat >= 1) {
+            state.coat = 1;
+            state.pouring = false;
+            stopPour();
+            setStatus('Coated! Now roll in the nuts.', 'active');
+            enterStep(1);
+          }
+        }
+      } else if (state.stepIndex === 2) {
+        state.coolTimer += dt;
+        state.cool = Math.min(1, state.coolTimer / 2);
+        if (state.coolTimer >= 2) {
+          setStatus('Hardened! Tap to crack!', 'active');
+          enterStep(3);
+        }
+      }
+
+      // particles
+      for (var i = state.particles.length - 1; i >= 0; i--) {
+        var p = state.particles[i];
+        p.life += dt;
+        p.vy += (p.g || 400) * dt;
+        p.x += p.vx * dt;
+        p.y += p.vy * dt;
+        if (p.life >= p.max) state.particles.splice(i, 1);
+      }
+    }
+
+    // ---------- Render ----------
+    function drawBoard() {
+      // wooden board
+      var board = ctx.createLinearGradient(0, 0, 0, H);
+      board.addColorStop(0, '#5a3a22');
+      board.addColorStop(1, '#3e2716');
+      ctx.fillStyle = board;
+      ctx.fillRect(0, 0, W, H);
+      // wood grain
+      ctx.save();
+      ctx.globalAlpha = 0.10;
+      ctx.strokeStyle = '#2b1a0e';
+      ctx.lineWidth = 2;
+      for (var i = 0; i < 12; i++) {
+        var y = (i + 0.5) / 12 * H;
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        for (var x = 0; x <= W; x += 30) {
+          ctx.lineTo(x, y + Math.sin(x * 0.02 + i) * 4);
+        }
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    function drawNutPile() {
+      // crushed nut pile near the bottom center
+      var cx = W / 2, cy = H - 42;
+      ctx.save();
+      ctx.fillStyle = '#6b3f1d';
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, 150, 30, 0, 0, Math.PI * 2);
+      ctx.fill();
+      // speckles
+      for (var i = 0; i < 90; i++) {
+        var a = Math.random() * Math.PI * 2;
+        var rr = Math.sqrt(Math.random()) * 148;
+        var px = cx + Math.cos(a) * rr;
+        var py = cy + Math.sin(a) * rr * 0.2;
+        ctx.fillStyle = Math.random() > 0.5 ? '#8a5a2b' : '#4a2c12';
+        ctx.beginPath();
+        ctx.arc(px, py, 1.5 + Math.random() * 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    function drawStick() {
+      ctx.save();
+      var sg = ctx.createLinearGradient(SK.x - 4, 0, SK.x + 4, 0);
+      sg.addColorStop(0, '#caa46a');
+      sg.addColorStop(0.5, '#e8c98c');
+      sg.addColorStop(1, '#9c7a44');
+      ctx.strokeStyle = sg;
+      ctx.lineWidth = 7;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(SK.x, SK.topY - 6);
+      ctx.lineTo(SK.x, SK.botY + 6);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawFruitBase(f) {
+      // base red fruit
+      var g = ctx.createRadialGradient(f.x - f.r * 0.3, f.y - f.r * 0.3, f.r * 0.1, f.x, f.y, f.r);
+      g.addColorStop(0, '#ff5a5a');
+      g.addColorStop(0.7, '#e22b3a');
+      g.addColorStop(1, '#b21628');
+      ctx.beginPath();
+      ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+      ctx.fillStyle = g;
+      ctx.fill();
+      // subtle leaf highlight
+      ctx.beginPath();
+      ctx.ellipse(f.x - f.r * 0.35, f.y - f.r * 0.4, f.r * 0.28, f.r * 0.14, -0.5, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,255,255,0.18)';
+      ctx.fill();
+    }
+
+    function drawCoating(f) {
+      if (state.coat <= 0) return;
+      // glossy candy coating that fills from the bottom up
+      var fillTop = f.y + f.r - state.coat * (f.r * 2);
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(f.x, f.y, f.r + 4, 0, Math.PI * 2);
+      ctx.clip();
+      // deepen color as it cools
+      var c0 = mixColor([255, 120, 120], [200, 30, 50], state.cool);
+      var c1 = mixColor([226, 43, 58], [165, 18, 32], state.cool);
+      var g = ctx.createLinearGradient(0, fillTop, 0, f.y + f.r + 4);
+      g.addColorStop(0, rgb(c0));
+      g.addColorStop(1, rgb(c1));
+      ctx.fillStyle = g;
+      ctx.fillRect(f.x - f.r - 6, fillTop, f.r * 2 + 12, (f.y + f.r + 6) - fillTop);
+      // glassy sheen
+      ctx.globalAlpha = 0.35 + state.cool * 0.4;
+      ctx.beginPath();
+      ctx.ellipse(f.x - f.r * 0.35, f.y - f.r * 0.4, f.r * 0.4, f.r * 0.22, -0.5, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,255,255,' + (0.5 + state.cool * 0.3) + ')';
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function drawNuts(f) {
+      if (state.nut <= 0) return;
+      var n = Math.floor(f.speckles.length * state.nut);
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(f.x, f.y, f.r + 4, 0, Math.PI * 2);
+      ctx.clip();
+      for (var i = 0; i < n; i++) {
+        var sp = f.speckles[i];
+        ctx.fillStyle = '#6b3f1d';
+        ctx.beginPath();
+        ctx.arc(sp.x, sp.y, sp.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    function drawCracks(f) {
+      if (!state.cracked) return;
+      ctx.save();
+      ctx.strokeStyle = 'rgba(60,5,12,0.85)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      var ly = f.y + (f.crackSplit - 0.5) * f.r * 1.2;
+      ctx.moveTo(f.x - f.r - 4, ly - 6);
+      ctx.lineTo(f.x - f.r * 0.3, ly + 2);
+      ctx.lineTo(f.x, ly - 4);
+      ctx.lineTo(f.x + f.r * 0.4, ly + 5);
+      ctx.lineTo(f.x + f.r + 4, ly - 3);
+      ctx.stroke();
+      // a vertical hairline
+      ctx.beginPath();
+      ctx.moveTo(f.x + 2, f.y - f.r);
+      ctx.lineTo(f.x - 3, f.y + f.r);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawPourStream() {
+      if (!state.pouring) return;
+      ctx.save();
+      var sx = state.pointer.x;
+      var g = ctx.createLinearGradient(sx, 0, sx, SK.topY + 20);
+      g.addColorStop(0, 'rgba(255,90,90,0.0)');
+      g.addColorStop(0.15, 'rgba(255,90,90,0.85)');
+      g.addColorStop(1, 'rgba(226,43,58,0.95)');
+      ctx.strokeStyle = g;
+      ctx.lineWidth = 6;
+      ctx.lineCap = 'round';
+      var wob = Math.sin(performance.now() * 0.02) * 6;
+      ctx.beginPath();
+      ctx.moveTo(sx, 0);
+      ctx.quadraticCurveTo(sx + wob, SK.topY * 0.5, sx + wob * 0.3, SK.topY + 18);
+      ctx.stroke();
+      // gloss
+      ctx.strokeStyle = 'rgba(255,220,220,0.6)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(sx - 1, 4);
+      ctx.quadraticCurveTo(sx + wob - 1, SK.topY * 0.5, sx + wob * 0.3 - 1, SK.topY + 16);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawParticles() {
+      for (var i = 0; i < state.particles.length; i++) {
+        var p = state.particles[i];
+        var al = 1 - p.life / p.max;
+        ctx.globalAlpha = Math.max(0, al);
+        ctx.fillStyle = p.color;
+        if (p.kind === 'shard') {
+          ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size);
+        } else {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    function render() {
+      ctx.clearRect(0, 0, W, H);
+      drawBoard();
+      drawNutPile();
+      drawStick();
+      for (var i = 0; i < FRUITS.length; i++) {
+        var f = FRUITS[i];
+        drawFruitBase(f);
+        drawCoating(f);
+        drawNuts(f);
+        drawCracks(f);
+      }
+      drawPourStream();
+      drawParticles();
+    }
+
+    // color helpers
+    function mixColor(a, b, t) {
+      return [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t];
+    }
+    function rgb(c) { return 'rgb(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ')'; }
+
+    // ---------- Loop ----------
+    function frame(t) {
+      if (!state.lastT) state.lastT = t;
+      var dt = Math.min(0.05, (t - state.lastT) / 1000);
+      state.lastT = t;
+      update(dt);
+      render();
+      requestAnimationFrame(frame);
+    }
+
+    // ---------- Mute ----------
+    if (muteBtn) {
+      muteBtn.addEventListener('click', function () {
+        muted = !muted;
+        muteBtn.innerHTML = muted ? '&#x1F507;' : '&#x1F50A;';
+        if (muted) {
+          stopPour();
+          if (ambientNodes && ambientNodes.master) {
+            try { ambientNodes.master.gain.value = 0; } catch (e) {}
+          }
+        } else {
+          if (ambientNodes && ambientNodes.master) {
+            try { ambientNodes.master.gain.value = 0.025; } catch (e) {}
+          }
+        }
+      });
+    }
+
+    // ---------- Init ----------
+    resize();
+    loadMade();
+    enterStep(0);
+    requestAnimationFrame(frame);
+  })();
+  </script>
+</body>
+</html>
