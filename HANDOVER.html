@@ -34,14 +34,12 @@
   a{color:var(--accent);text-decoration:none;transition:opacity .2s}
   a:hover{opacity:.85}
 
-  /* Container */
   .container{
     max-width:900px;
     margin:0 auto;
     padding:0 24px;
   }
 
-  /* Fade-up animation */
   .fade-up{
     opacity:0;
     transform:translateY(28px);
@@ -55,7 +53,7 @@
     .fade-up{opacity:1;transform:none;transition:none}
   }
 
-  /* ── Header ── */
+  /* Header */
   .header{
     padding:72px 0 48px;
     border-bottom:1px solid var(--hairline);
@@ -89,7 +87,7 @@
     font-weight:400;
   }
 
-  /* ── Section ── */
+  /* Section */
   .section{
     padding:56px 0 40px;
     border-bottom:1px solid var(--hairline);
@@ -106,7 +104,7 @@
     margin-bottom:28px;
   }
 
-  /* ── Links Grid ── */
+  /* Links Grid */
   .links-grid{
     display:grid;
     grid-template-columns:1fr 1fr;
@@ -169,7 +167,7 @@
     user-select:all;
   }
 
-  /* ── Steps ── */
+  /* Steps */
   .steps-list{
     display:flex;
     flex-direction:column;
@@ -213,8 +211,16 @@
     color:var(--ink-2);
     line-height:1.6;
   }
+  .step-desc code{
+    background:rgba(255,255,255,0.06);
+    padding:2px 7px;
+    border-radius:5px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    color:var(--accent);
+  }
 
-  /* ── Table ── */
+  /* Table */
   .pages-table{
     width:100%;
     border-collapse:separate;
@@ -265,7 +271,7 @@
     .pages-table th,.pages-table td{padding:10px 12px}
   }
 
-  /* ── Email Section ── */
+  /* Email Section */
   .email-block{
     display:flex;
     flex-direction:column;
@@ -347,8 +353,13 @@
     font-size:12px;
     color:var(--accent);
   }
+  .email-guide-step a{
+    color:var(--accent);
+    text-decoration:none;
+  }
+  .email-guide-step a:hover{opacity:.85}
 
-  /* ── Warning Cards ── */
+  /* Warning Cards */
   .warnings-list{
     display:flex;
     flex-direction:column;
@@ -376,7 +387,7 @@
     color:var(--accent);
   }
 
-  /* ── Test Cards ── */
+  /* Test Cards */
   .test-cards{
     display:grid;
     grid-template-columns:1fr 1fr;
@@ -425,7 +436,7 @@
   .test-card.fail{border-color:rgba(239,68,68,0.25)}
   .test-card.fail .test-card-label{color:rgba(239,68,68,0.8)}
 
-  /* ── Footer ── */
+  /* Footer */
   .footer{
     padding:48px 0 64px;
     text-align:center;
@@ -437,7 +448,7 @@
     font-weight:500;
   }
 
-  /* ── Print ── */
+  /* Print */
   @media print{
     body{background:#fff!important;color:#111!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
     .header,.section,.footer{border-color:rgba(0,0,0,0.1)!important}
@@ -469,6 +480,7 @@
     .email-features li::before{background:var(--accent)!important}
     .link-card-label,.link-card-value,.step-desc,.test-card-key,.header-date,.header-sub,.footer,.test-card-label{color:#555!important}
     .link-card-value a,.step-name,.test-card-val{color:#111!important}
+    .step-desc code{background:rgba(0,0,0,0.06)!important;color:#92400e!important}
     .code-box{background:#f0f0f0!important;color:#92400e!important;border-color:rgba(0,0,0,0.1)!important}
     .fade-up{opacity:1!important;transform:none!important}
     .test-card.success,.test-card.fail{border-color:rgba(0,0,0,0.12)!important}
@@ -481,14 +493,14 @@
 
 <div class="container">
 
-  <!-- ======== Header ======== -->
+  <!-- Header -->
   <header class="header fade-up">
     <div class="brand">Sunstore<span class="brand-dot"></span></div>
     <div class="header-sub">Документация для клиента</div>
     <div class="header-date">21 июля 2026</div>
   </header>
 
-  <!-- ======== Section 1: Ссылки и доступы ======== -->
+  <!-- Section 1: Ссылки и доступы -->
   <section class="section fade-up">
     <h2 class="section-title">Ссылки и доступы</h2>
     <div class="links-grid">
@@ -531,7 +543,7 @@
     </div>
   </section>
 
-  <!-- ======== Section 2: Как протестировать ======== -->
+  <!-- Section 2: Как протестировать -->
   <section class="section fade-up">
     <h2 class="section-title">Как протестировать</h2>
     <div class="steps-list">
@@ -540,110 +552,118 @@
         <div class="step-num">1</div>
         <div class="step-body">
           <div class="step-name">Просмотр витрины</div>
-          <div class="step-desc">Откройте главную страницу. Просмотрите hero-секцию, карточки товаров с кнопками «В корзину» и «Подробнее». Нажмите «Подробнее» для перехода на страницу товара с характеристиками, остатками на складе и кнопкой добавления в корзину.</div>
+          <div class="step-desc">Откройте главную страницу. Просмотрите hero-секцию, карточки товаров с кнопками &laquo;В корзину&raquo; и &laquo;Подробнее&raquo;. Нажмите &laquo;Подробнее&raquo; для перехода на страницу товара с характеристиками, индикатором остатков на складе и кнопкой добавления в корзину.</div>
         </div>
       </div>
 
       <div class="step-row">
         <div class="step-num">2</div>
         <div class="step-body">
-          <div class="step-name">Каталог с фильтрами</div>
-          <div class="step-desc">Перейдите на страницу /array. Используйте фильтры-пили по категориям и переключатель валюты (RUB / USD / EUR).</div>
+          <div class="step-name">Переключение валюты</div>
+          <div class="step-desc">В шапке сайта доступен выпадающий список валют: RUB / USD / EUR. Переключение валюты мгновенно обновляет цены на ВСЕХ страницах &mdash; главная, каталог, корзина, оформление заказа, карточка товара, конфигуратор &mdash; в режиме реального времени.</div>
         </div>
       </div>
 
       <div class="step-row">
         <div class="step-num">3</div>
         <div class="step-body">
-          <div class="step-name">Карта товара</div>
-          <div class="step-desc">Откройте /product/[id]. Проверьте главное изображение, таблицу характеристик, индикатор остатков, кнопки «В корзину» и «Вернуться в каталог».</div>
+          <div class="step-name">Каталог с фильтрами</div>
+          <div class="step-desc">Перейдите на <code>/array</code>. Используйте фильтры-пили по категориям, строку поиска, фильтр по диапазону цен и переключатель валюты (RUB / USD / EUR).</div>
         </div>
       </div>
 
       <div class="step-row">
         <div class="step-num">4</div>
         <div class="step-body">
-          <div class="step-name">Корзина</div>
-          <div class="step-desc">Добавьте товары в корзину. Проверьте счётчик-бейдж в шапке, страницу /velocity, изменение количества (+/-), удаление позиций. При сумме свыше 50 000 ₽ отображается бесплатная доставка.</div>
+          <div class="step-name">Карта товара</div>
+          <div class="step-desc">Откройте <code>/product/[id]</code>. Проверьте главное изображение, таблицу характеристик (5+ спецификаций), индикатор остатков на складе (зелёный <code>badge-success</code> / красный <code>badge-danger</code>), кнопки &laquo;В корзину&raquo; и &laquo;Вернуться в каталог&raquo;. При переходе по несуществующему ID отображается страница 404.</div>
         </div>
       </div>
 
       <div class="step-row">
         <div class="step-num">5</div>
         <div class="step-body">
-          <div class="step-name">Оформление заказа</div>
-          <div class="step-desc">Пройдите весь flow оформления: заполните данные клиента, выберите демонстрационную оплату, проверьте страницу статуса заказа.</div>
+          <div class="step-name">Корзина</div>
+          <div class="step-desc">Добавляйте товары в корзину с любой страницы. Проверьте счётчик-бейдж в шапке сайта, страницу <code>/velocity</code>, изменение количества (+/&minus;), удаление позиций. Цены товаров и итоговая сумма пересчитываются при переключении валюты. При сумме свыше 50 000 &RUB; отображается бесплатная доставка.</div>
         </div>
       </div>
 
       <div class="step-row">
         <div class="step-num">6</div>
         <div class="step-body">
-          <div class="step-name">Управление категориями</div>
-          <div class="step-desc">В админке перейдите в /admin/categories. Создайте, отредактируйте и удалите категорию. Проверьте сортировку перетаскиванием. В системе предустановлено 6 категорий.</div>
+          <div class="step-name">Оформление заказа</div>
+          <div class="step-desc">Пройдите весь flow оформления на <code>/checkout</code>: заполните данные клиента, выберите демонстрационную оплату, проверьте страницу статуса заказа. Все цены отображаются в выбранной валюте.</div>
         </div>
       </div>
 
       <div class="step-row">
         <div class="step-num">7</div>
         <div class="step-body">
-          <div class="step-name">Управление товарами</div>
-          <div class="step-desc">В админке перейдите в /admin/products. Создайте товар с помощью rich text редактора TipTap. Загрузите изображения с компьютера, из галереи или по URL. Фильтруйте по категориям с помощью пилей, используйте динамический выпадающий список категорий.</div>
+          <div class="step-name">Управление категориями</div>
+          <div class="step-desc">В админке перейдите в <code>/admin/categories</code>. Создайте, отредактируйте и удалите категорию. Проверьте сортировку перетаскиванием. В системе предустановлено 6 категорий.</div>
         </div>
       </div>
 
       <div class="step-row">
         <div class="step-num">8</div>
         <div class="step-body">
-          <div class="step-name">Загрузка изображений</div>
-          <div class="step-desc">Поддерживаемые форматы: JPG, PNG, WebP, GIF, SVG до 5 МБ. Изображения сохраняются в галерею с возможностью удаления. Доступна загрузка по URL как fallback.</div>
+          <div class="step-name">Управление товарами</div>
+          <div class="step-desc">В админке перейдите в <code>/admin/products</code>. Создайте товар с помощью rich text редактора TipTap (жирный, курсив, заголовки, списки, ссылки, изображения). Загрузите изображения с компьютера, из галереи или по URL. Фильтруйте товары по категориям с помощью пилей, используйте динамический выпадающий список категорий.</div>
         </div>
       </div>
 
       <div class="step-row">
         <div class="step-num">9</div>
         <div class="step-body">
-          <div class="step-name">Заказы + уведомления</div>
-          <div class="step-desc">Перейдите в /admin/orders. Изменение статуса заказа автоматически отправляет email-уведомление клиенту (если email настроен).</div>
+          <div class="step-name">Загрузка изображений</div>
+          <div class="step-desc">Поддерживаемые форматы: JPG, PNG, WebP, GIF, SVG до 5 МБ. Изображения сохраняются в галерею с возможностью удаления. Доступна загрузка по URL как fallback. Реализованы list/delete API для управления файлами.</div>
         </div>
       </div>
 
       <div class="step-row">
         <div class="step-num">10</div>
         <div class="step-body">
-          <div class="step-name">Настройки платежей</div>
-          <div class="step-desc">В /admin/settings/payments доступны 6 платёжных шлюзов: Т-Банк, ЮKassa, Сбербанк, CloudPayments, Робокасса, Демо. Переключение между sandbox и live режимом.</div>
+          <div class="step-name">Заказы + email-уведомления</div>
+          <div class="step-desc">Перейдите в <code>/admin/orders</code>. Изменение статуса заказа (Ожидает &rarr; Оплачен &rarr; Отправлен &rarr; Доставлен / Отменён) автоматически отправляет email-уведомление клиенту (если email настроен).</div>
         </div>
       </div>
 
       <div class="step-row">
         <div class="step-num">11</div>
         <div class="step-body">
-          <div class="step-name">Настройки email</div>
-          <div class="step-desc">В /admin/settings/email выберите провайдера (Выключено / Custom SMTP / Яндекс API). Заполните SMTP-поля или Яндекс OAuth-токен. Нажмите «Проверить подключение» и активируйте переключатель.</div>
+          <div class="step-name">Настройки платежей</div>
+          <div class="step-desc">В <code>/admin/settings/payments</code> доступны 6 платёжных шлюзов: Т-Банк, ЮKassa, Сбербанк, CloudPayments, Робокасса, Демо. Переключение между sandbox и live режимом. Кнопка &laquo;Тест подключения&raquo; для проверки шлюза.</div>
         </div>
       </div>
 
       <div class="step-row">
         <div class="step-num">12</div>
         <div class="step-body">
-          <div class="step-name">Рассылка (mailing list)</div>
-          <div class="step-desc">Перейдите в /admin/subscribers. Просмотрите статистику подписчиков (всего / активных / неактивных). Добавляйте, переключайте и удаляйте подписчиков. Создайте рассылку: укажите тему и HTML-содержимое, отправьте всем активным подписчикам.</div>
+          <div class="step-name">Настройки email</div>
+          <div class="step-desc">В <code>/admin/settings/email</code> выберите провайдера (Выключено / Custom SMTP / Яндекс API). Заполните SMTP-поля (хост, порт, SSL, авторизация) или Яндекс OAuth-токен. Нажмите &laquo;Проверить подключение&raquo; и активируйте переключатель.</div>
         </div>
       </div>
 
       <div class="step-row">
         <div class="step-num">13</div>
         <div class="step-body">
+          <div class="step-name">Рассылка (mailing list)</div>
+          <div class="step-desc">Перейдите в <code>/admin/subscribers</code>. Просмотрите статистику подписчиков (всего / активных / неактивных). Добавляйте, переключайте и удаляйте подписчиков. Создайте рассылку: укажите тему и HTML-содержимое, отправьте всем активным подписчикам.</div>
+        </div>
+      </div>
+
+      <div class="step-row">
+        <div class="step-num">14</div>
+        <div class="step-body">
           <div class="step-name">Подписка на рассылку (витрина)</div>
-          <div class="step-desc">На каждой странице в футере доступно поле ввода email для подписки на рассылку. После подписки отображается подтверждение «Вы подписаны».</div>
+          <div class="step-desc">На каждой странице в футере доступно поле ввода email для подписки на рассылку. После подписки отображается подтверждение &laquo;Вы подписаны&raquo;. В каждом отправленном письме содержится ссылка для отписки.</div>
         </div>
       </div>
 
     </div>
   </section>
 
-  <!-- ======== Section 3: Страницы сайта ======== -->
+  <!-- Section 3: Страницы сайта -->
   <section class="section fade-up">
     <h2 class="section-title">Страницы сайта</h2>
     <table class="pages-table">
@@ -656,13 +676,13 @@
       </thead>
       <tbody>
         <tr><td>Главная</td><td>/</td><td>Hero, каталог, преимущества</td></tr>
-        <tr><td>Каталог</td><td>/array</td><td>Каталог с фильтрами по категориям</td></tr>
+        <tr><td>Каталог</td><td>/array</td><td>Каталог с фильтрами, поиск, диапазон цен</td></tr>
         <tr><td>Конфигуратор</td><td>/blueprint</td><td>Собрать солнечную систему</td></tr>
-        <tr><td>Корзина</td><td>/velocity</td><td>Управление корзиной</td></tr>
+        <tr><td>Корзина</td><td>/velocity</td><td>Управление корзиной, изменение кол-ва</td></tr>
         <tr><td>Оформление</td><td>/checkout</td><td>Данные клиента, оплата</td></tr>
         <tr><td>Карта товара</td><td>/product/[id]</td><td>Детали, характеристики, фото</td></tr>
         <tr><td>Статус заказа</td><td>/status</td><td>Проверка по номеру</td></tr>
-        <tr><td>Админка</td><td>/admin</td><td>Dashboard</td></tr>
+        <tr><td>Админка</td><td>/admin</td><td>Dashboard со статистикой</td></tr>
         <tr><td>Категории</td><td>/admin/categories</td><td>Управление категориями</td></tr>
         <tr><td>Товары</td><td>/admin/products</td><td>Управление товарами</td></tr>
         <tr><td>Заказы</td><td>/admin/orders</td><td>Управление заказами</td></tr>
@@ -673,52 +693,55 @@
     </table>
   </section>
 
-  <!-- ======== Section 4: Email-уведомления ======== -->
+  <!-- Section 4: Email-уведомления -->
   <section class="section fade-up">
     <h2 class="section-title">Email-уведомления</h2>
     <div class="email-block">
       <p class="email-intro">Система поддерживает автоматическую отправку email-уведомлений при изменении статуса заказа и массовую рассылку по подписчикам.</p>
       <ul class="email-features">
-        <li>Custom SMTP — любой провайдер: Yandex.Mail, Mail.ru, Gmail, корпоративный сервер</li>
-        <li>Yandex.Mail API — авторизация через OAuth-токен</li>
+        <li>Custom SMTP &mdash; любой провайдер: Yandex.Mail, Mail.ru, Gmail, корпоративный сервер</li>
+        <li>Yandex.Mail API &mdash; авторизация через OAuth-токен</li>
         <li>Автоматические уведомления клиенту при смене статуса заказа</li>
         <li>Отправка рассылки всем активным подписчикам из /admin/subscribers</li>
       </ul>
       <div class="email-guide">
         <div class="email-guide-title">Быстрый старт с Yandex</div>
         <div class="email-guide-steps">
-          <div class="email-guide-step">Перейдите в Настройки email и выберите «Custom SMTP»</div>
+          <div class="email-guide-step">Перейдите в <code>/admin/settings/email</code> и выберите &laquo;Custom SMTP&raquo;</div>
           <div class="email-guide-step">SMTP-сервер: <code>smtp.yandex.ru</code>, Порт: <code>465</code>, SSL: включён</div>
           <div class="email-guide-step">Логин: <code>ваш@yandex.ru</code>, Пароль: пароль приложения (не основной пароль от аккаунта!)</div>
-          <div class="email-guide-step">Для Яндекс API: oauth.yandex.ru/client/new — выберите «Почта Яндекс»</div>
+          <div class="email-guide-step">Для Яндекс API: перейдите на <a href="https://oauth.yandex.ru/client/new" target="_blank">oauth.yandex.ru/client/new</a> &mdash; выберите &laquo;Почта Яндекс: отправка писем&raquo;</div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ======== Section 5: Важно знать ======== -->
+  <!-- Section 5: Важно знать -->
   <section class="section fade-up">
     <h2 class="section-title">Важно знать</h2>
     <div class="warnings-list">
       <div class="warning-card">
-        <strong>Данные в оперативной памяти</strong> — все данные хранятся в памяти и сбрасываются при перезапуске сервера. Для production-развертывания необходимо подключить PostgreSQL.
+        <strong>Данные в оперативной памяти</strong> &mdash; все данные хранятся в памяти и сбрасываются при перезапуске сервера. Для production-развертывания необходимо подключить PostgreSQL.
       </div>
       <div class="warning-card">
-        <strong>Пароль по умолчанию</strong> — пароль администратора: <code>sunstore</code>. Рекомендуется сменить через переменную окружения <code>ADMIN_PASSWORD</code>.
+        <strong>Пароль по умолчанию</strong> &mdash; пароль администратора: <code>sunstore</code>. Рекомендуется сменить через переменную окружения <code>ADMIN_PASSWORD</code>.
       </div>
       <div class="warning-card">
-        <strong>Демо-режим оплаты включён</strong> — платёжная система работает без merchant-ключей. Все транзакции проходят в тестовом режиме.
+        <strong>Демо-режим оплаты включён</strong> &mdash; платёжная система работает без merchant-ключей. Все транзакции проходят в тестовом режиме.
       </div>
       <div class="warning-card">
-        <strong>Загруженные изображения в public/uploads/</strong> — для production-окружения рекомендуется использовать облачное хранилище: S3 или Cloudflare R2.
+        <strong>Загруженные изображения в public/uploads/</strong> &mdash; для production-окружения рекомендуется использовать облачное хранилище: S3 или Cloudflare R2.
       </div>
       <div class="warning-card">
-        <strong>Email-уведомления выключены по умолчанию</strong> — настройте SMTP или Яндекс в <code>/admin/settings/email</code> для включения уведомлений и рассылки.
+        <strong>Email-уведомления выключены по умолчанию</strong> &mdash; настройте SMTP или Яндекс в <code>/admin/settings/email</code> для включения уведомлений и рассылки.
+      </div>
+      <div class="warning-card">
+        <strong>Валютный курс фиксированный</strong> &mdash; 1 USD = ~95 RUB, 1 EUR = ~102 RUB. Для production рекомендуется подключить API курса ЦБ РФ.
       </div>
     </div>
   </section>
 
-  <!-- ======== Section 6: Тестовые карты ======== -->
+  <!-- Section 6: Тестовые карты -->
   <section class="section fade-up">
     <h2 class="section-title">Тестовые карты</h2>
     <div class="test-cards">
@@ -755,15 +778,14 @@
     </div>
   </section>
 
-  <!-- ======== Footer ======== -->
+  <!-- Footer -->
   <footer class="footer fade-up">
-    <span>Sunstore</span> — 2026. Готово к использованию.
+    <span>Sunstore</span> &mdash; 2026. Готово к использованию.
   </footer>
 
 </div>
 
 <script>
-  // IntersectionObserver fade-up
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
