@@ -5,20 +5,14 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useCart } from '@/contexts/CartContext'
+import { useCurrency } from '@/contexts/CurrencyContext'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
-
-const rubFormatter = new Intl.NumberFormat('ru-RU', {
-  style: 'currency',
-  currency: 'RUB',
-  maximumFractionDigits: 0
-})
-
-const formatPrice = (price: number) => rubFormatter.format(price)
 
 export default function VelocityPage() {
   const [mounted, setMounted] = useState(false)
   const { cartItems, updateQuantity, removeFromCart, isLoading } = useCart()
+  const { formatPrice } = useCurrency()
 
   useEffect(() => {
     setMounted(true)

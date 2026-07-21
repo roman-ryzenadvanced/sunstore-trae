@@ -7,11 +7,11 @@ import { useCurrency } from '@/contexts/CurrencyContext'
 
 export default function Header() {
   const { cartCount } = useCart()
-  const { currency, setCurrency, availableCurrencies } = useCurrency() as any
+  const { currency, setCurrency } = useCurrency()
   const router = useRouter()
 
   const handleCurrencyChange = (newCurrency: string) => {
-    setCurrency(newCurrency as any)
+    setCurrency(newCurrency as 'RUB' | 'USD' | 'EUR')
   }
 
   const goToCart = () => {

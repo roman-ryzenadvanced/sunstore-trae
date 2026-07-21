@@ -102,7 +102,7 @@ function loadCloudPaymentsWidget(
 
 export default function CheckoutPage() {
   const { cartItems, updateQuantity, removeFromCart, clearCart, isLoading } = useCart()
-  const { formatPrice: ctxFormatPrice } = useCurrency() as any
+  const { formatPrice: ctxFormatPrice } = useCurrency()
   const [currentStep, setCurrentStep] = useState(1)
   const [paymentData, setPaymentData] = useState({
     method: 'card',

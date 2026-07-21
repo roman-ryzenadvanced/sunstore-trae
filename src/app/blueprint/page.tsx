@@ -22,7 +22,7 @@ const categoryLabel: Record<string, string> = {
 
 function BlueprintContent() {
   const [product, setProduct] = useState<any>(null)
-  const { convertPrice, formatPrice: ctxFormatPrice } = useCurrency() as any
+  const { convertPrice, formatPrice: ctxFormatPrice } = useCurrency()
   const { addToCart } = useCart()
   const [isLoading, setIsLoading] = useState(true)
   const [quantity, setQuantity] = useState(1)

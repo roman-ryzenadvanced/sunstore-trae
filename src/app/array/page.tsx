@@ -23,7 +23,7 @@ const categoryLabel = (category: string) =>
 
 function ArrayContent() {
   const [products, setProducts] = useState<any[]>([])
-  const { currency, convertPrice, formatPrice: ctxFormatPrice } = useCurrency() as any
+  const { currency, convertPrice, formatPrice: ctxFormatPrice } = useCurrency()
   const { addToCart } = useCart()
   const [isLoading, setIsLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')

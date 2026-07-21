@@ -27,7 +27,7 @@ function ProductDetailContent() {
   const [isLoading, setIsLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
   const { addToCart } = useCart()
-  const { formatPrice } = useCurrency() as any
+  const { formatPrice } = useCurrency()
 
   useEffect(() => {
     const fetchProduct = async () => {
