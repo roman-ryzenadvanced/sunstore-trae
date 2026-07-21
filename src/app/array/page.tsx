@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { useCurrency } from '@/hooks/useCurrency'
-import { CartProvider, useCart } from '@/contexts/CartContext'
+import { useCart } from '@/contexts/CartContext'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 
@@ -202,9 +202,5 @@ function ArrayContent() {
 }
 
 export default function ArrayPage() {
-  return (
-    <CartProvider>
-      <ArrayContent />
-    </CartProvider>
-  )
+  return <ArrayContent />
 }

@@ -17,6 +17,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [status, setStatus] = useState<'loading' | 'ok' | 'denied'>('loading')
 
   useEffect(() => {
+    // The login page must be reachable without auth; skip the gate there.
+    if (pathname === '/admin/login') {
+      setStatus('ok')
+      return
+    }
+
     let alive = true
     fetch('/api/store-config?scope=admin')
       .then((res) => {
@@ -35,11 +41,16 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     return () => {
       alive = false
     }
-  }, [router])
+  }, [router, pathname])
 
   const logout = async () => {
     await fetch('/api/admin/logout', { method: 'POST' })
     router.replace('/admin/login')
+  }
+
+  // Login page renders full-bleed without the admin chrome.
+  if (pathname === '/admin/login') {
+    return <>{children}</>
   }
 
   if (status !== 'ok') {

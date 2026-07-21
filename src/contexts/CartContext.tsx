@@ -63,6 +63,29 @@ export function CartProvider({ children }: { children: ReactNode }) {
     loadCart()
   }, [])
 
+  // Re-sync cart when the tab regains focus or becomes visible again.
+  // Ensures the header cart badge and drawer stay correct across
+  // client-side navigations and multi-tab sessions.
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        const sessionId = getSessionId()
+        fetch('/api/cart', { headers: { 'x-session-id': sessionId } })
+          .then((r) => r.json())
+          .then((data) => {
+            if (Array.isArray(data.items)) setCartItems(data.items)
+          })
+          .catch(() => {})
+      }
+    }
+    document.addEventListener('visibilitychange', handleVisibility)
+    window.addEventListener('focus', handleVisibility)
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility)
+      window.removeEventListener('focus', handleVisibility)
+    }
+  }, [])
+
   const syncToBackend = useCallback(async (items: CartItem[]) => {
     try {
       const sessionId = getSessionId()

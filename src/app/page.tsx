@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
-import { CartProvider, useCart } from '@/contexts/CartContext'
+import { useCart } from '@/contexts/CartContext'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 
@@ -202,9 +202,5 @@ function HomeContent() {
 }
 
 export default function HomePage() {
-  return (
-    <CartProvider>
-      <HomeContent />
-    </CartProvider>
-  )
+  return <HomeContent />
 }

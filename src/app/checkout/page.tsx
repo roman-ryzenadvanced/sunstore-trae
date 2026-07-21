@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useState, useEffect, useRef } from 'react'
 import { useCurrency } from '@/hooks/useCurrency'
-import { CartProvider, useCart } from '@/contexts/CartContext'
+import { useCart } from '@/contexts/CartContext'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 

@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from 'react'
 import { useCurrency } from '@/hooks/useCurrency'
-import { CartProvider, useCart } from '@/contexts/CartContext'
+import { useCart } from '@/contexts/CartContext'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 
@@ -286,9 +286,5 @@ function BlueprintContent() {
 }
 
 export default function BlueprintPage() {
-  return (
-    <CartProvider>
-      <BlueprintContent />
-    </CartProvider>
-  )
+  return <BlueprintContent />
 }
