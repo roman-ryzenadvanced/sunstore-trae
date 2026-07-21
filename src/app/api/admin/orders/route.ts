@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getAllOrders, updateOrderStatus, getOrderById } from '@/lib/mockDb'
 import { isAdminAuthenticated } from '@/lib/adminAuth'
+import { getEmailConfig, sendEmail } from '@/lib/emailService'
+import { orderStatusUpdateEmail } from '@/lib/emailTemplates'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,5 +27,13 @@ export async function POST(request: NextRequest) {
   if (!updated) {
     return NextResponse.json({ error: 'Заказ не найден' }, { status: 404 })
   }
+
+  // After successful status update, send email notification
+  const emailConfig = getEmailConfig()
+  if (emailConfig.isActive && updated.customerEmail) {
+    const template = orderStatusUpdateEmail(updated, 'https://sunstore.vercel.app')
+    sendEmail(updated.customerEmail, template.subject, template.html, template.text).catch(() => {})
+  }
+
   return NextResponse.json({ ok: true, order: updated })
 }

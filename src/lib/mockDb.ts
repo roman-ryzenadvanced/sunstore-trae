@@ -234,12 +234,35 @@ const seedCategories: Category[] = [
 ]
 
 // In-memory storage — use globalThis to persist across Next.js dev server module instances
+export interface Subscriber {
+  id: string
+  email: string
+  name?: string
+  isActive: boolean
+  subscribedAt: string
+  source: 'footer' | 'checkout' | 'admin'
+}
+
+export interface EmailQueueItem {
+  id: string
+  to: string
+  subject: string
+  html: string
+  text?: string
+  status: 'pending' | 'sent' | 'failed'
+  error?: string
+  createdAt: string
+  sentAt?: string
+}
+
 const globalForDb = globalThis as unknown as {
   _sunstoreProducts?: Product[]
   _sunstoreCarts?: Map<string, Cart>
   _sunstoreOrders?: Map<string, Order>
   _sunstoreSessionOrders?: Map<string, string[]>
   _sunstoreCategories?: Category[]
+  _sunstoreSubscribers?: Subscriber[]
+  _sunstoreEmailQueue?: EmailQueueItem[]
 }
 
 if (!globalForDb._sunstoreProducts) {
@@ -257,6 +280,12 @@ if (!globalForDb._sunstoreSessionOrders) {
 if (!globalForDb._sunstoreCategories) {
   globalForDb._sunstoreCategories = [...seedCategories]
 }
+if (!globalForDb._sunstoreSubscribers) {
+  globalForDb._sunstoreSubscribers = []
+}
+if (!globalForDb._sunstoreEmailQueue) {
+  globalForDb._sunstoreEmailQueue = []
+}
 
 let products: Product[] = globalForDb._sunstoreProducts
 const categories: Category[] = globalForDb._sunstoreCategories
@@ -264,6 +293,8 @@ const carts: Map<string, Cart> = globalForDb._sunstoreCarts
 const orders: Map<string, Order> = globalForDb._sunstoreOrders
 // Session to orders mapping for user order lookup
 const sessionOrders: Map<string, string[]> = globalForDb._sunstoreSessionOrders
+const subscribers: Subscriber[] = globalForDb._sunstoreSubscribers
+const emailQueue: EmailQueueItem[] = globalForDb._sunstoreEmailQueue
 
 // Cart helper functions
 export function getCart(sessionId: string): Cart {
@@ -556,4 +587,109 @@ export function deleteCategory(id: string): boolean {
   categories.splice(idx, 1)
   globalForDb._sunstoreCategories = categories
   return true
+}
+
+/* ============================ Subscriber helpers ============================ */
+
+/** Returns only active subscribers. */
+export function getSubscribers(): Subscriber[] {
+  return subscribers.filter(s => s.isActive)
+}
+
+/** Returns all subscribers including inactive ones (admin view). */
+export function getAllSubscribers(): Subscriber[] {
+  return [...subscribers]
+}
+
+/** Add a new subscriber. Checks for duplicate by email (case-insensitive). */
+export function addSubscriber(
+  email: string,
+  name?: string,
+  source: 'footer' | 'checkout' | 'admin' = 'footer',
+): Subscriber {
+  const normalizedEmail = email.trim().toLowerCase()
+  const existing = subscribers.find(s => s.email.toLowerCase() === normalizedEmail)
+  if (existing) {
+    // Re-activate if previously removed
+    existing.isActive = true
+    if (name) existing.name = name
+    globalForDb._sunstoreSubscribers = subscribers
+    return existing
+  }
+
+  const subscriber: Subscriber = {
+    id: 'sub_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+    email: normalizedEmail,
+    name: name?.trim() || undefined,
+    isActive: true,
+    subscribedAt: new Date().toISOString(),
+    source,
+  }
+  subscribers.push(subscriber)
+  globalForDb._sunstoreSubscribers = subscribers
+  return subscriber
+}
+
+/** Remove a subscriber by id. Returns true if found and removed. */
+export function removeSubscriber(id: string): boolean {
+  const idx = subscribers.findIndex(s => s.id === id)
+  if (idx === -1) return false
+  subscribers.splice(idx, 1)
+  globalForDb._sunstoreSubscribers = subscribers
+  return true
+}
+
+/** Toggle subscriber active status. Returns updated subscriber or null. */
+export function toggleSubscriber(id: string, isActive: boolean): Subscriber | null {
+  const sub = subscribers.find(s => s.id === id)
+  if (!sub) return null
+  sub.isActive = isActive
+  globalForDb._sunstoreSubscribers = subscribers
+  return sub
+}
+
+/** Find a subscriber by email (case-insensitive). */
+export function getSubscriberByEmail(email: string): Subscriber | undefined {
+  const normalizedEmail = email.trim().toLowerCase()
+  return subscribers.find(s => s.email.toLowerCase() === normalizedEmail)
+}
+
+/* ============================ Email Queue helpers ============================ */
+
+/** Get all email queue items. */
+export function getEmailQueue(): EmailQueueItem[] {
+  return [...emailQueue]
+}
+
+/** Add an email to the outgoing queue. */
+export function addEmailToQueue(
+  to: string,
+  subject: string,
+  html: string,
+  text?: string,
+): EmailQueueItem {
+  const item: EmailQueueItem = {
+    id: 'eq_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
+    to,
+    subject,
+    html,
+    text,
+    status: 'pending',
+    createdAt: new Date().toISOString(),
+  }
+  emailQueue.push(item)
+  globalForDb._sunstoreEmailQueue = emailQueue
+  return item
+}
+
+/** Update an email queue item (e.g. mark as sent/failed). */
+export function updateEmailQueueItem(
+  id: string,
+  patch: Partial<EmailQueueItem>,
+): EmailQueueItem | null {
+  const item = emailQueue.find(e => e.id === id)
+  if (!item) return null
+  Object.assign(item, patch)
+  globalForDb._sunstoreEmailQueue = emailQueue
+  return item
 }
