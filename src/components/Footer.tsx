@@ -22,10 +22,10 @@ export default function Footer() {
               Магазин
             </h4>
             <ul className="space-y-3 text-sm">
-              <li><Link href="/#catalog" className="nav-link">Панели</Link></li>
-              <li><Link href="/#catalog" className="nav-link">Инверторы</Link></li>
-              <li><Link href="/#catalog" className="nav-link">Аккумуляторы</Link></li>
-              <li><Link href="/#catalog" className="nav-link">Системы</Link></li>
+              <li><a href="/#catalog" className="nav-link">Панели</a></li>
+              <li><a href="/#catalog" className="nav-link">Инверторы</a></li>
+              <li><a href="/#catalog" className="nav-link">Аккумуляторы</a></li>
+              <li><a href="/#catalog" className="nav-link">Системы</a></li>
             </ul>
           </div>
 
@@ -34,9 +34,9 @@ export default function Footer() {
               Компания
             </h4>
             <ul className="space-y-3 text-sm">
-              <li><Link href="/#support" className="nav-link">О нас</Link></li>
-              <li><Link href="/#support" className="nav-link">Доставка</Link></li>
-              <li><Link href="/#support" className="nav-link">Гарантия</Link></li>
+              <li><a href="/#support" className="nav-link">О нас</a></li>
+              <li><a href="/#support" className="nav-link">Доставка</a></li>
+              <li><a href="/#support" className="nav-link">Гарантия</a></li>
             </ul>
           </div>
 
@@ -45,8 +45,8 @@ export default function Footer() {
               Поддержка
             </h4>
             <ul className="space-y-3 text-sm">
-              <li><Link href="/#support" className="nav-link">Контакты</Link></li>
-              <li><Link href="/#support" className="nav-link">Частые вопросы</Link></li>
+              <li><a href="/#support" className="nav-link">Контакты</a></li>
+              <li><a href="/#support" className="nav-link">Частые вопросы</a></li>
             </ul>
           </div>
         </div>
