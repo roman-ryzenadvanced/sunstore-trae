@@ -39,12 +39,14 @@ function ProductCard({ product, onAdd }: { product: any; onAdd: (p: any) => void
         <div className="mt-4 flex items-center justify-between">
           <span className="price-ss text-lg">{formatPrice(product.price)}</span>
         </div>
-        <button
-          onClick={() => onAdd(product)}
-          className="btn btn-ghost mt-4 w-full"
-        >
-          В корзину
-        </button>
+        <div className="mt-4 flex gap-2">
+          <button onClick={() => onAdd(product)} className="btn btn-ghost flex-1">
+            В корзину
+          </button>
+          <a href={`/product/${product.id}`} className="btn btn-ghost flex-1 text-center">
+            Подробнее
+          </a>
+        </div>
       </div>
     </div>
   )

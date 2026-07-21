@@ -173,21 +173,26 @@ function ArrayContent() {
                       <span className="price-ss text-lg">{formatPrice(product.price)}</span>
                       <span className="muted-ss ml-2 text-xs">{currencyConfig.symbol}</span>
                     </div>
-                    <button
-                      onClick={() =>
-                        addToCart({
-                          id: product.id,
-                          name: product.name,
-                          price: product.price,
-                          image: product.imageUrl || `/api/placeholder/product-${product.id}.png`,
-                          quantity: 1,
-                          category: product.category
-                        })
-                      }
-                      className="btn btn-ghost mt-4 w-full"
-                    >
-                      В корзину
-                    </button>
+                    <div className="mt-4 flex gap-2">
+                      <button
+                        onClick={() =>
+                          addToCart({
+                            id: product.id,
+                            name: product.name,
+                            price: product.price,
+                            image: product.imageUrl || `/api/placeholder/product-${product.id}.png`,
+                            quantity: 1,
+                            category: product.category
+                          })
+                        }
+                        className="btn btn-ghost flex-1"
+                      >
+                        В корзину
+                      </button>
+                      <a href={`/product/${product.id}`} className="btn btn-ghost flex-1 text-center">
+                        Подробнее
+                      </a>
+                    </div>
                   </div>
                 </div>
               ))}
