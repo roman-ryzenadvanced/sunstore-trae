@@ -218,6 +218,10 @@
     background-position: right 14px center;
     padding-right: 36px;
   }
+  .select-ss option {
+    background-color: #1a1a1a;
+    color: #f5f5f7;
+  }
   .toggle-ss {
     @apply relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 cursor-pointer;
     background: #2a2a2a;
