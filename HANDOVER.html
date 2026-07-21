@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sunstore — Документация для клиента</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#000;
+    --surface:#0a0a0a;
+    --hairline:rgba(255,255,255,0.08);
+    --ink:#f5f5f7;
+    --ink-2:#a1a1a6;
+    --ink-3:#86868b;
+    --accent:#f59e0b;
+    --accent-dim:rgba(245,158,11,0.12);
+    --r-md:12px;
+    --r-lg:18px;
+  }
+  html{scroll-behavior:smooth;font-size:16px}
+  body{
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    min-height:100vh;
+  }
+  a{color:var(--accent);text-decoration:none;transition:opacity .2s}
+  a:hover{opacity:.85}
+
+  /* Container */
+  .container{
+    max-width:900px;
+    margin:0 auto;
+    padding:0 24px;
+  }
+
+  /* Fade-up animation */
+  .fade-up{
+    opacity:0;
+    transform:translateY(28px);
+    transition:opacity .7s cubic-bezier(.22,1,.36,1),transform .7s cubic-bezier(.22,1,.36,1);
+  }
+  .fade-up.visible{
+    opacity:1;
+    transform:translateY(0);
+  }
+  @media(prefers-reduced-motion:reduce){
+    .fade-up{opacity:1;transform:none;transition:none}
+  }
+
+  /* ── Header ── */
+  .header{
+    padding:72px 0 48px;
+    border-bottom:1px solid var(--hairline);
+  }
+  .brand{
+    display:inline-flex;
+    align-items:center;
+    gap:2px;
+    font-size:28px;
+    font-weight:700;
+    letter-spacing:-.02em;
+    margin-bottom:12px;
+  }
+  .brand-dot{
+    display:inline-block;
+    width:8px;height:8px;
+    background:var(--accent);
+    border-radius:50%;
+    margin-left:2px;
+    vertical-align:super;
+  }
+  .header-sub{
+    font-size:18px;
+    font-weight:500;
+    color:var(--ink-2);
+    margin-bottom:8px;
+  }
+  .header-date{
+    font-size:13px;
+    color:var(--ink-3);
+    font-weight:400;
+  }
+
+  /* ── Section ── */
+  .section{
+    padding:56px 0 40px;
+    border-bottom:1px solid var(--hairline);
+  }
+  .section:last-of-type{
+    border-bottom:none;
+  }
+  .section-title{
+    font-size:14px;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--ink-3);
+    margin-bottom:28px;
+  }
+
+  /* ── Links Grid ── */
+  .links-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+  @media(max-width:600px){
+    .links-grid{grid-template-columns:1fr}
+  }
+  .link-card{
+    background:var(--surface);
+    border:1px solid var(--hairline);
+    border-radius:var(--r-md);
+    padding:20px;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+    transition:border-color .2s;
+  }
+  .link-card:hover{
+    border-color:rgba(255,255,255,0.15);
+  }
+  .link-card-label{
+    font-size:11px;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--ink-3);
+  }
+  .link-card-value{
+    font-size:13px;
+    color:var(--ink-2);
+    word-break:break-all;
+    line-height:1.5;
+  }
+  .link-btn{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    margin-top:4px;
+    padding:8px 16px;
+    background:var(--accent);
+    color:#000;
+    font-size:12px;
+    font-weight:600;
+    border-radius:8px;
+    transition:opacity .2s;
+    text-decoration:none;
+  }
+  .link-btn:hover{opacity:.9;color:#000}
+  .link-btn svg{width:14px;height:14px}
+  .code-box{
+    background:rgba(255,255,255,0.04);
+    border:1px solid var(--hairline);
+    border-radius:8px;
+    padding:10px 14px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:14px;
+    color:var(--accent);
+    letter-spacing:.02em;
+    user-select:all;
+  }
+
+  /* ── Steps ── */
+  .steps-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .step-row{
+    display:flex;
+    align-items:flex-start;
+    gap:18px;
+    background:var(--surface);
+    border:1px solid var(--hairline);
+    border-radius:var(--r-md);
+    padding:20px 22px;
+    transition:border-color .2s;
+  }
+  .step-row:hover{
+    border-color:rgba(255,255,255,0.15);
+  }
+  .step-num{
+    flex-shrink:0;
+    width:36px;height:36px;
+    background:var(--accent);
+    color:#000;
+    font-size:14px;
+    font-weight:700;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .step-body{
+    flex:1;min-width:0;
+  }
+  .step-name{
+    font-size:15px;
+    font-weight:600;
+    margin-bottom:4px;
+  }
+  .step-desc{
+    font-size:13px;
+    color:var(--ink-2);
+    line-height:1.6;
+  }
+
+  /* ── Table ── */
+  .pages-table{
+    width:100%;
+    border-collapse:separate;
+    border-spacing:0;
+    border:1px solid var(--hairline);
+    border-radius:var(--r-md);
+    overflow:hidden;
+    font-size:13px;
+  }
+  .pages-table thead{
+    background:rgba(255,255,255,0.03);
+  }
+  .pages-table th{
+    text-align:left;
+    font-size:11px;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--ink-3);
+    padding:14px 18px;
+    border-bottom:1px solid var(--hairline);
+  }
+  .pages-table td{
+    padding:14px 18px;
+    border-bottom:1px solid var(--hairline);
+    vertical-align:top;
+    color:var(--ink-2);
+  }
+  .pages-table tbody tr:last-child td{
+    border-bottom:none;
+  }
+  .pages-table tbody tr:hover{
+    background:rgba(255,255,255,0.02);
+  }
+  .pages-table td:first-child{
+    font-weight:600;
+    color:var(--ink);
+    white-space:nowrap;
+  }
+  .pages-table td:nth-child(2){
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    color:var(--accent);
+    white-space:nowrap;
+  }
+  @media(max-width:600px){
+    .pages-table{font-size:12px}
+    .pages-table th,.pages-table td{padding:10px 12px}
+  }
+
+  /* ── Email Section ── */
+  .email-block{
+    display:flex;
+    flex-direction:column;
+    gap:16px;
+  }
+  .email-intro{
+    font-size:14px;
+    color:var(--ink-2);
+    line-height:1.7;
+  }
+  .email-features{
+    list-style:none;
+    padding:0;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .email-features li{
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    font-size:14px;
+    color:var(--ink-2);
+    line-height:1.6;
+  }
+  .email-features li::before{
+    content:'';
+    flex-shrink:0;
+    width:6px;height:6px;
+    background:var(--accent);
+    border-radius:50%;
+    margin-top:8px;
+  }
+  .email-guide{
+    background:var(--surface);
+    border:1px solid var(--hairline);
+    border-radius:var(--r-md);
+    padding:22px;
+  }
+  .email-guide-title{
+    font-size:14px;
+    font-weight:600;
+    color:var(--ink);
+    margin-bottom:16px;
+  }
+  .email-guide-steps{
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    counter-reset:email-step;
+  }
+  .email-guide-step{
+    display:flex;
+    align-items:flex-start;
+    gap:14px;
+    font-size:13px;
+    color:var(--ink-2);
+    line-height:1.6;
+    counter-increment:email-step;
+  }
+  .email-guide-step::before{
+    content:counter(email-step);
+    flex-shrink:0;
+    width:26px;height:26px;
+    background:var(--accent-dim);
+    color:var(--accent);
+    font-size:12px;
+    font-weight:700;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .email-guide-step code{
+    background:rgba(255,255,255,0.06);
+    padding:2px 7px;
+    border-radius:5px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    color:var(--accent);
+  }
+
+  /* ── Warning Cards ── */
+  .warnings-list{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .warning-card{
+    background:var(--surface);
+    border-left:3px solid var(--accent);
+    border-radius:0 var(--r-md) var(--r-md) 0;
+    padding:18px 22px;
+    font-size:14px;
+    color:var(--ink-2);
+    line-height:1.65;
+  }
+  .warning-card strong{
+    color:var(--ink);
+    font-weight:600;
+  }
+  .warning-card code{
+    background:rgba(255,255,255,0.06);
+    padding:2px 7px;
+    border-radius:5px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    color:var(--accent);
+  }
+
+  /* ── Test Cards ── */
+  .test-cards{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+  }
+  @media(max-width:600px){
+    .test-cards{grid-template-columns:1fr}
+  }
+  .test-card{
+    background:var(--surface);
+    border:1px solid var(--hairline);
+    border-radius:var(--r-md);
+    padding:22px;
+  }
+  .test-card-label{
+    font-size:11px;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:.06em;
+    color:var(--ink-3);
+    margin-bottom:14px;
+  }
+  .test-card-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:6px 0;
+    font-size:13px;
+  }
+  .test-card-row:not(:last-child){
+    border-bottom:1px solid var(--hairline);
+  }
+  .test-card-key{
+    color:var(--ink-3);
+    font-size:12px;
+  }
+  .test-card-val{
+    font-family:'JetBrains Mono',monospace;
+    font-size:13px;
+    color:var(--ink);
+    letter-spacing:.03em;
+    user-select:all;
+  }
+  .test-card.success{border-color:rgba(34,197,94,0.25)}
+  .test-card.success .test-card-label{color:rgba(34,197,94,0.8)}
+  .test-card.fail{border-color:rgba(239,68,68,0.25)}
+  .test-card.fail .test-card-label{color:rgba(239,68,68,0.8)}
+
+  /* ── Footer ── */
+  .footer{
+    padding:48px 0 64px;
+    text-align:center;
+    font-size:13px;
+    color:var(--ink-3);
+  }
+  .footer span{
+    color:var(--ink-2);
+    font-weight:500;
+  }
+
+  /* ── Print ── */
+  @media print{
+    body{background:#fff!important;color:#111!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .header,.section,.footer{border-color:rgba(0,0,0,0.1)!important}
+    .brand{color:#111!important}
+    .brand-dot{background:var(--accent)!important}
+    .section-title{color:#666!important}
+    .link-card,.step-row,.warning-card,.test-card,.email-guide{
+      background:#f7f7f7!important;
+      border-color:rgba(0,0,0,0.12)!important;
+      box-shadow:none!important;
+    }
+    .step-num{background:var(--accent)!important}
+    .link-btn{
+      background:var(--accent)!important;
+      color:#000!important;
+    }
+    .pages-table{border-color:rgba(0,0,0,0.12)!important}
+    .pages-table thead{background:#f0f0f0!important}
+    .pages-table th{color:#555!important}
+    .pages-table td{color:#333!important;border-color:rgba(0,0,0,0.08)!important}
+    .pages-table td:first-child{color:#111!important}
+    .pages-table td:nth-child(2){color:#92400e!important}
+    .warning-card{border-left-color:var(--accent)!important;color:#333!important}
+    .warning-card strong{color:#111!important}
+    .warning-card code{background:rgba(0,0,0,0.06)!important;color:#92400e!important}
+    .email-intro,.email-features li,.email-guide-step,.email-guide-title{color:#333!important}
+    .email-guide-step code{background:rgba(0,0,0,0.06)!important;color:#92400e!important}
+    .email-guide-step::before{background:rgba(245,158,11,0.15)!important;color:var(--accent)!important}
+    .email-features li::before{background:var(--accent)!important}
+    .link-card-label,.link-card-value,.step-desc,.test-card-key,.header-date,.header-sub,.footer,.test-card-label{color:#555!important}
+    .link-card-value a,.step-name,.test-card-val{color:#111!important}
+    .code-box{background:#f0f0f0!important;color:#92400e!important;border-color:rgba(0,0,0,0.1)!important}
+    .fade-up{opacity:1!important;transform:none!important}
+    .test-card.success,.test-card.fail{border-color:rgba(0,0,0,0.12)!important}
+    .test-card.success .test-card-label,.test-card.fail .test-card-label{color:#555!important}
+    .link-card:hover,.step-row:hover,.pages-table tbody tr:hover{background:#f7f7f7!important}
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ======== Header ======== -->
+  <header class="header fade-up">
+    <div class="brand">Sunstore<span class="brand-dot"></span></div>
+    <div class="header-sub">Документация для клиента</div>
+    <div class="header-date">21 июля 2026</div>
+  </header>
+
+  <!-- ======== Section 1: Ссылки и доступы ======== -->
+  <section class="section fade-up">
+    <h2 class="section-title">Ссылки и доступы</h2>
+    <div class="links-grid">
+      <div class="link-card">
+        <div class="link-card-label">Магазин</div>
+        <div class="link-card-value">sunstore.vercel.app</div>
+        <a href="https://sunstore.vercel.app" target="_blank" class="link-btn">
+          Открыть
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>
+        </a>
+      </div>
+      <div class="link-card">
+        <div class="link-card-label">Админ-панель</div>
+        <div class="link-card-value">sunstore.vercel.app/admin</div>
+        <a href="https://sunstore.vercel.app/admin" target="_blank" class="link-btn">
+          Открыть
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>
+        </a>
+      </div>
+      <div class="link-card">
+        <div class="link-card-label">Вход в админку</div>
+        <div class="link-card-value">sunstore.vercel.app/admin/login</div>
+        <a href="https://sunstore.vercel.app/admin/login" target="_blank" class="link-btn">
+          Открыть
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>
+        </a>
+      </div>
+      <div class="link-card">
+        <div class="link-card-label">GitHub</div>
+        <div class="link-card-value">github.com/roman-ryzenadvanced/sunstore-trae</div>
+        <a href="https://github.com/roman-ryzenadvanced/sunstore-trae" target="_blank" class="link-btn">
+          Открыть
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>
+        </a>
+      </div>
+      <div class="link-card">
+        <div class="link-card-label">Пароль админки</div>
+        <div class="code-box">sunstore</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======== Section 2: Как протестировать ======== -->
+  <section class="section fade-up">
+    <h2 class="section-title">Как протестировать</h2>
+    <div class="steps-list">
+
+      <div class="step-row">
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <div class="step-name">Просмотр витрины</div>
+          <div class="step-desc">Откройте главную страницу. Просмотрите hero-секцию, карточки товаров с кнопками «В корзину» и «Подробнее». Нажмите «Подробнее» для перехода на страницу товара с характеристиками, остатками на складе и кнопкой добавления в корзину.</div>
+        </div>
+      </div>
+
+      <div class="step-row">
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <div class="step-name">Каталог с фильтрами</div>
+          <div class="step-desc">Перейдите на страницу /array. Используйте фильтры-пили по категориям и переключатель валюты (RUB / USD / EUR).</div>
+        </div>
+      </div>
+
+      <div class="step-row">
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <div class="step-name">Карта товара</div>
+          <div class="step-desc">Откройте /product/[id]. Проверьте главное изображение, таблицу характеристик, индикатор остатков, кнопки «В корзину» и «Вернуться в каталог».</div>
+        </div>
+      </div>
+
+      <div class="step-row">
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <div class="step-name">Корзина</div>
+          <div class="step-desc">Добавьте товары в корзину. Проверьте счётчик-бейдж в шапке, страницу /velocity, изменение количества (+/-), удаление позиций. При сумме свыше 50 000 ₽ отображается бесплатная доставка.</div>
+        </div>
+      </div>
+
+      <div class="step-row">
+        <div class="step-num">5</div>
+        <div class="step-body">
+          <div class="step-name">Оформление заказа</div>
+          <div class="step-desc">Пройдите весь flow оформления: заполните данные клиента, выберите демонстрационную оплату, проверьте страницу статуса заказа.</div>
+        </div>
+      </div>
+
+      <div class="step-row">
+        <div class="step-num">6</div>
+        <div class="step-body">
+          <div class="step-name">Управление категориями</div>
+          <div class="step-desc">В админке перейдите в /admin/categories. Создайте, отредактируйте и удалите категорию. Проверьте сортировку перетаскиванием. В системе предустановлено 6 категорий.</div>
+        </div>
+      </div>
+
+      <div class="step-row">
+        <div class="step-num">7</div>
+        <div class="step-body">
+          <div class="step-name">Управление товарами</div>
+          <div class="step-desc">В админке перейдите в /admin/products. Создайте товар с помощью rich text редактора TipTap. Загрузите изображения с компьютера, из галереи или по URL. Фильтруйте по категориям с помощью пилей, используйте динамический выпадающий список категорий.</div>
+        </div>
+      </div>
+
+      <div class="step-row">
+        <div class="step-num">8</div>
+        <div class="step-body">
+          <div class="step-name">Загрузка изображений</div>
+          <div class="step-desc">Поддерживаемые форматы: JPG, PNG, WebP, GIF, SVG до 5 МБ. Изображения сохраняются в галерею с возможностью удаления. Доступна загрузка по URL как fallback.</div>
+        </div>
+      </div>
+
+      <div class="step-row">
+        <div class="step-num">9</div>
+        <div class="step-body">
+          <div class="step-name">Заказы + уведомления</div>
+          <div class="step-desc">Перейдите в /admin/orders. Изменение статуса заказа автоматически отправляет email-уведомление клиенту (если email настроен).</div>
+        </div>
+      </div>
+
+      <div class="step-row">
+        <div class="step-num">10</div>
+        <div class="step-body">
+          <div class="step-name">Настройки платежей</div>
+          <div class="step-desc">В /admin/settings/payments доступны 6 платёжных шлюзов: Т-Банк, ЮKassa, Сбербанк, CloudPayments, Робокасса, Демо. Переключение между sandbox и live режимом.</div>
+        </div>
+      </div>
+
+      <div class="step-row">
+        <div class="step-num">11</div>
+        <div class="step-body">
+          <div class="step-name">Настройки email</div>
+          <div class="step-desc">В /admin/settings/email выберите провайдера (Выключено / Custom SMTP / Яндекс API). Заполните SMTP-поля или Яндекс OAuth-токен. Нажмите «Проверить подключение» и активируйте переключатель.</div>
+        </div>
+      </div>
+
+      <div class="step-row">
+        <div class="step-num">12</div>
+        <div class="step-body">
+          <div class="step-name">Рассылка (mailing list)</div>
+          <div class="step-desc">Перейдите в /admin/subscribers. Просмотрите статистику подписчиков (всего / активных / неактивных). Добавляйте, переключайте и удаляйте подписчиков. Создайте рассылку: укажите тему и HTML-содержимое, отправьте всем активным подписчикам.</div>
+        </div>
+      </div>
+
+      <div class="step-row">
+        <div class="step-num">13</div>
+        <div class="step-body">
+          <div class="step-name">Подписка на рассылку (витрина)</div>
+          <div class="step-desc">На каждой странице в футере доступно поле ввода email для подписки на рассылку. После подписки отображается подтверждение «Вы подписаны».</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ======== Section 3: Страницы сайта ======== -->
+  <section class="section fade-up">
+    <h2 class="section-title">Страницы сайта</h2>
+    <table class="pages-table">
+      <thead>
+        <tr>
+          <th>Страница</th>
+          <th>URL</th>
+          <th>Описание</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Главная</td><td>/</td><td>Hero, каталог, преимущества</td></tr>
+        <tr><td>Каталог</td><td>/array</td><td>Каталог с фильтрами по категориям</td></tr>
+        <tr><td>Конфигуратор</td><td>/blueprint</td><td>Собрать солнечную систему</td></tr>
+        <tr><td>Корзина</td><td>/velocity</td><td>Управление корзиной</td></tr>
+        <tr><td>Оформление</td><td>/checkout</td><td>Данные клиента, оплата</td></tr>
+        <tr><td>Карта товара</td><td>/product/[id]</td><td>Детали, характеристики, фото</td></tr>
+        <tr><td>Статус заказа</td><td>/status</td><td>Проверка по номеру</td></tr>
+        <tr><td>Админка</td><td>/admin</td><td>Dashboard</td></tr>
+        <tr><td>Категории</td><td>/admin/categories</td><td>Управление категориями</td></tr>
+        <tr><td>Товары</td><td>/admin/products</td><td>Управление товарами</td></tr>
+        <tr><td>Заказы</td><td>/admin/orders</td><td>Управление заказами</td></tr>
+        <tr><td>Рассылка</td><td>/admin/subscribers</td><td>Подписчики, рассылка</td></tr>
+        <tr><td>Платежи</td><td>/admin/settings/payments</td><td>Платёжные шлюзы</td></tr>
+        <tr><td>Email</td><td>/admin/settings/email</td><td>Настройки почты</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <!-- ======== Section 4: Email-уведомления ======== -->
+  <section class="section fade-up">
+    <h2 class="section-title">Email-уведомления</h2>
+    <div class="email-block">
+      <p class="email-intro">Система поддерживает автоматическую отправку email-уведомлений при изменении статуса заказа и массовую рассылку по подписчикам.</p>
+      <ul class="email-features">
+        <li>Custom SMTP — любой провайдер: Yandex.Mail, Mail.ru, Gmail, корпоративный сервер</li>
+        <li>Yandex.Mail API — авторизация через OAuth-токен</li>
+        <li>Автоматические уведомления клиенту при смене статуса заказа</li>
+        <li>Отправка рассылки всем активным подписчикам из /admin/subscribers</li>
+      </ul>
+      <div class="email-guide">
+        <div class="email-guide-title">Быстрый старт с Yandex</div>
+        <div class="email-guide-steps">
+          <div class="email-guide-step">Перейдите в Настройки email и выберите «Custom SMTP»</div>
+          <div class="email-guide-step">SMTP-сервер: <code>smtp.yandex.ru</code>, Порт: <code>465</code>, SSL: включён</div>
+          <div class="email-guide-step">Логин: <code>ваш@yandex.ru</code>, Пароль: пароль приложения (не основной пароль от аккаунта!)</div>
+          <div class="email-guide-step">Для Яндекс API: oauth.yandex.ru/client/new — выберите «Почта Яндекс»</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======== Section 5: Важно знать ======== -->
+  <section class="section fade-up">
+    <h2 class="section-title">Важно знать</h2>
+    <div class="warnings-list">
+      <div class="warning-card">
+        <strong>Данные в оперативной памяти</strong> — все данные хранятся в памяти и сбрасываются при перезапуске сервера. Для production-развертывания необходимо подключить PostgreSQL.
+      </div>
+      <div class="warning-card">
+        <strong>Пароль по умолчанию</strong> — пароль администратора: <code>sunstore</code>. Рекомендуется сменить через переменную окружения <code>ADMIN_PASSWORD</code>.
+      </div>
+      <div class="warning-card">
+        <strong>Демо-режим оплаты включён</strong> — платёжная система работает без merchant-ключей. Все транзакции проходят в тестовом режиме.
+      </div>
+      <div class="warning-card">
+        <strong>Загруженные изображения в public/uploads/</strong> — для production-окружения рекомендуется использовать облачное хранилище: S3 или Cloudflare R2.
+      </div>
+      <div class="warning-card">
+        <strong>Email-уведомления выключены по умолчанию</strong> — настройте SMTP или Яндекс в <code>/admin/settings/email</code> для включения уведомлений и рассылки.
+      </div>
+    </div>
+  </section>
+
+  <!-- ======== Section 6: Тестовые карты ======== -->
+  <section class="section fade-up">
+    <h2 class="section-title">Тестовые карты</h2>
+    <div class="test-cards">
+      <div class="test-card success">
+        <div class="test-card-label">Успешная оплата</div>
+        <div class="test-card-row">
+          <span class="test-card-key">Номер</span>
+          <span class="test-card-val">2200 0000 0000 0001</span>
+        </div>
+        <div class="test-card-row">
+          <span class="test-card-key">Срок</span>
+          <span class="test-card-val">12/30</span>
+        </div>
+        <div class="test-card-row">
+          <span class="test-card-key">CVV</span>
+          <span class="test-card-val">123</span>
+        </div>
+      </div>
+      <div class="test-card fail">
+        <div class="test-card-label">Оплата отклонена</div>
+        <div class="test-card-row">
+          <span class="test-card-key">Номер</span>
+          <span class="test-card-val">4444 4444 4444 4445</span>
+        </div>
+        <div class="test-card-row">
+          <span class="test-card-key">Срок</span>
+          <span class="test-card-val">12/30</span>
+        </div>
+        <div class="test-card-row">
+          <span class="test-card-key">CVV</span>
+          <span class="test-card-val">123</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======== Footer ======== -->
+  <footer class="footer fade-up">
+    <span>Sunstore</span> — 2026. Готово к использованию.
+  </footer>
+
+</div>
+
+<script>
+  // IntersectionObserver fade-up
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.08, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.fade-up').forEach((el) => observer.observe(el));
+</script>
+
+</body>
+</html>
