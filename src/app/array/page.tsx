@@ -173,7 +173,7 @@ function ArrayContent() {
                       <span className="price-ss text-lg">{formatPrice(product.price)}</span>
                       <span className="muted-ss ml-2 text-xs">{currencyConfig.symbol}</span>
                     </div>
-                    <div className="mt-4 flex gap-2">
+                    <div className="mt-auto pt-4 flex gap-2">
                       <button
                         onClick={() =>
                           addToCart({
@@ -185,7 +185,7 @@ function ArrayContent() {
                             category: product.category
                           })
                         }
-                        className="btn btn-ghost flex-1"
+                        className="btn btn-primary flex-1"
                       >
                         В корзину
                       </button>

@@ -39,8 +39,8 @@ function ProductCard({ product, onAdd }: { product: any; onAdd: (p: any) => void
         <div className="mt-4 flex items-center justify-between">
           <span className="price-ss text-lg">{formatPrice(product.price)}</span>
         </div>
-        <div className="mt-4 flex gap-2">
-          <button onClick={() => onAdd(product)} className="btn btn-ghost flex-1">
+        <div className="mt-auto pt-4 flex gap-2">
+          <button onClick={() => onAdd(product)} className="btn btn-primary flex-1">
             В корзину
           </button>
           <a href={`/product/${product.id}`} className="btn btn-ghost flex-1 text-center">
