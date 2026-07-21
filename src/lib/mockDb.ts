@@ -213,12 +213,33 @@ const seedProducts: Product[] = [
   }
 ]
 
+export interface Category {
+  id: string
+  name: string        // Russian display name, e.g. "Панели"
+  slug: string        // URL-safe key, e.g. "panels"
+  description?: string
+  sortOrder: number   // lower = first
+  isActive: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+const seedCategories: Category[] = [
+  { id: 'cat_001', name: 'Панели', slug: 'panels', sortOrder: 1, isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'cat_002', name: 'Инверторы', slug: 'inverters', sortOrder: 2, isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'cat_003', name: 'Аккумуляторы', slug: 'batteries', sortOrder: 3, isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'cat_004', name: 'Контроллеры', slug: 'controllers', sortOrder: 4, isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'cat_005', name: 'Крепления', slug: 'mounting', sortOrder: 5, isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+  { id: 'cat_006', name: 'Системы', slug: 'systems', sortOrder: 6, isActive: true, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+]
+
 // In-memory storage — use globalThis to persist across Next.js dev server module instances
 const globalForDb = globalThis as unknown as {
   _sunstoreProducts?: Product[]
   _sunstoreCarts?: Map<string, Cart>
   _sunstoreOrders?: Map<string, Order>
   _sunstoreSessionOrders?: Map<string, string[]>
+  _sunstoreCategories?: Category[]
 }
 
 if (!globalForDb._sunstoreProducts) {
@@ -233,8 +254,12 @@ if (!globalForDb._sunstoreOrders) {
 if (!globalForDb._sunstoreSessionOrders) {
   globalForDb._sunstoreSessionOrders = new Map()
 }
+if (!globalForDb._sunstoreCategories) {
+  globalForDb._sunstoreCategories = [...seedCategories]
+}
 
 let products: Product[] = globalForDb._sunstoreProducts
+const categories: Category[] = globalForDb._sunstoreCategories
 const carts: Map<string, Cart> = globalForDb._sunstoreCarts
 const orders: Map<string, Order> = globalForDb._sunstoreOrders
 // Session to orders mapping for user order lookup
@@ -480,4 +505,55 @@ export function markOrderPaid(orderId: string, paymentId?: string): Order | null
 /** Find an order by its public orderNumber (e.g. SUN-12345678). */
 export function getOrderByNumber(orderNumber: string): Order | undefined {
   return Array.from(orders.values()).find(o => o.orderNumber === orderNumber)
+}
+
+/* ============================ Category helpers ============================ */
+
+/** Returns active categories sorted by sortOrder (public/catalog view). */
+export function getCategories(): Category[] {
+  return categories.filter(c => c.isActive).sort((a, b) => a.sortOrder - b.sortOrder)
+}
+
+/** Returns all categories including inactive ones (admin view). */
+export function getAllCategories(): Category[] {
+  return [...categories].sort((a, b) => a.sortOrder - b.sortOrder)
+}
+
+export function createCategory(data: Partial<Category>): Category {
+  const now = new Date().toISOString()
+  const maxOrder = categories.reduce((max, c) => Math.max(max, c.sortOrder), 0)
+  const category: Category = {
+    id: data.id || 'cat_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+    name: data.name || 'Новая категория',
+    slug: data.slug || data.name?.toLowerCase().replace(/\s+/g, '-') || 'new',
+    description: data.description,
+    sortOrder: data.sortOrder !== undefined ? data.sortOrder : maxOrder + 1,
+    isActive: data.isActive !== undefined ? data.isActive : true,
+    createdAt: now,
+    updatedAt: now
+  }
+  categories.push(category)
+  globalForDb._sunstoreCategories = categories
+  return category
+}
+
+export function updateCategory(id: string, patch: Partial<Category>): Category | null {
+  const idx = categories.findIndex(c => c.id === id)
+  if (idx === -1) return null
+  categories[idx] = {
+    ...categories[idx],
+    ...patch,
+    id: categories[idx].id,
+    updatedAt: new Date().toISOString()
+  }
+  globalForDb._sunstoreCategories = categories
+  return categories[idx]
+}
+
+export function deleteCategory(id: string): boolean {
+  const idx = categories.findIndex(c => c.id === id)
+  if (idx === -1) return false
+  categories.splice(idx, 1)
+  globalForDb._sunstoreCategories = categories
+  return true
 }

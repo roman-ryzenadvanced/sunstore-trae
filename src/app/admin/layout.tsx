@@ -6,6 +6,7 @@ import Link from 'next/link'
 
 const NAV = [
   { href: '/admin', label: 'Обзор' },
+  { href: '/admin/categories', label: 'Категории' },
   { href: '/admin/products', label: 'Товары' },
   { href: '/admin/orders', label: 'Заказы' },
   { href: '/admin/settings/payments', label: 'Платежи' }
